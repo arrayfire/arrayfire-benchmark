@@ -1,25 +1,28 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 project(af_benchmark)
 
+FIND_PACKAGE(ArrayFire REQUIRED)
+
 FILE(GLOB SOURCE "*.cpp")
 
-MACRO(CREATE_BENCHMARK BACKEND)
-    ADD_EXECUTABLE(benchmark_${BACKEND} ${SOURCE})
-    TARGET_LINK_LIBRARIES(benchmark_${BACKEND} celero af${BACKEND} ${THREAD_LIB_FLAG})
-    SET_TARGET_PROPERTIES(benchmark_${BACKEND} PROPERTIES COMPILE_FLAGS -DAF_${DEF_NAME})
-ENDMACRO(CREATE_BENCHMARK)
-
-
-IF(${BUILD_CPU})
-  CREATE_BENCHMARK(cpu)
+# Build benchmarks linking specifically with designated backends
+if(ArrayFire_CPU_FOUND)
+    MESSAGE(STATUS "ArrayFire CPU backend found. Enabling CPU benchmark")
+    ADD_EXECUTABLE(benchmark_cpu ${SOURCE})
+    MESSAGE(STATUS ${ArrayFire_CPU_LIBRARIES})
+    TARGET_LINK_LIBRARIES(benchmark_cpu celero ${ArrayFire_CPU_LIBRARIES})
 ENDIF()
 
-IF(${BUILD_CUDA})
-  CREATE_BENCHMARK(cuda)
+if(ArrayFire_OPENCL_FOUND)
+    MESSAGE(STATUS "ArrayFire OpenCL backend found. Enabling OpenCL benchmark")
+    ADD_EXECUTABLE(benchmark_opencl ${SOURCE})
+    TARGET_LINK_LIBRARIES(benchmark_opencl celero ${ArrayFire_OPENCL_LIBRARIES})
 ENDIF()
 
-IF(${BUILD_OPENCL})
-  CREATE_BENCHMARK(opencl)
+if(ArrayFire_CUDA_FOUND)
+    MESSAGE(STATUS "ArrayFire CUDA found. Enabling CUDA benchmark")
+    ADD_EXECUTABLE(benchmark_cuda ${SOURCE})
+    TARGET_LINK_LIBRARIES(benchmark_cuda celero ${ArrayFire_CUDA_LIBRARIES})
 ENDIF()
 
 INCLUDE_DIRECTORIES(
