@@ -25,7 +25,3 @@ if(ArrayFire_CUDA_FOUND)
     ADD_EXECUTABLE(benchmark_cuda ${SOURCE})
     TARGET_LINK_LIBRARIES(benchmark_cuda celero ${ArrayFire_CUDA_LIBRARIES})
 ENDIF()
-
-INCLUDE_DIRECTORIES(
-    ${CMAKE_CURRENT_SOURCE_DIR}
-)
