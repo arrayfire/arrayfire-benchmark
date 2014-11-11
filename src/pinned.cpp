@@ -53,10 +53,9 @@ public:
 	}
 };
 
-BASELINE_F(Pinned, Baseline, PinnedFixture_2D_f32, samples, operations) { }
+BASELINE_F(PinnedMemory_f32, Baseline, PinnedFixture_2D_f32, samples, operations) { }
 
-
-BENCHMARK_F(Pinned, f32, PinnedFixture_2D_f32, samples, operations)
+BENCHMARK_F(PinnedMemory_f32, Bandwidth, PinnedFixture_2D_f32, samples, operations)
 {
 #warning This test does nothing as critical portions of ArrayFire are not implemented.
 //	dim4 A_size = A.dims();
