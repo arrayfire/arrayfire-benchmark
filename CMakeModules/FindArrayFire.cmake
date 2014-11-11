@@ -7,7 +7,7 @@
 # ArrayFire_FOUND           - True if ArrayFire has been located
 #
 # You may provide a hint to where ArrayFire's root directory may be located
-# by setting ArrayFire_ROOT before calling this script.
+# by setting ArrayFire_ROOT_DIR before calling this script.
 #
 # ----------------------------------------------------------------------------
 #
@@ -59,7 +59,7 @@ ENDIF()
 # Find the ArrayFire install directories and headers:
 FIND_PATH(ArrayFire_ROOT_DIR
     NAMES include/arrayfire.h
-    HINTS /usr/local/ ${ArrayFire_ROOT} 
+    HINTS /usr/local/ ${ArrayFire_ROOT_DIR} 
     DOC "ArrayFire root directory.")
     
 FIND_PATH(ArrayFire_INCLUDE_DIRS
