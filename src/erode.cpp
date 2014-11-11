@@ -7,49 +7,34 @@
 
 #include <celero/Celero.h>
 #include <arrayfire.h>
+#include "fixtures.h"
 using namespace af;
 
 extern unsigned int samples;
 extern unsigned int operations;
 
-class ErodeFixture : public celero::TestFixture
-{
-public:
-	array A;
-
-	ErodeFixture()
-	{
-
-	}
-
-	virtual std::vector<int64_t> getExperimentValues() const
-	{
-		std::vector<int64_t> problemSpace;
-
-		for(int i = 5; i < 12; i++)
-		{
-			problemSpace.push_back(pow(2, i));
-		}
-
-		return problemSpace;
-	}
-
-	/// Before each run, build a vector of random integers.
-	virtual void setUp(int64_t experimentSize)
-	{
-		A = randu(experimentSize, experimentSize);
-	}
-};
-
-BASELINE_F(Erode, 5x5, ErodeFixture, samples, operations)
+BASELINE_F(Erode_f32, 5x5, Fixture_2D_f32, samples, operations)
 {
 	// time the creation of the random 5x5 array
-	array K = constant(1, 3, 3);
+	array K = constant(1, 3, 3, f32);
 }
 
-BENCHMARK_F(Erode, 5x5, ErodeFixture, samples, operations)
+BENCHMARK_F(Erode_f32, 5x5, Fixture_2D_f32, samples, operations)
 {
-	array K = constant(1, 3, 3);
+	array K = constant(1, 3, 3, f32);
+    array B = erode(this->A, K);
+    B.eval();
+}
+
+BASELINE_F(Erode_f64, 5x5, Fixture_2D_f64, samples, operations)
+{
+	// time the creation of the random 5x5 array
+	array K = constant(1, 3, 3, f64);
+}
+
+BENCHMARK_F(Erode_f64, 5x5, Fixture_2D_f64, samples, operations)
+{
+	array K = constant(1, 3, 3, f64);
     array B = erode(this->A, K);
     B.eval();
 }
