@@ -11,25 +11,8 @@
 #include <arrayfire.h>
 using namespace af;
 
-/// Base class for all ArrayFire fixtures
-class AF_Fixture : public celero::TestFixture
-{
-public:
-
-	virtual std::vector<int64_t> getExperimentValues() const
-	{
-		std::vector<int64_t> problemSpace;
-
-		for(int i = 5; i < 12; i++)
-			problemSpace.push_back(pow(2, i));
-
-		return problemSpace;
-
-	}
-};
-
 // Base class for all ArrayFire 1D fixtures
-class AF_Fixture_1D : public AF_Fixture
+class AF_Fixture_1D : public celero::TestFixture
 {
 public:
 	af_dtype data_type;
@@ -37,6 +20,17 @@ public:
 
 	AF_Fixture_1D(){ this->data_type = af_dtype::f32; }
 	AF_Fixture_1D(af_dtype data_type){ this->data_type = data_type; }
+
+	virtual std::vector<int64_t> getExperimentValues() const
+	{
+		std::vector<int64_t> problemSpace;
+		// 256 - 1048576 elements
+		for(int i = 8; i < 21; i++)
+			problemSpace.push_back(pow(2, i));
+
+		return problemSpace;
+
+	}
 
 	/// Before each run, build a vector of random integers.
 	virtual void setUp(int64_t experimentSize)
@@ -59,7 +53,7 @@ public:
 };
 
 // Base class for all ArrayFire 2D fixtures
-class AF_Fixture_2D : public AF_Fixture
+class AF_Fixture_2D : public celero::TestFixture
 {
 public:
 	af_dtype data_type;
@@ -67,6 +61,17 @@ public:
 
 	AF_Fixture_2D(){ this->data_type = af_dtype::f32; }
 	AF_Fixture_2D(af_dtype data_type){ this->data_type = data_type; }
+
+	virtual std::vector<int64_t> getExperimentValues() const
+	{
+		std::vector<int64_t> problemSpace;
+		// 32 x 32 - 32768 x 32768
+		for(int i = 5; i < 15; i++)
+			problemSpace.push_back(pow(2, i));
+
+		return problemSpace;
+
+	}
 
 	/// Before each run, build a vector of random integers.
 	virtual void setUp(int64_t experimentSize)
