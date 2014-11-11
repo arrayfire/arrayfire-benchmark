@@ -108,10 +108,11 @@ FIND_LIBRARY(_ArrayFire_CUDA_LIBRARY
         
 IF(_ArrayFire_CUDA_LIBRARY)
     FIND_PACKAGE(CUDA REQUIRED)
+    INCLUDE(${CMAKE_MODULE_PATH}/CUDACheckCompute.cmake)
     
     SET(ArrayFire_CUDA_LIBRARIES ${_ArrayFire_CUDA_LIBRARY} 
         ${CUDA_CUBLAS_LIBRARIES} ${CUDA_LIBRARIES} ${CUDA_CUFFT_LIBRARIES} 
-        ${CUDA_NVVM_LIBRARIES} ${CUDA_DRIVER_LIBRARY}
+        ${CUDA_NVVM_LIBRARIES} ${CUDA_DRIVER_LIBRARY} ${CUDA_CUDA_LIBRARY}
         CACHE INTERNAL "All libraries required for ArrayFire's CUDA implementation")
         
     SET(ArrayFire_CUDA_FOUND TRUE CACHE BOOL "Whether the ArrayFire's CUDA library has been located.")
