@@ -25,9 +25,10 @@ BENCHMARK_F(Resize_f32, INTERP_NEAREST, Fixture_2D_f32, samples, operations)
 
 BENCHMARK_F(Resize_f32, INTERP_LINEAR, Fixture_2D_f32, samples, operations)
 {
-	dim4 A_size = A.dims();
-	array B = resize(A, A_size.dims[0] / 2, A_size.dims[1] / 2, AF_INTERP_LINEAR);
-	B.eval();
+#warning The AF_INTERP_LINEAR method has yet to be implemented. Enable this code when ArrayFire is ready
+//	dim4 A_size = A.dims();
+//	array B = resize(A, A_size.dims[0] / 2, A_size.dims[1] / 2, AF_INTERP_LINEAR);
+//	B.eval();
 }
 
 BENCHMARK_F(Resize_f32, INTERP_BILINEAR, Fixture_2D_f32, samples, operations)
@@ -57,9 +58,10 @@ BENCHMARK_F(Resize_f64, INTERP_NEAREST, Fixture_2D_f64, samples, operations)
 
 BENCHMARK_F(Resize_f64, AF_INTERP_LINEAR, Fixture_2D_f64, samples, operations)
 {
-	dim4 A_size = A.dims();
-	array B = resize(A, A_size.dims[0] / 2, A_size.dims[1] / 2, AF_INTERP_LINEAR);
-	B.eval();
+#warning The AF_INTERP_LINEAR method has yet to be implemented. Enable this code when ArrayFire is ready
+//	dim4 A_size = A.dims();
+//	array B = resize(A, A_size.dims[0] / 2, A_size.dims[1] / 2, AF_INTERP_LINEAR);
+//	B.eval();
 }
 
 BENCHMARK_F(Resize_f64, INTERP_BILINEAR, Fixture_2D_f64, samples, operations)
