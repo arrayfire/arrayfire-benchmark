@@ -14,7 +14,7 @@ extern unsigned int samples;
 extern unsigned int operations;
 
 // 32-bit functions
-BASELINE_F(Bandwidth_f32, CopyTest, Fixture_2D_f32, samples, operations){}
+BASELINE_F(Bandwidth_f32, Baseline, Fixture_2D_f32, samples, operations){}
 
 BENCHMARK_F(Bandwidth_f32, CopyTest, Fixture_2D_f32, samples, operations)
 {
@@ -24,7 +24,7 @@ BENCHMARK_F(Bandwidth_f32, CopyTest, Fixture_2D_f32, samples, operations)
 }
 
 // 64-bit functions
-BASELINE_F(Bandwidth_f64, CopyTest, Fixture_2D_f64, samples, operations){}
+BASELINE_F(Bandwidth_f64, Baseline, Fixture_2D_f64, samples, operations){}
 
 BENCHMARK_F(Bandwidth_f64, CopyTest, Fixture_2D_f64, samples, operations)
 {
