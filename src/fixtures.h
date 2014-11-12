@@ -24,8 +24,9 @@ public:
 	virtual std::vector<int64_t> getExperimentValues() const
 	{
 		std::vector<int64_t> problemSpace;
-		// 256 - 1048576 elements
-		for(int i = 8; i < 21; i++)
+		// 256 - 1048576 elements (2^8 - 2^20)
+		// 256 - 33554432 elements (2^8 - 2^25)
+		for(int i = 8; i <= 25; i++)
 			problemSpace.push_back(pow(2, i));
 
 		return problemSpace;
@@ -65,9 +66,16 @@ public:
 	virtual std::vector<int64_t> getExperimentValues() const
 	{
 		std::vector<int64_t> problemSpace;
-		// 32 x 32 - 32768 x 32768
-		for(int i = 5; i < 15; i++)
-			problemSpace.push_back(pow(2, i));
+		// 32 x 32 - 32768 x 32768 (2^5 - 2^15)
+		// 32 x 32 - 8196 x 8196 (2^5 - 2^13)
+		for(int i = 5; i < 13; i++)
+		{
+			// create square problems that are equal in size to the linear
+			// memory allocation.
+			unsigned int width = pow(2, i);
+			unsigned int problem_size = pow(width, 2);
+			problemSpace.push_back(problem_size);
+		}
 
 		return problemSpace;
 
@@ -76,7 +84,10 @@ public:
 	/// Before each run, build a vector of random integers.
 	virtual void setUp(int64_t experimentSize)
 	{
-		A = randu(experimentSize, experimentSize, this->data_type);
+		// We allocate square arrays with width = sqrt(experimentSize)
+		unsigned int width = sqrt(experimentSize);
+
+		A = randu(width, width, this->data_type);
 	}
 };
 
