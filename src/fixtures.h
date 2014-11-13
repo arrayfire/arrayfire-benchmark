@@ -37,6 +37,7 @@ public:
 	virtual void setUp(int64_t experimentSize)
 	{
 		A = randu(experimentSize, this->data_type);
+		A.eval();
 	}
 };
 
@@ -88,6 +89,7 @@ public:
 		unsigned int width = sqrt(experimentSize);
 
 		A = randu(width, width, this->data_type);
+		A.eval();
 	}
 };
 
