@@ -59,23 +59,26 @@ ENDIF()
 # Find the ArrayFire install directories and headers:
 FIND_PATH(ArrayFire_ROOT_DIR
     NAMES include/arrayfire.h
-    HINTS /usr/local/ ${ArrayFire_ROOT_DIR} 
+    HINTS "${CMAKE_INSTALL_PREFIX}" "${ArrayFire_ROOT_DIR}" "${ArrayFire_ROOT_DIR}/lib64"
     DOC "ArrayFire root directory.")
     
 FIND_PATH(ArrayFire_INCLUDE_DIRS
     NAMES arrayfire.h
-    HINTS ${ArrayFire_ROOT_DIR}/include
+    HINTS "${ArrayFire_ROOT_DIR}/include"
     DOC "ArrayFire Include directory")
+
+# Find all libraries used by all backends first
 
 # Find all libraries required for the CPU backend
 FIND_LIBRARY(_ArrayFire_CPU_LIBRARY
     NAMES afcpu
-    HINTS ${ArrayFire_ROOT_DIR}/lib)  
+    HINTS "${ArrayFire_ROOT_DIR}/lib")
 
 IF(_ArrayFire_CPU_LIBRARY)
     FIND_PACKAGE(FFTW REQUIRED)
+    FIND_PACKAGE(BLAS REQUIRED)
     
-    SET(ArrayFire_CPU_LIBRARIES ${_ArrayFire_CPU_LIBRARY} ${FFTW_LIBRARIES} 
+    SET(ArrayFire_CPU_LIBRARIES ${_ArrayFire_CPU_LIBRARY} ${FFTW_LIBRARIES} ${BLAS_LIBRARIES}
         CACHE INTERNAL "All libraries required for ArrayFire's CPU implementation")
     SET(ArrayFire_CPU_FOUND TRUE CACHE BOOL "Whether or not ArrayFire's CPU library has been located.")
     SET(_ArrayFire_LIBRARIES ${ArrayFire_CPU_LIBRARIES})
@@ -84,13 +87,13 @@ ENDIF()
 # Find all libraries required for the OpenCL backend
 FIND_LIBRARY(_ArrayFire_OPENCL_LIBRARY
     NAMES afopencl
-    HINTS ${ArrayFire_ROOT_DIR}/lib)
+    HINTS "${ArrayFire_ROOT_DIR}/lib")
         
 IF(_ArrayFire_OPENCL_LIBRARY)
     FIND_PACKAGE(OpenCL REQUIRED)
     FIND_PACKAGE(CLBLAS REQUIRED)
     FIND_PACKAGE(clFFT REQUIRED)
-    FIND_PACKAGE(BoostCompute REQUIRED)
+#    FIND_PACKAGE(BoostCompute REQUIRED)
     FIND_PACKAGE(Boost 1.48 COMPONENTS chrono REQUIRED)
     
     SET(ArrayFire_OPENCL_LIBRARIES ${_ArrayFire_OPENCL_LIBRARY} ${OPENCL_LIBRARIES}
@@ -104,12 +107,12 @@ ENDIF()
 # Find all libraries required for the CUDA backend
 FIND_LIBRARY(_ArrayFire_CUDA_LIBRARY
     NAMES afcuda
-    HINTS ${ArrayFire_ROOT_DIR}/lib)
+    HINTS "${ArrayFire_ROOT_DIR}/lib")
         
 IF(_ArrayFire_CUDA_LIBRARY)
     FIND_PACKAGE(CUDA REQUIRED)
-    INCLUDE(${CMAKE_MODULE_PATH}/CUDACheckCompute.cmake)
-    INCLUDE(${CMAKE_MODULE_PATH}/FindNVVM.cmake)
+    INCLUDE("${CMAKE_MODULE_PATH}/CUDACheckCompute.cmake")
+    INCLUDE("${CMAKE_MODULE_PATH}/FindNVVM.cmake")
     
     SET(ArrayFire_CUDA_LIBRARIES ${_ArrayFire_CUDA_LIBRARY} 
         ${CUDA_CUBLAS_LIBRARIES} ${CUDA_LIBRARIES} ${CUDA_CUFFT_LIBRARIES} 
@@ -121,8 +124,6 @@ IF(_ArrayFire_CUDA_LIBRARY)
 ENDIF()
 
 SET(ArrayFire_LIBRARIES ${_ArrayFire_LIBRARIES})
-
-MESSAGE(STATUS ${ArrayFire_LIBRARIES})
 
 # handle the QUIETLY and REQUIRED arguments and set ArrayFire_FOUND to TRUE if
 # all listed variables are TRUE
