@@ -37,9 +37,9 @@ using namespace celero;
 class AFResultsTable::Impl
 {
 public:
+	std::vector<std::string> staticColumnHeaders;
+	std::vector<std::string> staticColumnValues;
 	std::string fileName;
-	std::string arrayfireVersion;
-	std::string arrayFireRevision;
 	std::map<std::string, std::map<std::string, std::vector<std::pair<int64_t, double>>>> results;
 
 public:
@@ -70,16 +70,12 @@ void AFResultsTable::setFileName(const std::string& x)
 	this->pimpl->fileName = x;
 }
 
-void AFResultsTable::setArrayFireVersion(const std::string& x)
+void AFResultsTable::addStaticColumn(const std::string& header, const std::string& value)
 {
-	assert(x.empty() == false);
-	this->pimpl->arrayfireVersion = x;
-}
-
-void AFResultsTable::setArrayFireRevision(const std::string& x)
-{
-	assert(x.empty() == false);
-	this->pimpl->arrayFireRevision = x;
+	assert(header.empty() == false);
+	assert(value.empty() == false);
+	this->pimpl->staticColumnHeaders.push_back(header);
+	this->pimpl->staticColumnValues.push_back(value);
 }
 
 void AFResultsTable::add(std::shared_ptr<Result> x)
@@ -94,29 +90,32 @@ void AFResultsTable::save()
 	std::ofstream ofs;
 	ofs.open(this->pimpl->fileName);
 
-	std::string af_version = this->pimpl->arrayfireVersion;
-	std::string af_revision = this->pimpl->arrayFireRevision;
+	const std::vector<std::string> staticHeaders = this->pimpl->staticColumnHeaders;
+	const std::vector<std::string> staticValues = this->pimpl->staticColumnValues;
 
 	if(ofs.is_open() == true)
 	{
 		const auto os = &ofs;
 
 		std::for_each(std::begin(this->pimpl->results), std::end(this->pimpl->results),
-			[&os, &af_version, &af_revision](decltype(*std::begin(this->pimpl->results))& group)
+			[&os, &staticHeaders, &staticValues](decltype(*std::begin(this->pimpl->results))& group)
 			{
 				*os << group.first << "\n";
 			
 				const auto run = group.second;
 
 				std::for_each(std::begin(run), std::end(run),
-					[run, os, af_version, af_revision](decltype(*std::begin(run))& result)
+					[run, os, staticHeaders, staticValues](decltype(*std::begin(run))& result)
 					{
 						auto vec = result.second;
 
+						// Write the header row
 						if(result.first == std::begin(run)->first)
 						{
 							*os << ",";
-							*os << "AF_VERSION,AF_REVISION,";
+							for(auto header: staticHeaders)
+								*os << header << ",";
+
 							std::for_each(std::begin(vec), std::end(vec), 
 								[os](decltype(*std::begin(vec))& element)
 								{
@@ -125,8 +124,11 @@ void AFResultsTable::save()
 							*os << "\n";
 						}
 
+						// Write the data row
 						*os << result.first << ",";
-						*os << af_version << "," << af_revision << ",";
+						for(auto value: staticValues)
+							*os << value << ",";
+
 						std::for_each(std::begin(vec), std::end(vec), 
 							[os](decltype(*std::begin(vec))& element)
 							{

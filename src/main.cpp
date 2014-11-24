@@ -75,8 +75,8 @@ int main(int argc, char** argv)
 		string af_revision(REVISION);
 
 		AFResultsTable::Instance().setFileName(argument);
-		AFResultsTable::Instance().setArrayFireVersion(af_version);
-		AFResultsTable::Instance().setArrayFireRevision(af_revision);
+		AFResultsTable::Instance().addStaticColumn("AF_VERSION", af_version);
+		AFResultsTable::Instance().addStaticColumn("AF_REVISION", af_revision);
 
 		celero::AddExperimentResultCompleteFunction(
 			[](std::shared_ptr<celero::Result> p)

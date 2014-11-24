@@ -39,11 +39,11 @@ class AFResultsTable
 		void setFileName(const std::string& x);
 
 		///
-		/// Specify the ArrayFire library version
-		void setArrayFireVersion(const std::string & version);
-
-		/// Specify the ArrayFire library revision
-		void setArrayFireRevision(const std::string & revision);
+		/// Adds an extra column that will appear in every row in the table
+		///
+		/// \param header The label that will appear in the header row
+		/// \param value  The value that will appear in every data row
+		void addStaticColumn(const std::string& header, const std::string& value);
 
 		///
 		/// Add a new result to the result table.
