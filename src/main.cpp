@@ -64,7 +64,7 @@ int main(int argc, char** argv)
 		cout << "Available devices:" << endl;
 
 		int nDevices = af::getDeviceCount();
-		cout << "ID    Device               Platform   Toolkit              Compute" << endl;
+		cout << " ID    Device               Platform   Toolkit              Compute" << endl;
 		for(int device = 0; device < nDevices; device++)
 		{
 			af::setDevice(device);
@@ -75,7 +75,7 @@ int main(int argc, char** argv)
 			device_toolkit.resize(20, ' ');
 			device_compute.resize(20, ' ');
 
-			cout << left << setw(5) << device << " " << device_name << " " << device_platform << " " << device_toolkit << " " << device_compute << endl;
+			cout << " " << left << setw(5) << device << " " << device_name << " " << device_platform << " " << device_toolkit << " " << device_compute << endl;
 		}
 
 		cout << endl;
