@@ -17,7 +17,8 @@
 #include <fstream>
 #include <cmath>
 
-#include "af/version.h" // Needed for ArrayFire version information
+#include "arrayfire.h"
+#include "af/version.h"
 #include "AFResultTable.h"
 
 using namespace celero;
@@ -25,6 +26,29 @@ using namespace std;
 
 unsigned int samples = 10;
 unsigned int operations = 10;
+
+// Wraps af::deviceprop with C++ data types. Handles allocation/deallocation of char*
+void getAFDeviceInfo(string & device_name, string & device_platform, string & device_toolkit, string & device_compute)
+{
+	// allocate 32 characters (32 bytes + 1)
+	size_t  temp_alloc = 33 * sizeof(char);
+	char * t_device_name = (char*) malloc(temp_alloc);
+	char * t_device_platform = (char*) malloc(temp_alloc);
+	char * t_device_toolkit = (char*) malloc(temp_alloc);
+	char * t_device_compute = (char*) malloc(temp_alloc);
+	af::deviceprop(t_device_name, t_device_platform, t_device_toolkit, t_device_compute);
+
+	device_name = string(t_device_name);
+	device_platform = string(t_device_platform);
+	device_toolkit = string(t_device_toolkit);
+	device_compute = string(t_device_compute);
+
+	delete t_device_name;
+	delete t_device_platform;
+	delete t_device_toolkit;
+	delete t_device_compute;
+
+}
 
 int main(int argc, char** argv)
 {
@@ -71,12 +95,22 @@ int main(int argc, char** argv)
 	auto argument = args.get<std::string>("recordTable");
 	if(argument.empty() == false)
 	{
+		// Get information about ArrayFire
 		string af_version = string(AF_VERSION) + string(AF_VERSION_MINOR);
-		string af_revision(REVISION);
+		string af_revision(AF_REVISION);
+
+		// Get information about the device on which we are running
+		string device_name, device_platform, device_toolkit, device_compute;
+		getAFDeviceInfo(device_name, device_platform, device_toolkit, device_compute);
 
 		AFResultsTable::Instance().setFileName(argument);
 		AFResultsTable::Instance().addStaticColumn("AF_VERSION", af_version);
 		AFResultsTable::Instance().addStaticColumn("AF_REVISION", af_revision);
+		AFResultsTable::Instance().addStaticColumn("AF_DEVICE", device_name);
+		AFResultsTable::Instance().addStaticColumn("AF_PLATFORM", device_platform);
+		AFResultsTable::Instance().addStaticColumn("AF_TOOLKIT", device_toolkit);
+		AFResultsTable::Instance().addStaticColumn("AF_COMPUTE", device_compute);
+
 
 		celero::AddExperimentResultCompleteFunction(
 			[](std::shared_ptr<celero::Result> p)
