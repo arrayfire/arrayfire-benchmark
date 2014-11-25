@@ -14,6 +14,7 @@
 #include <celero/Callbacks.h>
 
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <cmath>
 #include <ctime>
@@ -31,30 +32,25 @@ unsigned int operations = 10;
 // Wraps af::deviceprop with C++ data types. Handles allocation/deallocation of char*
 void getAFDeviceInfo(string & device_name, string & device_platform, string & device_toolkit, string & device_compute)
 {
-	// allocate 32 characters (32 bytes + 1)
-	size_t  temp_alloc = 33 * sizeof(char);
-	char * t_device_name = (char*) malloc(temp_alloc);
-	char * t_device_platform = (char*) malloc(temp_alloc);
-	char * t_device_toolkit = (char*) malloc(temp_alloc);
-	char * t_device_compute = (char*) malloc(temp_alloc);
+	char t_device_name[64] = {0};
+	char t_device_platform[64] = {0};
+	char t_device_toolkit[64] = {0};
+	char t_device_compute[64] = {0};
 	af::deviceprop(t_device_name, t_device_platform, t_device_toolkit, t_device_compute);
 
 	device_name = string(t_device_name);
 	device_platform = string(t_device_platform);
 	device_toolkit = string(t_device_toolkit);
 	device_compute = string(t_device_compute);
-
-	delete t_device_name;
-	delete t_device_platform;
-	delete t_device_toolkit;
-	delete t_device_compute;
-
 }
 
 int main(int argc, char** argv)
 {
+	string device_name, device_platform, device_toolkit, device_compute;
+
 	cmdline::parser args;
 	args.add("list", 'l', "Prints a list of all available benchmarks.");
+	args.add("devices", 'd', "Prints a list of all devices for this backend.");
 	args.add<std::string>("group", 'g', "Runs a specific group of benchmarks.", false, "");
 	args.add<std::string>("recordTable", 'r', "Appends the results table to the named file.", false, "");
 //	args.add<std::string>("outputTable", 't', "Saves a results table to the named file.", false, "");
@@ -62,6 +58,27 @@ int main(int argc, char** argv)
 //	args.add<std::string>("archive", 'a', "Saves or updates a result archive file.", false, "");
 //	args.add<uint64_t>("distribution", 'd', "Builds a file to help characterize the distribution of measurements and exits.", false, 0);
 	args.parse_check(argc, argv);
+
+
+	if(args.exist("devices"))
+	{
+		 int nDevices = af::getDeviceCount();
+		 cout << "ID    Device               Platform   Toolkit              Compute" << endl;
+		 for(int device = 0; device < nDevices; device++)
+		 {
+			af::setDevice(device);
+			getAFDeviceInfo(device_name, device_platform, device_toolkit, device_compute);
+
+			device_name.resize(20, ' ');
+			device_platform.resize(10, ' ');
+			device_toolkit.resize(20, ' ');
+			device_compute.resize(20, ' ');
+
+			cout << left << setw(5) << device << " " << device_name << " " << device_platform << " " << device_toolkit << " " << device_compute << endl;
+		 }
+
+		 return 0;
+	}
 
 	if(args.exist("list"))
 	{
@@ -101,7 +118,6 @@ int main(int argc, char** argv)
 		string af_revision(AF_REVISION);
 
 		// Get information about the device on which we are running
-		string device_name, device_platform, device_toolkit, device_compute;
 		getAFDeviceInfo(device_name, device_platform, device_toolkit, device_compute);
 
 		// Get the current time. Strip the newline from asctime(...)
