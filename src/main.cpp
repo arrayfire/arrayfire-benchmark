@@ -16,6 +16,7 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <ctime>
 
 #include "arrayfire.h"
 #include "af/version.h"
@@ -103,6 +104,11 @@ int main(int argc, char** argv)
 		string device_name, device_platform, device_toolkit, device_compute;
 		getAFDeviceInfo(device_name, device_platform, device_toolkit, device_compute);
 
+		// Get the current time. Strip the newline from asctime(...)
+		std::time_t current_time = std::time(nullptr);
+		string local_time = std::asctime(std::localtime(&current_time));
+		local_time.erase(std::remove(local_time.begin(), local_time.end(), '\n'), local_time.end());
+
 		AFResultsTable::Instance().setFileName(argument);
 		AFResultsTable::Instance().addStaticColumn("AF_VERSION", af_version);
 		AFResultsTable::Instance().addStaticColumn("AF_REVISION", af_revision);
@@ -110,6 +116,8 @@ int main(int argc, char** argv)
 		AFResultsTable::Instance().addStaticColumn("AF_PLATFORM", device_platform);
 		AFResultsTable::Instance().addStaticColumn("AF_TOOLKIT", device_toolkit);
 		AFResultsTable::Instance().addStaticColumn("AF_COMPUTE", device_compute);
+		AFResultsTable::Instance().addStaticColumn("LOCAL_TIME", local_time);
+		AFResultsTable::Instance().addStaticColumn("POSIX_TIME", std::to_string(current_time));
 
 
 		celero::AddExperimentResultCompleteFunction(
