@@ -49,8 +49,8 @@ int main(int argc, char** argv)
 	string device_name, device_platform, device_toolkit, device_compute;
 
 	cmdline::parser args;
-	args.add("list", 'l', "Prints a list of all available benchmarks.");
-	args.add("devices", 'd', "Prints a list of all devices for this backend.");
+	args.add("list", 'l', "Prints a list of all available benchmarks and devices.");
+	args.add<uint64_t>("devices", 'd', "Sets the backend on which the benchmark will be executed", false);
 	args.add<std::string>("group", 'g', "Runs a specific group of benchmarks.", false, "");
 	args.add<std::string>("recordTable", 'r', "Appends the results table to the named file.", false, "");
 //	args.add<std::string>("outputTable", 't', "Saves a results table to the named file.", false, "");
@@ -59,13 +59,14 @@ int main(int argc, char** argv)
 //	args.add<uint64_t>("distribution", 'd', "Builds a file to help characterize the distribution of measurements and exits.", false, 0);
 	args.parse_check(argc, argv);
 
-
-	if(args.exist("devices"))
+	if(args.exist("list"))
 	{
-		 int nDevices = af::getDeviceCount();
-		 cout << "ID    Device               Platform   Toolkit              Compute" << endl;
-		 for(int device = 0; device < nDevices; device++)
-		 {
+		cout << "Available devices:" << endl;
+
+		int nDevices = af::getDeviceCount();
+		cout << "ID    Device               Platform   Toolkit              Compute" << endl;
+		for(int device = 0; device < nDevices; device++)
+		{
 			af::setDevice(device);
 			getAFDeviceInfo(device_name, device_platform, device_toolkit, device_compute);
 
@@ -75,15 +76,11 @@ int main(int argc, char** argv)
 			device_compute.resize(20, ' ');
 
 			cout << left << setw(5) << device << " " << device_name << " " << device_platform << " " << device_toolkit << " " << device_compute << endl;
-		 }
+		}
 
-		 return 0;
-	}
-
-	if(args.exist("list"))
-	{
+		cout << endl;
+		cout << "Available tests:" << endl;
 		TestVector& tests = celero::TestVector::Instance();
-		std::cout << "Avaliable tests:" << std::endl;
 		std::vector<std::string> test_names;
 		for(unsigned int i = 0; i < tests.size(); i++)
 		{
@@ -98,6 +95,11 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
+	auto intDevice = args.get<uint64_t>("devices");
+	if(intDevice > 0)
+	{
+		af::setDevice(intDevice);
+	}
 
 	// Initial output
 	print::GreenBar("");
