@@ -8,6 +8,7 @@
 #ifndef SRC_FIXTURES_H_
 #define SRC_FIXTURES_H_
 
+#include <iostream>
 #include <arrayfire.h>
 using namespace af;
 
@@ -36,8 +37,17 @@ public:
 	/// Before each run, build a vector of random integers.
 	virtual void setUp(int64_t experimentSize)
 	{
-		A = randu(experimentSize, this->data_type);
-		A.eval();
+		try
+		{
+			A = randu(experimentSize, this->data_type);
+			A.eval();
+		}
+		catch (af::exception & e)
+		{
+			// print out the error, rethrow the error to cause the test to fail.
+			std::cout << e << std::endl;
+			throw e;
+		}
 	}
 };
 
@@ -88,8 +98,17 @@ public:
 		// We allocate square arrays with width = sqrt(experimentSize)
 		unsigned int width = sqrt(experimentSize);
 
-		A = randu(width, width, this->data_type);
-		A.eval();
+		try
+		{
+			A = randu(width, width, this->data_type);
+			A.eval();
+		}
+		catch (af::exception & e)
+		{
+			// print out the error, rethrow the error to cause the test to fail.
+			std::cout << e << std::endl;
+			throw e;
+		}
 	}
 };
 
