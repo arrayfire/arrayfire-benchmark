@@ -10,7 +10,6 @@ FILE(GLOB SOURCE "*.cpp")
 if(ArrayFire_CPU_FOUND)
     MESSAGE(STATUS "ArrayFire CPU backend found. Enabling CPU benchmark")
     ADD_EXECUTABLE(benchmark_cpu ${SOURCE})
-    MESSAGE(STATUS ${ArrayFire_CPU_LIBRARIES})
     TARGET_LINK_LIBRARIES(benchmark_cpu celero ${ArrayFire_CPU_LIBRARIES})
 ENDIF()
 
