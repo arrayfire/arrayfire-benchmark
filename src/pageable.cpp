@@ -61,5 +61,6 @@ BENCHMARK_F(Pageable_f32, Benchmark, PageFixture_2D_f32, samples, operations)
 //	dim4 A_size = A.dims();
 //    array B = array(A_size.dims[0], A_size.dims[1], A_host, af::afHost);
 //    B.eval();
+//	af::sync();
 }
 

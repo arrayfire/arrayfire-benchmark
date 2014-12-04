@@ -18,6 +18,7 @@ BASELINE_F(Erode_f32, Baseline, Fixture_2D_f32, samples, operations)
 	// time the creation of the random 5x5 array
 	array K = constant(1, 3, 3, f32);
 	K.eval();
+	af::sync();
 }
 
 BENCHMARK_F(Erode_f32, 5x5, Fixture_2D_f32, samples, operations)
@@ -26,6 +27,7 @@ BENCHMARK_F(Erode_f32, 5x5, Fixture_2D_f32, samples, operations)
 	K.eval();
     array B = erode(this->A, K);
     B.eval();
+	af::sync();
 }
 
 BASELINE_F(Erode_f64, Baseline, Fixture_2D_f64, samples, operations)
@@ -33,6 +35,7 @@ BASELINE_F(Erode_f64, Baseline, Fixture_2D_f64, samples, operations)
 	// time the creation of the random 5x5 array
 	array K = constant(1, 3, 3, f64);
 	K.eval();
+	af::sync();
 }
 
 BENCHMARK_F(Erode_f64, 5x5, Fixture_2D_f64, samples, operations)
@@ -41,4 +44,5 @@ BENCHMARK_F(Erode_f64, 5x5, Fixture_2D_f64, samples, operations)
 	K.eval();
     array B = erode(this->A, K);
     B.eval();
+	af::sync();
 }

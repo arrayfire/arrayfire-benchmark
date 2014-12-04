@@ -20,6 +20,7 @@ BENCHMARK_F(Sum_1D_f32, Sum, Fixture_1D_f32, samples, operations)
 {
 	array B = sum(A);
 	B.eval();
+	af::sync();
 }
 
 BASELINE_F(Sum_2D_f32, Baseline, Fixture_2D_f32, samples, operations) { }
@@ -27,6 +28,7 @@ BENCHMARK_F(Sum_2D_f32, Sum, Fixture_2D_f32, samples, operations)
 {
 	array B = sum(A);
 	B.eval();
+	af::sync();
 }
 
 // Benchmarks for 64-bit floating point tests
@@ -35,6 +37,7 @@ BENCHMARK_F(Sum_1D_f64, Sum, Fixture_1D_f64, samples, operations)
 {
 	array B = sum(A);
 	B.eval();
+	af::sync();
 }
 
 BASELINE_F(Sum_2D_f64, Baseline, Fixture_2D_f64, samples, operations) { }
@@ -42,4 +45,5 @@ BENCHMARK_F(Sum_2D_f64, Sum, Fixture_2D_f64, samples, operations)
 {
 	array B = sum(A);
 	B.eval();
+	af::sync();
 }

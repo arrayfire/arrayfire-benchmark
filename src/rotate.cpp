@@ -22,6 +22,7 @@ BENCHMARK_F(Rotate_f32, INTERP_NEAREST, Fixture_2D_f32, samples, operations)
 {
 	array B = rotate(A, M_PI / 4.0f);
 	B.eval();
+	af::sync();
 }
 
 // Benchmarks for 64-bit floating point tests
@@ -31,4 +32,5 @@ BENCHMARK_F(Rotate_f64, INTERP_NEAREST, Fixture_2D_f64, samples, operations)
 {
 	array B = rotate(A, M_PI / 4.0f);
 	B.eval();
+	af::sync();
 }

@@ -41,6 +41,7 @@ public:
 		{
 			A = randu(experimentSize, this->data_type);
 			A.eval();
+	        af::sync();
 		}
 		catch (af::exception & e)
 		{
@@ -102,6 +103,7 @@ public:
 		{
 			A = randu(width, width, this->data_type);
 			A.eval();
+	        af::sync();
 		}
 		catch (af::exception & e)
 		{
