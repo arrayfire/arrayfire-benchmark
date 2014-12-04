@@ -1,5 +1,8 @@
 #!/usr/bin/python
 
+import glob
+import numpy as np
+
 def parse_celero_recordTable_header(header_row):
 
    
@@ -11,6 +14,7 @@ def parse_celero_recordTable_header(header_row):
     split_end = split_start + len(data_sizes)
     
     data_sizes = map(int, data_sizes)
+    data_sizes = np.array(data_sizes)
     
     return [data_sizes, other_fields, split_start, split_end]
 
@@ -30,7 +34,7 @@ def read_celero_recordTable(filename):
     group_name = ""
     header = list()
     baseline = list()
-    results = list()
+    times = list()
     output = list()
     data_sizes = list()
     other_fields = list()
@@ -39,23 +43,24 @@ def read_celero_recordTable(filename):
     split_end = 0
     
     for line in infile:
-        # strip off white space, split on commas, remove empty entries
+        # strip off white space, skip blank lines
         line = line.strip("\n")
+
         line = line.split(',')
         
         # Tests are separated by a line with no data
-        if(line[0] == '' and line[1] == ''):
+        if(len(line) == 1 or (line[0] == '' and line[1] == '')):
             # save the current result
-            if(len(results) > 0):
+            if(len(times) > 0):
                 temp = {'group': group_name, 'data_sizes': data_sizes, 
-                    'results': results, 'baseline': baseline, 
+                    'times': times, 'baseline': baseline, 
                     'other_fields': other_fields, 'other_fields_data': other_fields_data}
                 output.append(temp)
             # reset locals
             group_name = ""
             header = list()
             baseline = list()
-            results = list()
+            times = list()
             # mark the new test block and advance to the next line
             new_test = True
             continue
@@ -74,24 +79,69 @@ def read_celero_recordTable(filename):
             if(line[0] == "Baseline"):
                 baseline = line[split_start:split_end]
                 baseline = map(float, baseline)
+                baseline = np.array(baseline)
             else:
                 other_fields_data = line[1:split_start]
 
-                t_results = line[split_start:split_end]
-                t_results = map(float, t_results)
-                results.append(t_results)
+                t_times = line[split_start:split_end]
+                t_times = map(float, t_times)
+                t_times = np.array(t_times)
+                times.append(t_times)
             
     return output
     
-results = list()        
-results.extend(read_celero_recordTable("../results/ripley_GTX_750_cuda.csv"))
-results.extend(read_celero_recordTable("../results/romulus_GTX_780_cuda.csv"))
+    
+def import_directory(directory):
+
+    csv_files = glob.glob(directory + "/*.csv")
+    
+    results = list()        
+    
+    for filename in csv_files:
+        results.extend(read_celero_recordTable(filename))
+        
+    return results
+    
+
+results = import_directory("/home/bkloppenborg/workspace/arrayfire_benchmark/results/")
+
+
 
 temp = list()
 for result in results:
     if result['group'] == 'Accumulate_1D_f32':
         temp.append(result)
         
-print temp
-    
+      
+import matplotlib.pyplot as plt  
+import math
+import matplotlib.cm as cm
 
+colors = cm.rainbow(np.linspace(0, 1, len(temp)))
+color_id = 0
+
+# plot data size vs. execution time
+for result in temp:
+    x = np.sqrt(result['data_sizes'])
+    y = result['times']
+    
+    #print result['data_sizes']
+    #print result['times']
+ 
+    plt.scatter(x, y, color=colors[color_id], label=result['other_fields_data'][2])
+   # plt.plot(x,y)
+    color_id += 1
+
+plt.legend(numpoints=1, loc='upper left')   
+plt.show()
+
+color_id = 0
+for result in temp:
+    x = np.sqrt(result['data_sizes'])
+    y = result['data_sizes'] / result['times']
+
+    plt.scatter(x, y, color=colors[color_id], label=result['other_fields_data'][2])
+    color_id += 1
+    
+plt.legend(numpoints=1, loc='upper left')   
+plt.show()
