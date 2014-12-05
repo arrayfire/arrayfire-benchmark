@@ -88,10 +88,66 @@ def plot_time_vs_size(results, show_backend=False):
     # set specific plot options
     plt.xlim(0,plt.xlim()[1])
     plt.ylim(0,plt.ylim()[1])
+    plt.title(results[0]['group'])
     plt.ylabel("Execution time (micro-seconds)")
     plt.xlabel("Image width")
-    plt.title(results[0]['group'])
     plt.legend(loc='upper left', numpoints=1)
+    plt.show()
+    
+def plot_throughput_vs_size(results, show_backend=False):
+
+    colors = cm.rainbow(np.linspace(0, 1, len(results)))
+
+    # plot for throughput vs. data size
+    color_id = 0
+    for result in results:
+        x = np.sqrt(result['data_sizes'])
+        y = result['data_sizes'] / result['times']
+        
+        # construct the label
+        label = result['extra_data']['AF_DEVICE']
+        if show_backend:
+            label += " " + result['extra_data']['AF_PLATFORM'] 
+         
+        plt.scatter(x, y, color=colors[color_id], label=label)
+        plt.plot(x,y, color=colors[color_id], label=None)
+        color_id += 1
+        
+    # set specific plot options
+    plt.xlim(0,plt.xlim()[1])
+    plt.ylim(0,plt.ylim()[1])
+    plt.title(results[0]['group'])
+    plt.ylabel(r"Throughput ($10^9$ elements / second)")
+    plt.xlabel("Image width")
+    plt.legend(loc='upper left', numpoints=1)
+    plt.show()
+
+def plot_image_rate_vs_size(results, show_backend=False):
+
+    colors = cm.rainbow(np.linspace(0, 1, len(results)))
+
+    # plot images/second vs. data size
+    color_id = 0
+    for result in results:
+        x = np.sqrt(result['data_sizes'])
+        y = 1.0/(result['times'] * 1E-9) / 1E6
+       
+        # construct the label
+        label = result['extra_data']['AF_DEVICE']
+        if show_backend:
+            label += " " + result['extra_data']['AF_PLATFORM'] 
+         
+        plt.scatter(x, y, color=colors[color_id], label=result['extra_data']['AF_DEVICE'])
+        plt.plot(x,y, color=colors[color_id], label=None)
+        color_id += 1
+
+    # set specific plot options
+    plt.xlim(0,2048)
+    plt.ylim(0,plt.ylim()[1])
+    plt.title(results[0]['group'])
+    plt.ylabel(r"Throughput ($10^6$ images / second)")
+    plt.xlabel("Image width")
+    plt.legend(loc='upper right', numpoints=1)
     plt.show()
 
 def read_celero_recordTable(filename):
@@ -268,46 +324,9 @@ def main():
             show_backend = True
         
         plot_time_vs_size(temp, show_backend=show_backend)
-        
-    quit()
-
-    # plot for throughput vs. data size
-    color_id = 0
-    for result in temp:
-        x = np.sqrt(result['data_sizes'])
-        y = result['data_sizes'] / result['times']
-
-        plt.scatter(x, y, color=colors[color_id], label=result['extra_data']['AF_DEVICE'])
-        plt.plot(x,y, color=colors[color_id], label=None)
-        color_id += 1
-        
-    # set specific plot options
-    plt.xlim(0,plt.xlim()[1])
-    plt.ylim(0,plt.ylim()[1])
-    plt.ylabel("Execution time (micro-seconds)")
-    plt.xlabel("Image width")
-    plt.legend(loc='upper left', numpoints=1)
-    plt.show()
-
-    # plot images/second vs. data size
-    color_id = 0
-    for result in temp:
-        x = np.sqrt(result['data_sizes'])
-        y = 1.0/(result['times'] * 1E-9) / 1E6
+        plot_throughput_vs_size(temp, show_backend=show_backend)
+        plot_image_rate_vs_size(temp, show_backend=show_backend)
          
-        plt.scatter(x, y, color=colors[color_id], label=result['extra_data']['AF_DEVICE'])
-        plt.plot(x,y, color=colors[color_id], label=None)
-        color_id += 1
-
-    # set specific plot options
-    plt.xlim(0,2048)
-    plt.ylim(0,plt.ylim()[1])
-    plt.ylabel("Throughput (Millions of images per second)")
-    plt.xlabel("Image width")
-    plt.legend(loc='upper right', numpoints=1)
-    plt.show()
-    
-    
     
 # Run the main function if this is a top-level script:
 if __name__ == "__main__":
