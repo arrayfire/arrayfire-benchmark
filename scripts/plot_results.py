@@ -17,17 +17,6 @@ class read_state():
     result_row = 2
     finished = 3
 
-def list_recordTable_groups(results):
-    """Returns a unique sorted list of all groups of benchmarks
-    """
-    all_groups = list()
-    for result in results:
-        all_groups.append(result['group'])
-        
-    unique_groups = set(all_groups)
-    unique_groups = sorted(unique_groups)
-    return unique_groups
-
 def list_recordTable_attribute(results, attribute):
 
     entries = list()
@@ -38,6 +27,29 @@ def list_recordTable_attribute(results, attribute):
     unique_entries = sorted(unique_entries)
     return unique_entries
 
+def list_recordTable_benchmarks(results):
+    """Returns a unique sorted list of all benchmarks
+    """
+    all_benchmarks = list()
+    for result in results:
+        all_benchmarks.append(result['benchmark_name'])
+        
+    unique_benchmarks = set(all_benchmarks)
+    unique_benchmarks = sorted(unique_benchmarks)
+    
+    return unique_benchmarks
+
+def list_recordTable_groups(results):
+    """Returns a unique sorted list of all groups of benchmarks
+    """
+    all_groups = list()
+    for result in results:
+        all_groups.append(result['group'])
+        
+    unique_groups = set(all_groups)
+    unique_groups = sorted(unique_groups)
+    return unique_groups
+   
 def label_and_plot(title, suffix, ylabel, xlabel, autosave=False, fmt='svg'):
     """Sets the title, x/y labels, and x/y limits. Plots the data or
        saves the file
@@ -82,7 +94,8 @@ def parse_celero_recordTable_header(header_row):
     return [data_sizes, other_fields, split_start, split_end]
 
 
-def plot_time_vs_size(results, show_backend=False, autosave=False, fmt="svg"):
+def plot_time_vs_size(results, show_backend=False, show_benchmark_name=False, 
+    autosave=False, fmt="svg"):
     """ Creates a plot of execution time vs. data size
     """
     
@@ -108,11 +121,15 @@ def plot_time_vs_size(results, show_backend=False, autosave=False, fmt="svg"):
     suffix = "execution_time"
     ylabel = "Execution time (micro-seconds)"
     xlabel = "Image width"
+    
+    if show_benchmark_name:
+        title += " " + results[0]['benchmark_name']
 
     plt.legend(loc='upper left', numpoints=1)
     label_and_plot(title, suffix, ylabel, xlabel, autosave=autosave, fmt=fmt)
     
-def plot_throughput_vs_size(results, show_backend=False, autosave=False, fmt="svg"):
+def plot_throughput_vs_size(results, show_backend=False, show_benchmark_name=False, 
+    autosave=False, fmt="svg"):
 
     colors = cm.rainbow(np.linspace(0, 1, len(results)))
 
@@ -137,10 +154,14 @@ def plot_throughput_vs_size(results, show_backend=False, autosave=False, fmt="sv
     ylabel = r"Throughput ($10^9$ elements / second)"
     xlabel = "Image width"
 
+    if show_benchmark_name:
+        title += " " + results[0]['benchmark_name']
+
     plt.legend(loc='upper left', numpoints=1)
     label_and_plot(title, suffix, ylabel, xlabel, autosave=autosave, fmt=fmt)
 
-def plot_image_rate_vs_size(results, show_backend=False, autosave=False, fmt="svg"):
+def plot_image_rate_vs_size(results, show_backend=False, show_benchmark_name=False, 
+    autosave=False, fmt="svg"):
 
     colors = cm.rainbow(np.linspace(0, 1, len(results)))
 
@@ -163,6 +184,9 @@ def plot_image_rate_vs_size(results, show_backend=False, autosave=False, fmt="sv
     suffix = "throughput_images_per_sec"
     ylabel = r"Throughput ($10^3$ images / second)"
     xlabel = "Image width"
+    
+    if show_benchmark_name:
+        title += " " + results[0]['benchmark_name']
 
     plt.yscale('log')
     plt.legend(loc='upper right', numpoints=1)
@@ -333,22 +357,34 @@ def main():
     if len(args.backend) > 0:
         results = filter(lambda x: x['extra_data']['AF_PLATFORM'] in args.backend, results)
     
-            
+    # do backend filtering
+    show_backend = False
+    if len(args.backend) > 1:
+        show_backend = True
+    
     # make the plots
     groups = list_recordTable_groups(results)
     for group in groups:
         # extract only the results which match this group
-        temp = filter(lambda x: x['group'] == group, results)
+        filtered_results = filter(lambda x: x['group'] == group, results)
         # remove the baseline measurements from the plots
-        temp = filter(lambda x: x['benchmark_name'] != "Baseline", temp)
+        filtered_results = filter(lambda x: x['benchmark_name'] != "Baseline", filtered_results)
+
+        # get a list of all benchmarks remaining
+        benchmarks = list_recordTable_benchmarks(filtered_results)
         
-        show_backend = False
-        if len(args.backend) > 1:
-            show_backend = True
+        show_benchmark_name = False
+        if len(benchmarks) > 1:
+            show_benchmark_name = True
+                    
+        for benchmark in benchmarks:
+            
+            # plot one benchmark at a time
+            temp = filter(lambda x: x['benchmark_name'] == benchmark, filtered_results)
         
-        plot_time_vs_size(temp, show_backend=show_backend, fmt=args.save_format, autosave=args.autosave)
-        plot_throughput_vs_size(temp, show_backend=show_backend, fmt=args.save_format, autosave=args.autosave)
-        plot_image_rate_vs_size(temp, show_backend=show_backend, fmt=args.save_format, autosave=args.autosave)
+            plot_time_vs_size(temp, show_backend=show_backend, show_benchmark_name=show_benchmark_name, fmt=args.save_format, autosave=args.autosave)
+            plot_throughput_vs_size(temp, show_backend=show_backend, show_benchmark_name=show_benchmark_name, fmt=args.save_format, autosave=args.autosave)
+            plot_image_rate_vs_size(temp, show_backend=show_backend, show_benchmark_name=show_benchmark_name, fmt=args.save_format, autosave=args.autosave)
          
     
 # Run the main function if this is a top-level script:
