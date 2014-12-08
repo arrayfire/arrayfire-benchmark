@@ -64,7 +64,7 @@ def parse_celero_recordTable_header(header_row):
     return [data_sizes, other_fields, split_start, split_end]
 
 
-def plot_time_vs_size(results, show_backend=False):
+def plot_time_vs_size(results, show_backend=False, fmt="svg", autosave=False):
     """ Creates a plot of execution time vs. data size
     """
     
@@ -86,15 +86,24 @@ def plot_time_vs_size(results, show_backend=False):
         color_id += 1
 
     # set specific plot options
+    title = results[0]['group']
+    suffix = "execution_time"
+    ylabel = "Execution time (micro-seconds)"
+    xlabel = "Image width"
     plt.xlim(0,plt.xlim()[1])
     plt.ylim(0,plt.ylim()[1])
-    plt.title(results[0]['group'])
-    plt.ylabel("Execution time (micro-seconds)")
-    plt.xlabel("Image width")
+    plt.title(title)
+    plt.ylabel(ylabel)
+    plt.xlabel(xlabel)
     plt.legend(loc='upper left', numpoints=1)
-    plt.show()
     
-def plot_throughput_vs_size(results, show_backend=False):
+    if autosave:
+        plt.savefig(title + '_' + suffix + '.' + fmt, bbox_inches='tight')
+        plt.close()
+    else:
+        plt.show()
+    
+def plot_throughput_vs_size(results, show_backend=False, fmt="svg", autosave=False):
 
     colors = cm.rainbow(np.linspace(0, 1, len(results)))
 
@@ -113,16 +122,25 @@ def plot_throughput_vs_size(results, show_backend=False):
         plt.plot(x,y, color=colors[color_id], label=None)
         color_id += 1
         
-    # set specific plot options
+    # set specific plot options   
+    title = results[0]['group']
+    suffix = "throughput_elements_per_sec"
+    ylabel = r"Throughput ($10^9$ elements / second)"
+    xlabel = "Image width"
     plt.xlim(0,plt.xlim()[1])
     plt.ylim(0,plt.ylim()[1])
-    plt.title(results[0]['group'])
-    plt.ylabel(r"Throughput ($10^9$ elements / second)")
-    plt.xlabel("Image width")
+    plt.title(title)
+    plt.ylabel(ylabel)
+    plt.xlabel(xlabel)
     plt.legend(loc='upper left', numpoints=1)
-    plt.show()
+    
+    if autosave:
+        plt.savefig(title + '_' + suffix + '.' + fmt, bbox_inches='tight')
+        plt.close()
+    else:
+        plt.show()
 
-def plot_image_rate_vs_size(results, show_backend=False):
+def plot_image_rate_vs_size(results, show_backend=False, fmt="svg", autosave=False):
 
     colors = cm.rainbow(np.linspace(0, 1, len(results)))
 
@@ -142,13 +160,22 @@ def plot_image_rate_vs_size(results, show_backend=False):
         color_id += 1
 
     # set specific plot options
-    plt.xlim(0,2048)
+    title = results[0]['group']
+    suffix = "throughput_images_per_sec"
+    ylabel = r"Throughput ($10^6$ images / second)"
+    xlabel = "Image width"
+    plt.xlim(0,plt.xlim()[1])
     plt.ylim(0,plt.ylim()[1])
-    plt.title(results[0]['group'])
-    plt.ylabel(r"Throughput ($10^6$ images / second)")
-    plt.xlabel("Image width")
-    plt.legend(loc='upper right', numpoints=1)
-    plt.show()
+    plt.title(title)
+    plt.ylabel(ylabel)
+    plt.xlabel(xlabel)
+    plt.legend(loc='upper left', numpoints=1)
+    
+    if autosave:
+        plt.savefig(title + '_' + suffix + '.' + fmt, bbox_inches='tight')
+        plt.close()
+    else:
+        plt.show()
 
 def read_celero_recordTable(filename):
     """
@@ -256,7 +283,11 @@ def main():
         help="Parse the specified file")
     parser.add_argument("-lg", "--list-groups", 
         help="List all test groups found in the file/directory",  action="store_true")
-     
+    parser.add_argument("--autosave", 
+        help="Set to enable automatic saving of plots",  action="store_true", default=False)
+    parser.add_argument("--save-format", 
+        help="Sets the format for saved files. [default: svg]", default="svg")
+        
     # arguments specific to the ArrayFire's benchmarking
     parser.add_argument("-t", "--data-type", 
         help="Show results only for a specific data type [f32, f64]")
@@ -310,6 +341,7 @@ def main():
     # limit by backend
     if args.backend:
         results = filter(lambda x: x['extra_data']['AF_PLATFORM'] in args.backend, results)
+    
             
     # make the plots
     groups = list_recordTable_groups(results)
@@ -323,9 +355,9 @@ def main():
         if len(args.backend) > 1:
             show_backend = True
         
-        plot_time_vs_size(temp, show_backend=show_backend)
-        plot_throughput_vs_size(temp, show_backend=show_backend)
-        plot_image_rate_vs_size(temp, show_backend=show_backend)
+        plot_time_vs_size(temp, show_backend=show_backend, fmt=args.save_format, autosave=args.autosave)
+        plot_throughput_vs_size(temp, show_backend=show_backend, fmt=args.save_format, autosave=args.autosave)
+        plot_image_rate_vs_size(temp, show_backend=show_backend, fmt=args.save_format, autosave=args.autosave)
          
     
 # Run the main function if this is a top-level script:
