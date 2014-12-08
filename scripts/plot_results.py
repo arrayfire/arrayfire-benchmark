@@ -38,6 +38,24 @@ def list_recordTable_attribute(results, attribute):
     unique_entries = sorted(unique_entries)
     return unique_entries
 
+def label_and_plot(title, suffix, ylabel, xlabel, autosave=False, fmt='svg'):
+    """Sets the title, x/y labels, and x/y limits. Plots the data or
+       saves the file
+    """
+    
+    # set specific plot options
+    plt.xlim(0,plt.xlim()[1])
+    plt.ylim(0,plt.ylim()[1])
+    plt.title(title)
+    plt.ylabel(ylabel)
+    plt.xlabel(xlabel)
+    
+    if autosave:
+        plt.savefig(title + '_' + suffix + '.' + fmt, bbox_inches='tight')
+        plt.close()
+    else:
+        plt.show()
+
 def parse_celero_recordTable_header(header_row):
     """
     Parses a Celero recordTable header row separating the row into the 
@@ -64,7 +82,7 @@ def parse_celero_recordTable_header(header_row):
     return [data_sizes, other_fields, split_start, split_end]
 
 
-def plot_time_vs_size(results, show_backend=False, fmt="svg", autosave=False):
+def plot_time_vs_size(results, show_backend=False, autosave=False, fmt="svg"):
     """ Creates a plot of execution time vs. data size
     """
     
@@ -81,8 +99,8 @@ def plot_time_vs_size(results, show_backend=False, fmt="svg", autosave=False):
         if show_backend:
             label += " " + result['extra_data']['AF_PLATFORM'] 
          
-        plt.scatter(x, y, color=colors[color_id], label=label)
-        plt.plot(x,y, color=colors[color_id], label=None)
+        plt.scatter(x, y, color=colors[color_id], label=label, linewidth=2.0)
+        plt.plot(x,y, color=colors[color_id], label=None, linewidth=2.0)
         color_id += 1
 
     # set specific plot options
@@ -90,20 +108,11 @@ def plot_time_vs_size(results, show_backend=False, fmt="svg", autosave=False):
     suffix = "execution_time"
     ylabel = "Execution time (micro-seconds)"
     xlabel = "Image width"
-    plt.xlim(0,plt.xlim()[1])
-    plt.ylim(0,plt.ylim()[1])
-    plt.title(title)
-    plt.ylabel(ylabel)
-    plt.xlabel(xlabel)
+
     plt.legend(loc='upper left', numpoints=1)
+    label_and_plot(title, suffix, ylabel, xlabel, autosave=autosave, fmt=fmt)
     
-    if autosave:
-        plt.savefig(title + '_' + suffix + '.' + fmt, bbox_inches='tight')
-        plt.close()
-    else:
-        plt.show()
-    
-def plot_throughput_vs_size(results, show_backend=False, fmt="svg", autosave=False):
+def plot_throughput_vs_size(results, show_backend=False, autosave=False, fmt="svg"):
 
     colors = cm.rainbow(np.linspace(0, 1, len(results)))
 
@@ -118,8 +127,8 @@ def plot_throughput_vs_size(results, show_backend=False, fmt="svg", autosave=Fal
         if show_backend:
             label += " " + result['extra_data']['AF_PLATFORM'] 
          
-        plt.scatter(x, y, color=colors[color_id], label=label)
-        plt.plot(x,y, color=colors[color_id], label=None)
+        plt.scatter(x, y, color=colors[color_id], label=label, linewidth=2.0)
+        plt.plot(x,y, color=colors[color_id], label=None, linewidth=2.0)
         color_id += 1
         
     # set specific plot options   
@@ -127,20 +136,11 @@ def plot_throughput_vs_size(results, show_backend=False, fmt="svg", autosave=Fal
     suffix = "throughput_elements_per_sec"
     ylabel = r"Throughput ($10^9$ elements / second)"
     xlabel = "Image width"
-    plt.xlim(0,plt.xlim()[1])
-    plt.ylim(0,plt.ylim()[1])
-    plt.title(title)
-    plt.ylabel(ylabel)
-    plt.xlabel(xlabel)
-    plt.legend(loc='upper left', numpoints=1)
-    
-    if autosave:
-        plt.savefig(title + '_' + suffix + '.' + fmt, bbox_inches='tight')
-        plt.close()
-    else:
-        plt.show()
 
-def plot_image_rate_vs_size(results, show_backend=False, fmt="svg", autosave=False):
+    plt.legend(loc='upper left', numpoints=1)
+    label_and_plot(title, suffix, ylabel, xlabel, autosave=autosave, fmt=fmt)
+
+def plot_image_rate_vs_size(results, show_backend=False, autosave=False, fmt="svg"):
 
     colors = cm.rainbow(np.linspace(0, 1, len(results)))
 
@@ -148,34 +148,25 @@ def plot_image_rate_vs_size(results, show_backend=False, fmt="svg", autosave=Fal
     color_id = 0
     for result in results:
         x = np.sqrt(result['data_sizes'])
-        y = 1.0/(result['times'] * 1E-9) / 1E6
+        y = 1.0/(result['times'] * 1E-6) / 10E3
        
         # construct the label
         label = result['extra_data']['AF_DEVICE']
         if show_backend:
             label += " " + result['extra_data']['AF_PLATFORM'] 
          
-        plt.scatter(x, y, color=colors[color_id], label=result['extra_data']['AF_DEVICE'])
-        plt.plot(x,y, color=colors[color_id], label=None)
+        plt.scatter(x, y, color=colors[color_id], label=result['extra_data']['AF_DEVICE'], linewidth=2.0)
+        plt.plot(x,y, color=colors[color_id], label=None, linewidth=2.0)
         color_id += 1
 
-    # set specific plot options
     title = results[0]['group']
     suffix = "throughput_images_per_sec"
-    ylabel = r"Throughput ($10^6$ images / second)"
+    ylabel = r"Throughput ($10^3$ images / second)"
     xlabel = "Image width"
-    plt.xlim(0,plt.xlim()[1])
-    plt.ylim(0,plt.ylim()[1])
-    plt.title(title)
-    plt.ylabel(ylabel)
-    plt.xlabel(xlabel)
-    plt.legend(loc='upper left', numpoints=1)
-    
-    if autosave:
-        plt.savefig(title + '_' + suffix + '.' + fmt, bbox_inches='tight')
-        plt.close()
-    else:
-        plt.show()
+
+    plt.yscale('log')
+    plt.legend(loc='upper right', numpoints=1)
+    label_and_plot(title, suffix, ylabel, xlabel, autosave=autosave, fmt=fmt)
 
 def read_celero_recordTable(filename):
     """
@@ -296,7 +287,7 @@ def main():
     parser.add_argument("-lb", "--list-backends", action="store_true",
         help="Lists the backends found in the tests")    
     parser.add_argument("-b", "--backend", action='append',
-        help="Show plots for specific backends")  
+        help="Show plots for specific backends", default=[])  
         
     args = parser.parse_args()
   
@@ -339,7 +330,7 @@ def main():
     # limit by groups
     results = filter(lambda x: x['group'] in include_groups, results)
     # limit by backend
-    if args.backend:
+    if len(args.backend) > 0:
         results = filter(lambda x: x['extra_data']['AF_PLATFORM'] in args.backend, results)
     
             
