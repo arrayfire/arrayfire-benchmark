@@ -5,8 +5,6 @@ Benchmark software for [ArrayFire](https://github.com/arrayfire/arrayfire)
 ## Prerequisites
 
 [ArrayFire](https://github.com/arrayfire/arrayfire)
-libncurses-dev
-
 
 ## Checkout and build
 
@@ -20,3 +18,6 @@ cd build
 cmake ..
 make
 ```
+
+If you have ArrayFire installed in a non-standard location, specify
+`-DArrayFire_ROOT_DIR=/path/to/arrayfire` as part of the `cmake` command.
