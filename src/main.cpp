@@ -121,7 +121,16 @@ int main(int argc, char** argv)
 
 		// Get information about the device on which we are running
 		getAFDeviceInfo(device_name, device_platform, device_toolkit, device_compute);
-
+		
+		if(device_name.size() == 0)
+		    device_name = "UNKNOWN";
+		if(device_platform.size() == 0)
+		    device_platform = "UNKNOWN";
+		if(device_toolkit.size() == 0)
+		    device_toolkit = "UNKNOWN";
+		if(device_compute.size() == 0)
+            device_compute = "UNKNOWN";
+            
 		// Get the current time. Strip the newline from asctime(...)
 		std::time_t current_time = std::time(nullptr);
 		string local_time = std::asctime(std::localtime(&current_time));

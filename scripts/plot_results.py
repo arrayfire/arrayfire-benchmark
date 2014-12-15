@@ -137,7 +137,8 @@ def plot_throughput_vs_size(results, show_backend=False, show_benchmark_name=Fal
     color_id = 0
     for result in results:
         x = np.sqrt(result['data_sizes'])
-        y = result['data_sizes'] / result['times']
+        # display the plot in billions of elements per second (1E9)
+        y = result['data_sizes'] / ((result['times'] + 1E-10)* 1E-6) / 1E9
         
         # construct the label
         label = result['extra_data']['AF_DEVICE']
@@ -169,25 +170,28 @@ def plot_image_rate_vs_size(results, show_backend=False, show_benchmark_name=Fal
     color_id = 0
     for result in results:
         x = np.sqrt(result['data_sizes'])
-        y = 1.0/(result['times'] * 1E-6) / 10E3
+        # display log plot in thousands of images per second. Add a small
+        # delta to force log plot to always be greater than zero
+        y = 1.0/((result['times'] + 1E-10)* 1E-6)
        
         # construct the label
         label = result['extra_data']['AF_DEVICE']
         if show_backend:
             label += " " + result['extra_data']['AF_PLATFORM'] 
          
-        plt.scatter(x, y, color=colors[color_id], label=result['extra_data']['AF_DEVICE'], linewidth=2.0)
+        plt.scatter(x, y, color=colors[color_id], label=label, linewidth=2.0)
         plt.plot(x,y, color=colors[color_id], label=None, linewidth=2.0)
         color_id += 1
 
     title = results[0]['group']
     suffix = "throughput_images_per_sec"
-    ylabel = r"Throughput ($10^3$ images / second)"
+    ylabel = r"Throughput (images / second)"
     xlabel = "Image width"
     
     if show_benchmark_name:
         title += " " + results[0]['benchmark_name']
 
+    plt.xscale('log')
     plt.yscale('log')
     plt.legend(loc='upper right', numpoints=1)
     label_and_plot(title, suffix, ylabel, xlabel, autosave=autosave, fmt=fmt)
@@ -382,8 +386,8 @@ def main():
             # plot one benchmark at a time
             temp = filter(lambda x: x['benchmark_name'] == benchmark, filtered_results)
         
-            plot_time_vs_size(temp, show_backend=show_backend, show_benchmark_name=show_benchmark_name, fmt=args.save_format, autosave=args.autosave)
-            plot_throughput_vs_size(temp, show_backend=show_backend, show_benchmark_name=show_benchmark_name, fmt=args.save_format, autosave=args.autosave)
+#            plot_time_vs_size(temp, show_backend=show_backend, show_benchmark_name=show_benchmark_name, fmt=args.save_format, autosave=args.autosave)
+#            plot_throughput_vs_size(temp, show_backend=show_backend, show_benchmark_name=show_benchmark_name, fmt=args.save_format, autosave=args.autosave)
             plot_image_rate_vs_size(temp, show_backend=show_backend, show_benchmark_name=show_benchmark_name, fmt=args.save_format, autosave=args.autosave)
          
     
