@@ -4,6 +4,7 @@
 import glob
 import numpy as np
 import argparse
+import os
 # plotting
 import matplotlib.pyplot as plt  
 import math
@@ -296,10 +297,9 @@ def main():
     # parse command-line arguments
     parser = argparse.ArgumentParser()
     # general arguments / functionality for any recordTable result
-    parser.add_argument("-d", "--directory", 
-        help="Parse all files in the specified directory")
-    parser.add_argument("-f", "--file", 
-        help="Parse the specified file")
+    parser.add_argument('files', nargs='+',
+        help="Parse these Celero RecordTable files for displaying their data." +
+            "This can also be directories containing RecordTable files.")
     parser.add_argument("-lg", "--list-groups", 
         help="List all test groups found in the file/directory",  action="store_true")
     parser.add_argument("--autosave", 
@@ -315,16 +315,25 @@ def main():
     parser.add_argument("-lb", "--list-backends", action="store_true",
         help="Lists the backends found in the tests")    
     parser.add_argument("-b", "--backend", action='append',
-        help="Show plots for specific backends", default=[])  
+        help="Show plots for specific backends", default=[])
+    parser.add_argument("-ld", "--list-devices", action="store_true",
+        help="Lists the devices found in the tests")    
+    parser.add_argument("-d", "--device", action='append',
+        help="Show plots for specific devices", default=[])  
         
     args = parser.parse_args()
   
+    # import the data
     results = list()
-    if args.directory:
-        results = import_directory(args.directory)
-    else:
-        results = read_celero_recordTable(filename)
-        
+    for file_or_directory in args.files:
+        if os.path.isfile(file_or_directory):
+            results.extend( read_celero_recordTable(file_or_directory) )
+        else:
+            results.extend( import_directory(file_or_directory) )
+   
+    ###
+    # Lists: Requested information via. command line arguments
+    ###    
     # list groups of benchmarks then exit
     if args.list_groups:
         groups = list_recordTable_groups(results)
@@ -337,7 +346,16 @@ def main():
         backends = list_recordTable_attribute(results, 'AF_PLATFORM')
         print backends
         quit()
+        
+    # list all devices found in the data, then exit
+    if args.list_devices:
+        devices = list_recordTable_attribute(results, 'AF_DEVICE')
+        print devices
+        quit()
     
+    ###
+    # Apply command-line specified arguments, limiting what data will be plotted
+    ###
     # Limit what will be plotted by explicitly including the arguments
     # specified on the command line
     include_groups = list()
@@ -345,26 +363,26 @@ def main():
     # include specific data types
     if args.data_type:
         include_groups = filter(lambda x: x[-3:] == args.data_type, all_groups)
-        
     # include specific tests
     if args.groups:         
         include_groups.extend(args.groups)
-    
     # If no specific options have been set, include all groups by default
     if len(include_groups) == 0:
         include_groups = all_groups
-    
-    # Apply filtering
     # limit by groups
     results = filter(lambda x: x['group'] in include_groups, results)
+    
     # limit by backend
     if len(args.backend) > 0:
-        results = filter(lambda x: x['extra_data']['AF_PLATFORM'] in args.backend, results)
-    
-    # do backend filtering
+        results = filter(lambda x: x['extra_data']['AF_PLATFORM'] in args.backend, results)    
+    # indicate whether or not we should show the backend name on the plots
     show_backend = False
     if len(args.backend) > 1:
         show_backend = True
+        
+    # limit by device type
+    if len(args.device) > 0:
+        results = filter(lambda x: x['extra_data']['AF_DEVICE'] in args.device, results)
     
     # make the plots
     groups = list_recordTable_groups(results)
