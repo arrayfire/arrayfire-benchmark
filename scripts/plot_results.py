@@ -319,8 +319,11 @@ def main():
     parser.add_argument("-ld", "--list-devices", action="store_true",
         help="Lists the devices found in the tests")    
     parser.add_argument("-d", "--device", action='append',
-        help="Show plots for specific devices", default=[])  
-        
+        help="Show plots for specific devices", default=[])
+    parser.add_argument("-lr", "--list-revisions", action="store_true",
+        help="Lists the ArrayFire revisions found in the tests")    
+    parser.add_argument("-r", "--revisions", action='append',
+        help="Show plots for specific revisions", default=[])
     args = parser.parse_args()
   
     # import the data
@@ -351,6 +354,12 @@ def main():
     if args.list_devices:
         devices = list_recordTable_attribute(results, 'AF_DEVICE')
         print devices
+        quit()
+        
+    # list all devices found in the data, then exit
+    if args.list_revisions:
+        revisions = list_recordTable_attribute(results, 'AF_REVISION')
+        print revisions
         quit()
     
     ###
