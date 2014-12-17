@@ -302,6 +302,8 @@ def main():
             "This can also be directories containing RecordTable files.")
     parser.add_argument("-lg", "--list-groups", 
         help="List all test groups found in the file/directory",  action="store_true")
+    parser.add_argument("-g", "--groups", action='append',
+        help="Show results for specific groups (may be combined with -t)")
     parser.add_argument("--autosave", 
         help="Set to enable automatic saving of plots",  action="store_true", default=False)
     parser.add_argument("--save-format", 
@@ -310,8 +312,6 @@ def main():
     # arguments specific to the ArrayFire's benchmarking
     parser.add_argument("-t", "--data-type", 
         help="Show results only for a specific data type [f32, f64]")
-    parser.add_argument("-g", "--groups", action='append',
-        help="Show results for specific groups (may be combined with -t)")
     parser.add_argument("-lb", "--list-backends", action="store_true",
         help="Lists the backends found in the tests")    
     parser.add_argument("-b", "--backend", action='append',

@@ -28,6 +28,7 @@ using namespace std;
 
 unsigned int samples = 10;
 unsigned int operations = 10;
+std::string image_directory = "";
 
 // Wraps af::deviceprop with C++ data types. Handles allocation/deallocation of char*
 void getAFDeviceInfo(string & device_name, string & device_platform, string & device_toolkit, string & device_compute)
@@ -49,17 +50,43 @@ int main(int argc, char** argv)
 	string device_name, device_platform, device_toolkit, device_compute;
 
 	cmdline::parser args;
-	args.add("list", 'l', "Prints a list of all available benchmarks and devices.");
-	args.add<uint64_t>("devices", 'd', "Sets the backend on which the benchmark will be executed", false);
+	args.add("list-groups", '\0', "Prints a list of all available benchmarks.");
 	args.add<std::string>("group", 'g', "Runs a specific group of benchmarks.", false, "");
+	args.add("list-backends", '\0', "Prints a list of all available benchmarks.");
+	args.add<uint64_t>("backend", 'b', "Sets the backend on which the benchmark will be executed", false);
 	args.add<std::string>("recordTable", 'r', "Appends the results table to the named file.", false, "");
 //	args.add<std::string>("outputTable", 't', "Saves a results table to the named file.", false, "");
 //	args.add<std::string>("junit", 'j', "Saves a JUnit XML-formatted file to the named file.", false, "");
 //	args.add<std::string>("archive", 'a', "Saves or updates a result archive file.", false, "");
 //	args.add<uint64_t>("distribution", 'd', "Builds a file to help characterize the distribution of measurements and exits.", false, 0);
+	args.footer("[image_directory]");
 	args.parse_check(argc, argv);
 
-	if(args.exist("list"))
+	if(args.rest().size() > 0)
+	{
+		image_directory = args.rest()[0];
+	}
+
+	if(args.exist("list-groups"))
+	{
+		cout << endl;
+		cout << "Available tests:" << endl;
+		TestVector& tests = celero::TestVector::Instance();
+		std::vector<std::string> test_names;
+		for(unsigned int i = 0; i < tests.size(); i++)
+		{
+			auto bm = celero::TestVector::Instance()[i];
+			test_names.push_back(bm->getName());
+		}
+
+		std::sort(test_names.begin(), test_names.end());
+		for(auto test_name: test_names)
+			std::cout << " " << test_name << std::endl;
+
+		return 0;
+	}
+
+	if(args.exist("list-backends"))
 	{
 		cout << "Available devices:" << endl;
 
@@ -78,27 +105,13 @@ int main(int argc, char** argv)
 			cout << " " << left << setw(5) << device << " " << device_name << " " << device_platform << " " << device_toolkit << " " << device_compute << endl;
 		}
 
-		cout << endl;
-		cout << "Available tests:" << endl;
-		TestVector& tests = celero::TestVector::Instance();
-		std::vector<std::string> test_names;
-		for(unsigned int i = 0; i < tests.size(); i++)
-		{
-			auto bm = celero::TestVector::Instance()[i];
-			test_names.push_back(bm->getName());
-		}
-
-		std::sort(test_names.begin(), test_names.end());
-		for(auto test_name: test_names)
-			std::cout << " " << test_name << std::endl;
-
 		return 0;
 	}
 
-	auto intDevice = args.get<uint64_t>("devices");
-	if(intDevice > 0)
+	auto intBackend = args.get<uint64_t>("backend");
+	if(intBackend > 0)
 	{
-		af::setDevice(intDevice);
+		af::setDevice(intBackend);
 	}
 
 	// Initial output
