@@ -413,8 +413,8 @@ def main():
             # plot one benchmark at a time
             temp = filter(lambda x: x['benchmark_name'] == benchmark, filtered_results)
         
-#            plot_time_vs_size(temp, show_backend=show_backend, show_benchmark_name=show_benchmark_name, fmt=args.save_format, autosave=args.autosave)
-#            plot_throughput_vs_size(temp, show_backend=show_backend, show_benchmark_name=show_benchmark_name, fmt=args.save_format, autosave=args.autosave)
+            plot_time_vs_size(temp, show_backend=show_backend, show_benchmark_name=show_benchmark_name, fmt=args.save_format, autosave=args.autosave)
+            plot_throughput_vs_size(temp, show_backend=show_backend, show_benchmark_name=show_benchmark_name, fmt=args.save_format, autosave=args.autosave)
             plot_image_rate_vs_size(temp, show_backend=show_backend, show_benchmark_name=show_benchmark_name, fmt=args.save_format, autosave=args.autosave)
          
     

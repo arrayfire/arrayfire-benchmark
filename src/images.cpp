@@ -57,8 +57,7 @@ public:
 			max_images = temp.size();
 		}
 
-		sizes.push_back(max_images);
-
+		sizes.push_back(max_images); 
 		return sizes;
 	}
 
@@ -74,42 +73,207 @@ public:
 	}
 };
 
+array load_image(std::string filename)
+{
+	array temp;
+
+	try
+	{
+		temp = af::loadimage(filename.c_str(), false);
+	}
+	catch (af::exception & e)
+	{
+		// do nothing
+	}
+
+	return temp;
+}
+
 // Benchmarks for image tests
 BASELINE_F(Image, Baseline, Fixture_Image_Directory, samples, operations)
 {
 
 }
 
-BENCHMARK_F(Image, Open, Fixture_Image_Directory, 1, 3)
-{
-	for(auto filename: this->filenames)
-	{
-		try
-		{
-			array A = af::loadimage(filename.c_str(), true);
-		}
-		catch (af::exception & e)
-		{
-			// do nothing
-		}
-	}
-}
+//BENCHMARK_F(Image, Open, Fixture_Image_Directory, 1, 1)
+//{
+//	for(auto filename: this->filenames)
+//	{
+//		array A = load_image(filename);
+//	}
+//}
 
-BENCHMARK_F(Image, Rotate90, Fixture_Image_Directory, 1, 3)
+BENCHMARK_F(Image, Histogram, Fixture_Image_Directory, 1, 1)
 {
 	for(auto filename: this->filenames)
 	{
-		try
+		array A = load_image(filename);
+		if(!A.isempty())
 		{
-			array A = af::loadimage(filename.c_str(), true);
-			array B = af::rotate(A, 90);
-			B.eval();
-		}
-		catch (af::exception & e)
-		{
-			// do nothing
+			array B = histogram(A, 256, 0, 255);
 		}
 	}
 
 	af::sync();
 }
+
+BENCHMARK_F(Image, Resize_Shrink_2x, Fixture_Image_Directory, 1, 1)
+{
+	for(auto filename: this->filenames)
+	{
+		array A = load_image(filename);
+		if(!A.isempty())
+		{
+			array B = af::resize(0.5, A, AF_INTERP_NEAREST);
+		}
+	}
+
+	af::sync();
+}
+
+BENCHMARK_F(Image, Resize_Expand_2x, Fixture_Image_Directory, 1, 1)
+{
+	for(auto filename: this->filenames)
+	{
+		array A = load_image(filename);
+		if(!A.isempty())
+		{
+			array B = af::resize(2, A, AF_INTERP_NEAREST);
+		}
+	}
+
+	af::sync();
+}
+
+BENCHMARK_F(Image, Convolve_5x5, Fixture_Image_Directory, 1, 1)
+{
+	array K = randu(5, 5, f32);
+	for(auto filename: this->filenames)
+	{
+		array A = load_image(filename);
+		if(!A.isempty())
+		{
+			array B = af::convolve2(A, K, false);
+		}
+	}
+
+	af::sync();
+}
+
+
+BENCHMARK_F(Image, Convolve_9x9, Fixture_Image_Directory, 1, 1)
+{
+	array K = randu(9, 9, f32);
+	for(auto filename: this->filenames)
+	{
+		array A = load_image(filename);
+		if(!A.isempty())
+		{
+			array B = af::convolve2(A, K, false);
+		}
+	}
+
+	af::sync();
+}
+
+
+BENCHMARK_F(Image, Convolve_11x11, Fixture_Image_Directory, 1, 1)
+{
+	array K = randu(11, 11, f32);
+	for(auto filename: this->filenames)
+	{
+		array A = load_image(filename);
+		if(!A.isempty())
+		{
+			array B = af::convolve2(A, K, false);
+		}
+	}
+
+	af::sync();
+}
+
+BENCHMARK_F(Image, Erode_5x5, Fixture_Image_Directory, 1, 1)
+{
+	array K = randu(5, 5, f32);
+	for(auto filename: this->filenames)
+	{
+		array A = load_image(filename);
+		if(!A.isempty())
+		{
+			array B = af::erode(A, K);
+		}
+	}
+
+	af::sync();
+}
+
+BENCHMARK_F(Image, Bilateral, Fixture_Image_Directory, 1, 1)
+{
+	array K = randu(5, 5, f32);
+	for(auto filename: this->filenames)
+	{
+		array A = load_image(filename);
+		if(!A.isempty())
+		{
+			array B = bilateral(A, 2.5f, 50.0f);
+		}
+	}
+
+	af::sync();
+}
+
+BENCHMARK_F(Image, FAST, Fixture_Image_Directory, 1, 1)
+{
+	for(auto filename: this->filenames)
+	{
+		array A = load_image(filename);	// load in grayscale
+		if(!A.isempty())
+		{
+			af::features features = af::fast(A, 20, 9, 0, 0.05f);
+		}
+	}
+
+	af::sync();
+}
+
+//BENCHMARK_F(Image, ORB, Fixture_Image_Directory, 1, 1)
+//{
+//	for(auto filename: this->filenames)
+//	{
+//		array A = load_image(filename);	// load must be in grayscale
+//		if(!(A.isempty()))
+//		{
+//			af::features features;
+//			af::array desc;
+//			// use same parameters as OpenCV for fair benchmark, see
+//			// https://github.com/Itseez/opencv/blob/master/modules/features2d/include/opencv2/features2d.hpp
+//			af::orb(features, desc, A, 20.0f, 500, 1.2f, 8);
+//		}
+//	}
+//}
+
+BENCHMARK_F(Image, ColorConverstion_RGB_to_Gray, Fixture_Image_Directory, 1, 1)
+{
+#warning "Colorspace is not implemented in this version of ArrayFire"
+//	for(auto filename: this->filenames)
+//	{
+//		array A;
+//
+//		try
+//		{
+//			A = af::loadimage(filename.c_str(), false);
+//		}
+//		catch (af::exception & e)
+//		{
+//			// do nothing
+//		}
+//
+//		if(!A.isempty())
+//		{
+//			B = colorspace	(A, af_rgb, af_gray);
+//		}
+//	}
+//
+//	af::sync();
+}
+
