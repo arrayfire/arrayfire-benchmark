@@ -90,18 +90,13 @@ array load_image(std::string filename)
 }
 
 // Benchmarks for image tests
-BASELINE_F(Image, Baseline, Fixture_Image_Directory, samples, operations)
+BASELINE_F(Image, Baseline, Fixture_Image_Directory, 1, 1)
 {
-
+	for(auto filename: this->filenames)
+	{
+		array A = load_image(filename);
+	}
 }
-
-//BENCHMARK_F(Image, Open, Fixture_Image_Directory, 1, 1)
-//{
-//	for(auto filename: this->filenames)
-//	{
-//		array A = load_image(filename);
-//	}
-//}
 
 BENCHMARK_F(Image, Histogram, Fixture_Image_Directory, 1, 1)
 {
@@ -236,25 +231,25 @@ BENCHMARK_F(Image, FAST, Fixture_Image_Directory, 1, 1)
 	af::sync();
 }
 
-//BENCHMARK_F(Image, ORB, Fixture_Image_Directory, 1, 1)
-//{
-//	for(auto filename: this->filenames)
-//	{
-//		array A = load_image(filename);	// load must be in grayscale
-//		if(!(A.isempty()))
-//		{
-//			af::features features;
-//			af::array desc;
-//			// use same parameters as OpenCV for fair benchmark, see
-//			// https://github.com/Itseez/opencv/blob/master/modules/features2d/include/opencv2/features2d.hpp
-//			af::orb(features, desc, A, 20.0f, 500, 1.2f, 8);
-//		}
-//	}
-//}
-
-BENCHMARK_F(Image, ColorConverstion_RGB_to_Gray, Fixture_Image_Directory, 1, 1)
+BENCHMARK_F(Image, ORB, Fixture_Image_Directory, 1, 1)
 {
-#warning "Colorspace is not implemented in this version of ArrayFire"
+	for(auto filename: this->filenames)
+	{
+		array A = load_image(filename);	// load must be in grayscale
+		if(!(A.isempty()))
+		{
+			af::features features;
+			af::array desc;
+			// use same parameters as OpenCV for fair benchmark, see
+			// https://github.com/Itseez/opencv/blob/master/modules/features2d/include/opencv2/features2d.hpp
+			af::orb(features, desc, A, 20.0f, 500, 1.2f, 8);
+		}
+	}
+}
+
+//BENCHMARK_F(Image, ColorConverstion_RGB_to_Gray, Fixture_Image_Directory, 1, 1)
+//{
+//#warning "Colorspace is not implemented in this version of ArrayFire"
 //	for(auto filename: this->filenames)
 //	{
 //		array A;
@@ -275,5 +270,5 @@ BENCHMARK_F(Image, ColorConverstion_RGB_to_Gray, Fixture_Image_Directory, 1, 1)
 //	}
 //
 //	af::sync();
-}
+//}
 
