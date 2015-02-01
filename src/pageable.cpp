@@ -22,8 +22,8 @@ public:
 
 	virtual void setUp(int64_t experimentSize)
 	{
-//#warning af::array::host<float> is not implemented
-		A_host = A.host<float>();
+#warning af::array::host<float> is not implemented
+//		A_host = A.host<float>();
 	}
 
 	virtual void tearDown()
@@ -42,8 +42,8 @@ public:
 
 	virtual void setUp(int64_t experimentSize)
 	{
-//#warning af::array::host<double> is not implemented
-		A_host = A.host<double>();
+#warning af::array::host<double> is not implemented
+//		A_host = A.host<double>();
 	}
 
 	virtual void tearDown()
