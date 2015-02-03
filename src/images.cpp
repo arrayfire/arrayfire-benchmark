@@ -20,6 +20,8 @@ unsigned int image_samples = 1;
 unsigned int image_operations = 3;
 extern std::string image_directory;
 
+array load_image(std::string filename);
+
 // Run a glob on a specific directory.
 ///
 /// This function uses unix/linux specific functionality.
@@ -41,6 +43,7 @@ class Fixture_Image_Directory : public celero::TestFixture
 {
 public:
 	std::vector<std::string> filenames;
+    std::vector<af::array> images;
 
 	Fixture_Image_Directory(){}
 
@@ -69,6 +72,18 @@ public:
 			fs::path directory(image_directory);
 			fs::path directory_full = fs::complete(directory);
 			filenames = glob(directory_full.string() + "/*.jpg");
+            
+            // preload the images to the GPU
+            int max_images = 1000;
+            for(auto filename: filenames)
+            {
+                if(images.size() > max_images)
+                    return;
+
+                array A = load_image(filename);
+                if(!A.isempty())
+                    images.push_back(A);
+            }
 		}
 	}
 };
@@ -89,24 +104,18 @@ array load_image(std::string filename)
 	return temp;
 }
 
+
+
 // Benchmarks for image tests
 BASELINE_F(Image, Baseline, Fixture_Image_Directory,  image_samples, image_operations)
 {
-	for(auto filename: this->filenames)
-	{
-		array A = load_image(filename);
-	}
 }
 
 BENCHMARK_F(Image, Histogram, Fixture_Image_Directory,  image_samples, image_operations)
 {
-	for(auto filename: this->filenames)
-	{
-		array A = load_image(filename);
-		if(!A.isempty())
-		{
-			array B = histogram(A, 256, 0, 255);
-		}
+    for(auto image: this->images)
+    {
+		array B = histogram(image, 256, 0, 255);
 	}
 
 	af::sync();
@@ -114,13 +123,9 @@ BENCHMARK_F(Image, Histogram, Fixture_Image_Directory,  image_samples, image_ope
 
 BENCHMARK_F(Image, Resize_Shrink_2x, Fixture_Image_Directory,  image_samples, image_operations)
 {
-	for(auto filename: this->filenames)
+	for(auto image: this->images)
 	{
-		array A = load_image(filename);
-		if(!A.isempty())
-		{
-			array B = af::resize(0.5, A, AF_INTERP_NEAREST);
-		}
+		array B = af::resize(0.5, image, AF_INTERP_NEAREST);
 	}
 
 	af::sync();
@@ -128,13 +133,10 @@ BENCHMARK_F(Image, Resize_Shrink_2x, Fixture_Image_Directory,  image_samples, im
 
 BENCHMARK_F(Image, Resize_Expand_2x, Fixture_Image_Directory,  image_samples, image_operations)
 {
-	for(auto filename: this->filenames)
+	for(auto image: this->images)
 	{
-		array A = load_image(filename);
-		if(!A.isempty())
-		{
-			array B = af::resize(2, A, AF_INTERP_NEAREST);
-		}
+	
+		array B = af::resize(2, image, AF_INTERP_NEAREST);
 	}
 
 	af::sync();
@@ -143,13 +145,9 @@ BENCHMARK_F(Image, Resize_Expand_2x, Fixture_Image_Directory,  image_samples, im
 BENCHMARK_F(Image, Convolve_5x5, Fixture_Image_Directory,  image_samples, image_operations)
 {
 	array K = randu(5, 5, f32);
-	for(auto filename: this->filenames)
+	for(auto image: this->images)
 	{
-		array A = load_image(filename);
-		if(!A.isempty())
-		{
-			array B = af::convolve2(A, K, false);
-		}
+		array B = af::convolve2(image, K, false);
 	}
 
 	af::sync();
@@ -159,13 +157,9 @@ BENCHMARK_F(Image, Convolve_5x5, Fixture_Image_Directory,  image_samples, image_
 BENCHMARK_F(Image, Convolve_9x9, Fixture_Image_Directory,  image_samples, image_operations)
 {
 	array K = randu(9, 9, f32);
-	for(auto filename: this->filenames)
+	for(auto image: this->images)
 	{
-		array A = load_image(filename);
-		if(!A.isempty())
-		{
-			array B = af::convolve2(A, K, false);
-		}
+		array B = af::convolve2(image, K, false);
 	}
 
 	af::sync();
@@ -175,13 +169,9 @@ BENCHMARK_F(Image, Convolve_9x9, Fixture_Image_Directory,  image_samples, image_
 BENCHMARK_F(Image, Convolve_11x11, Fixture_Image_Directory,  image_samples, image_operations)
 {
 	array K = randu(11, 11, f32);
-	for(auto filename: this->filenames)
+	for(auto image: this->images)
 	{
-		array A = load_image(filename);
-		if(!A.isempty())
-		{
-			array B = af::convolve2(A, K, false);
-		}
+		array B = af::convolve2(image, K, false);
 	}
 
 	af::sync();
@@ -190,13 +180,9 @@ BENCHMARK_F(Image, Convolve_11x11, Fixture_Image_Directory,  image_samples, imag
 BENCHMARK_F(Image, Erode_5x5, Fixture_Image_Directory,  image_samples, image_operations)
 {
 	array K = randu(5, 5, f32);
-	for(auto filename: this->filenames)
+	for(auto image: this->images)
 	{
-		array A = load_image(filename);
-		if(!A.isempty())
-		{
-			array B = af::erode(A, K);
-		}
+		array B = af::erode(image, K);
 	}
 
 	af::sync();
@@ -205,13 +191,9 @@ BENCHMARK_F(Image, Erode_5x5, Fixture_Image_Directory,  image_samples, image_ope
 BENCHMARK_F(Image, Bilateral, Fixture_Image_Directory,  image_samples, image_operations)
 {
 	array K = randu(5, 5, f32);
-	for(auto filename: this->filenames)
+	for(auto image: this->images)
 	{
-		array A = load_image(filename);
-		if(!A.isempty())
-		{
-			array B = bilateral(A, 2.5f, 50.0f);
-		}
+		array B = bilateral(image, 2.5f, 50.0f);
 	}
 
 	af::sync();
@@ -219,56 +201,13 @@ BENCHMARK_F(Image, Bilateral, Fixture_Image_Directory,  image_samples, image_ope
 
 BENCHMARK_F(Image, FAST, Fixture_Image_Directory,  image_samples, image_operations)
 {
-	for(auto filename: this->filenames)
+	for(auto image: this->images)
 	{
-		array A = load_image(filename);	// load in grayscale
-		if(!A.isempty())
-		{
-			af::features features = af::fast(A, 20, 9, 0, 0.05f);
-		}
+		af::features features = af::fast(image, 20, 9, 0, 0.05f);
 	}
 
 	af::sync();
 }
 
-//BENCHMARK_F(Image, ORB, Fixture_Image_Directory,  image_samples, image_operations)
-//{
-//	for(auto filename: this->filenames)
-//	{
-//		array A = load_image(filename);	// load must be in grayscale
-//		if(!(A.isempty()))
-//		{
-//			af::features features;
-//			af::array desc;
-//			// use same parameters as OpenCV for fair benchmark, see
-//			// https://github.com/Itseez/opencv/blob/master/modules/features2d/include/opencv2/features2d.hpp
-//			af::orb(features, desc, A, 20.0f, 500, 1.2f, 8);
-//		}
-//	}
-//}
 
-//BENCHMARK_F(Image, ColorConverstion_RGB_to_Gray, Fixture_Image_Directory,  image_samples, image_operations)
-//{
-//#warning "Colorspace is not implemented in this version of ArrayFire"
-//	for(auto filename: this->filenames)
-//	{
-//		array A;
-//
-//		try
-//		{
-//			A = af::loadimage(filename.c_str(), false);
-//		}
-//		catch (af::exception & e)
-//		{
-//			// do nothing
-//		}
-//
-//		if(!A.isempty())
-//		{
-//			B = colorspace	(A, af_rgb, af_gray);
-//		}
-//	}
-//
-//	af::sync();
-//}
 
