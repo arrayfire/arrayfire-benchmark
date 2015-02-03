@@ -80,7 +80,7 @@ public:
 		std::vector<int64_t> problemSpace;
 		// 32 x 32 - 32768 x 32768 (2^5 - 2^15)
 		// 32 x 32 - 8196 x 8196 (2^5 - 2^13)
-		for(int i = 5; i < 13; i++)
+		for(int i = 5; i < 12; i++)
 		{
 			// create square problems that are equal in size to the linear
 			// memory allocation.

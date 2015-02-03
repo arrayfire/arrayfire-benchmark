@@ -100,6 +100,10 @@ def plot_time_vs_size(results, show_backend=False, show_benchmark_name=False,
     """ Creates a plot of execution time vs. data size
     """
     
+    # exclude specific groups from being plotted by this function
+    exclude_groups = ["Image"]
+    results = filter(lambda x: x['group'] not in exclude_groups, results)
+    
     colors = cm.rainbow(np.linspace(0, 1, len(results)))
 
     # plot execution time vs. data size
@@ -131,6 +135,10 @@ def plot_time_vs_size(results, show_backend=False, show_benchmark_name=False,
     
 def plot_throughput_vs_size(results, show_backend=False, show_benchmark_name=False, 
     autosave=False, fmt="svg"):
+    
+    # exclude specific groups from being plotted by this function
+    exclude_groups = ["Image"]
+    results = filter(lambda x: x['group'] not in exclude_groups, results)
 
     colors = cm.rainbow(np.linspace(0, 1, len(results)))
 
@@ -165,6 +173,10 @@ def plot_throughput_vs_size(results, show_backend=False, show_benchmark_name=Fal
 def plot_image_rate_vs_size(results, show_backend=False, show_benchmark_name=False, 
     autosave=False, fmt="svg"):
 
+    # exclude specific groups from being plotted by this function
+    exclude_groups = ["Image"]
+    results = filter(lambda x: x['group'] not in exclude_groups, results)
+
     colors = cm.rainbow(np.linspace(0, 1, len(results)))
 
     # plot images/second vs. data size
@@ -196,6 +208,52 @@ def plot_image_rate_vs_size(results, show_backend=False, show_benchmark_name=Fal
     plt.yscale('log')
     plt.legend(loc='upper right', numpoints=1)
     label_and_plot(title, suffix, ylabel, xlabel, autosave=autosave, fmt=fmt)
+
+def plot_image_bar_chart(results, show_backend=False, show_benchmark_name=False, 
+    autosave=False, fmt="svg"):
+
+    # This function only plots results from the "Image" group
+    results = filter(lambda x: x['group'] == "Image", results)
+
+    if len(results) == 0:
+        return
+
+    colors = cm.rainbow(np.linspace(0, 1, len(results)))
+
+    # plot images/second vs. data size
+    x_id = 0
+    width = 0.75
+    labels = list()
+    for result in results:
+      
+        # extract results 
+        ave_time = result['times'] / result['data_sizes'] 
+        # construct the label
+        label = result['extra_data']['AF_DEVICE']
+        if show_backend:
+            label += " " + result['extra_data']['AF_PLATFORM']
+        labels.append(label)
+
+        # plot this entry
+        plt.bar(x_id + width/2, result['times'], color=colors[x_id], align='center')
+        
+        x_id += 1
+
+    # set the title
+    title = results[0]['group']
+    suffix = "throughput_ave_images_per_sec"
+    ylabel = r"Average throughput (images / second)"
+    xlabel = ""
+    
+    if show_benchmark_name:
+        title += " " + results[0]['benchmark_name']
+
+    # setup the x-labels to match the labels of the individual plots
+    ind = np.arange(x_id)
+    plt.xticks(ind + width / 2, labels)
+    label_and_plot(title, suffix, ylabel, xlabel, autosave=autosave, fmt=fmt)   
+    
+    
 
 def read_celero_recordTable(filename):
     """
@@ -403,7 +461,7 @@ def main():
 
         # get a list of all benchmarks remaining
         benchmarks = list_recordTable_benchmarks(filtered_results)
-        
+
         show_benchmark_name = False
         if len(benchmarks) > 1:
             show_benchmark_name = True
@@ -413,9 +471,18 @@ def main():
             # plot one benchmark at a time
             temp = filter(lambda x: x['benchmark_name'] == benchmark, filtered_results)
         
-            plot_time_vs_size(temp, show_backend=show_backend, show_benchmark_name=show_benchmark_name, fmt=args.save_format, autosave=args.autosave)
-            plot_throughput_vs_size(temp, show_backend=show_backend, show_benchmark_name=show_benchmark_name, fmt=args.save_format, autosave=args.autosave)
-            plot_image_rate_vs_size(temp, show_backend=show_backend, show_benchmark_name=show_benchmark_name, fmt=args.save_format, autosave=args.autosave)
+#            plot_time_vs_size(temp, show_backend=show_backend, 
+#				show_benchmark_name=show_benchmark_name, 
+#				fmt=args.save_format, autosave=args.autosave)
+#            plot_throughput_vs_size(temp, show_backend=show_backend, 
+#				show_benchmark_name=show_benchmark_name, 
+#				fmt=args.save_format, autosave=args.autosave)
+#            plot_image_rate_vs_size(temp, show_backend=show_backend, 
+#				show_benchmark_name=show_benchmark_name, 
+#				fmt=args.save_format, autosave=args.autosave)
+            plot_image_bar_chart(temp, show_backend=show_backend, 
+				show_benchmark_name=show_benchmark_name, 
+				fmt=args.save_format, autosave=args.autosave)
          
     
 # Run the main function if this is a top-level script:
