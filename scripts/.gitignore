@@ -1,0 +1,5 @@
+# Ignore all images
+
+*.svg
+*.jpg
+*.png

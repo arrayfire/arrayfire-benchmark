@@ -28,7 +28,7 @@ using namespace std;
 
 unsigned int samples = 10;
 unsigned int operations = 10;
-std::string image_directory = "";
+string image_directory = "";
 
 // Wraps af::deviceprop with C++ data types. Handles allocation/deallocation of char*
 void getAFDeviceInfo(string & device_name, string & device_platform, string & device_toolkit, string & device_compute)
@@ -51,13 +51,13 @@ int main(int argc, char** argv)
 
 	cmdline::parser args;
 	args.add("list-groups", '\0', "Prints a list of all available benchmarks.");
-	args.add<std::string>("group", 'g', "Runs a specific group of benchmarks.", false, "");
+	args.add<string>("group", 'g', "Runs a specific group of benchmarks.", false, "");
 	args.add("list-backends", '\0', "Prints a list of all available benchmarks.");
 	args.add<uint64_t>("backend", 'b', "Sets the backend on which the benchmark will be executed", false);
-	args.add<std::string>("recordTable", 'r', "Appends the results table to the named file.", false, "");
-//	args.add<std::string>("outputTable", 't', "Saves a results table to the named file.", false, "");
-//	args.add<std::string>("junit", 'j', "Saves a JUnit XML-formatted file to the named file.", false, "");
-//	args.add<std::string>("archive", 'a', "Saves or updates a result archive file.", false, "");
+	args.add<string>("recordTable", 'r', "Appends the results table to the named file.", false, "");
+//	args.add<string>("outputTable", 't', "Saves a results table to the named file.", false, "");
+//	args.add<string>("junit", 'j', "Saves a JUnit XML-formatted file to the named file.", false, "");
+//	args.add<string>("archive", 'a', "Saves or updates a result archive file.", false, "");
 //	args.add<uint64_t>("distribution", 'd', "Builds a file to help characterize the distribution of measurements and exits.", false, 0);
 	args.footer("[image_directory]");
 	args.parse_check(argc, argv);
@@ -66,22 +66,33 @@ int main(int argc, char** argv)
 	{
 		image_directory = args.rest()[0];
 	}
+    else
+    {
+        cout << "No image directory was specified, disabling image benchmarks." << endl;
+    }
 
 	if(args.exist("list-groups"))
 	{
 		cout << endl;
 		cout << "Available tests:" << endl;
 		TestVector& tests = celero::TestVector::Instance();
-		std::vector<std::string> test_names;
-		for(unsigned int i = 0; i < tests.size(); i++)
+		vector<pair<string,string>> test_names;
+		for(::size_t i = 0; i < tests.size(); i++)
 		{
 			auto bm = celero::TestVector::Instance()[i];
-			test_names.push_back(bm->getName());
+			string parent_name = bm->getName();
+			for(::size_t j = 0; j < bm->getExperimentSize(); j++)
+			{
+			    auto experiment = bm->getExperiment(j);
+				string experiment_name = experiment->getName();
+				auto temp = make_pair(parent_name, experiment_name);
+			    test_names.push_back(temp);
+			}
 		}
 
-		std::sort(test_names.begin(), test_names.end());
+		//sort(test_names.begin(), test_names.end());
 		for(auto test_name: test_names)
-			std::cout << " " << test_name << std::endl;
+			cout << " " << test_name.first << " " << test_name.second << endl;
 
 		return 0;
 	}
@@ -116,16 +127,16 @@ int main(int argc, char** argv)
 
 	// Initial output
 	print::GreenBar("");
-	std::cout << std::fixed;
+	cout << fixed;
 	celero::console::SetConsoleColor(celero::console::ConsoleColor_Green_Bold);
-	std::cout << "[  CELERO  ]" << std::endl;
+	cout << "[  CELERO  ]" << endl;
 	celero::console::SetConsoleColor(celero::console::ConsoleColor_Default);
 
 	celero::print::GreenBar("");
 	celero::timer::CachePerformanceFrequency();
 
 	// Has a result output file been specified?
-	auto argument = args.get<std::string>("recordTable");
+	auto argument = args.get<string>("recordTable");
 	if(argument.empty() == false)
 	{
 		// Get information about ArrayFire
@@ -145,9 +156,9 @@ int main(int argc, char** argv)
             device_compute = "UNKNOWN";
             
 		// Get the current time. Strip the newline from asctime(...)
-		std::time_t current_time = std::time(nullptr);
-		string local_time = std::asctime(std::localtime(&current_time));
-		local_time.erase(std::remove(local_time.begin(), local_time.end(), '\n'), local_time.end());
+		time_t current_time = time(nullptr);
+		string local_time = asctime(localtime(&current_time));
+		local_time.erase(remove(local_time.begin(), local_time.end(), '\n'), local_time.end());
 
 		AFResultsTable::Instance().setFileName(argument);
 		AFResultsTable::Instance().addStaticColumn("AF_VERSION", af_version);
@@ -157,20 +168,20 @@ int main(int argc, char** argv)
 		AFResultsTable::Instance().addStaticColumn("AF_TOOLKIT", device_toolkit);
 		AFResultsTable::Instance().addStaticColumn("AF_COMPUTE", device_compute);
 		AFResultsTable::Instance().addStaticColumn("LOCAL_TIME", local_time);
-		AFResultsTable::Instance().addStaticColumn("POSIX_TIME", std::to_string(current_time));
+		AFResultsTable::Instance().addStaticColumn("POSIX_TIME", to_string(current_time));
 
 
 		celero::AddExperimentResultCompleteFunction(
-			[](std::shared_ptr<celero::Result> p)
+			[](shared_ptr<celero::Result> p)
 			{
 				AFResultsTable::Instance().add(p);
 			});
 	}
 
-	std::string finalOutput;
+	string finalOutput;
 
 	// Has a run group been specified?
-	argument = args.get<std::string>("group");
+	argument = args.get<string>("group");
 	if(argument.empty() == false)
 	{
 		executor::Run(argument);
