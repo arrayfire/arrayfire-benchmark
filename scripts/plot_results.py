@@ -213,7 +213,8 @@ def plot_image_bar_chart(results, show_backend=False, show_benchmark_name=False,
     autosave=False, fmt="svg"):
 
     # This function only plots results from the "Image" group
-    results = filter(lambda x: x['group'] == "Image", results)
+    valid_groups = ['Image', 'SIFT', 'SURF', 'ORB']
+    results = filter(lambda x: x['group'] in valid_groups, results)
 
     if len(results) == 0:
         return
@@ -227,15 +228,19 @@ def plot_image_bar_chart(results, show_backend=False, show_benchmark_name=False,
     for result in results:
       
         # extract results 
-        ave_time = result['times'] / result['data_sizes'] 
+        ave_throughput = result['data_sizes'] / result['times']
         # construct the label
         label = result['extra_data']['AF_DEVICE']
         if show_backend:
             label += " " + result['extra_data']['AF_PLATFORM']
+            
+        if 'AF_LABEL' in result['extra_data'].keys():
+            label = result['extra_data']['AF_LABEL']
+            
         labels.append(label)
 
         # plot this entry
-        plt.bar(x_id + width/2, result['times'], color=colors[x_id], align='center')
+        plt.bar(x_id + width/2, ave_throughput, color=colors[x_id], align='center')
         
         x_id += 1
 
