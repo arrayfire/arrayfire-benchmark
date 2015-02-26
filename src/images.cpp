@@ -9,196 +9,144 @@
 #include <celero/Celero.h>
 #include <arrayfire.h>
 #include "fixtures.h" // defines most test figures
-#include <glob.h>
+#include <sstream>
 
 using namespace af;
 
 #include <boost/filesystem.hpp>
 namespace fs = boost::filesystem;
 
-unsigned int image_samples = 1;
-unsigned int image_operations = 3;
+unsigned int image_samples = 2;
+unsigned int image_operations = 1000;
 extern std::string image_directory;
 
-array load_image(std::string filename);
-
-// Run a glob on a specific directory.
-///
-/// This function uses unix/linux specific functionality.
-std::vector<std::string> glob(const std::string& pat)
-{
-    using namespace std;
-    glob_t glob_result;
-    glob(pat.c_str(),GLOB_TILDE,NULL,&glob_result);
-    vector<string> ret;
-    for(unsigned int i=0;i<glob_result.gl_pathc;++i){
-        ret.push_back(string(glob_result.gl_pathv[i]));
-    }
-    globfree(&glob_result);
-    return ret;
-}
-
 // Base class for directories of images
-class Fixture_Image_Directory : public celero::TestFixture
+class FixtureImage : public celero::TestFixture
 {
 public:
-    std::vector<std::string> filenames;
-    std::vector<af::array> images;
-    unsigned int max_images = 1000;
+    af::array image;
 
-    Fixture_Image_Directory(){}
+    FixtureImage(){}
 
     virtual std::vector<int64_t> getExperimentValues() const
     {
         std::vector<int64_t> sizes;
-        sizes.push_back(max_images);
+        sizes.push_back(240);
+        sizes.push_back(480);
+        sizes.push_back(720);
+        sizes.push_back(1080);
+        sizes.push_back(3840);
         return sizes;
     }
 
     /// Before each run, build a vector of random integers.
     virtual void setUp(int64_t experimentSize)
     {
-        if(image_directory.size() > 0)
+        std::stringstream filename;
+        filename << image_directory << "/" << experimentSize << "p-img-0009999.jpeg";
+        try {
+            image = af::loadimage(filename.str().c_str(), true);
+        }
+        catch (af::exception & e)
         {
-            fs::path directory(image_directory);
-            fs::path directory_full = fs::complete(directory);
-            filenames = glob(directory_full.string() + "/*.jpg");
-            
-            // preload the images to the GPU
-            int max_images = 1000;
-            for(auto filename: filenames)
-            {
-                if(images.size() > max_images)
-                    return;
-
-                array A = load_image(filename);
-                if(!A.isempty())
-                    images.push_back(A);
-            }
+            // rethrow the exception
+            throw e;
         }
     }
 };
 
-array load_image(std::string filename)
+class FixtureImageWithKernel : public FixtureImage
 {
-    array temp;
+public:
+    af::array K_5x5;
+    af::array K_9x9;
+    af::array K_11x11; 
 
-    try
+    FixtureImageWithKernel() {}
+
+    virtual void setup(int64_t experimentSize)
     {
-        temp = af::loadimage(filename.c_str(), false);
+        // use the standard image setup function and create a few defined
+        // kernel sizes
+        FixtureImage::setUp(experimentSize);
+        K_5x5   = randu(5, 5, f32);
+        K_9x9   = randu(5, 5, f32);
+        K_11x11 = randu(5, 5, f32);
     }
-    catch (af::exception & e)
+};
+
+class FixtureGrayscaleImage : public FixtureImage
+{
+public:
+
+    FixtureGrayscaleImage() {}
+
+    virtual void setup(int64_t experimentSize)
     {
-        // do nothing
+        // use the standard image setup function, but convert the image to
+        // grayscale
+        FixtureImage::setUp(experimentSize);
+        image = af::rgb2gray(image, 0.2126, 0.7152, 0.0722);
     }
 
-    return temp;
-}
-
-
+};
 
 // Benchmarks for image tests
-BASELINE_F(Image, Baseline, Fixture_Image_Directory,  image_samples, image_operations)
-{
-}
+BASELINE_F(Image, Baseline, FixtureImage,  image_samples, image_operations) {}
 
-BENCHMARK_F(Image, Histogram, Fixture_Image_Directory,  image_samples, image_operations)
-{
-    for(auto image: this->images)
-    {
-        array B = histogram(image, 256, 0, 255);
-    }
+// Macro to simplify the creation of benchmarks.
+// Here benchmarkFunction will be an ArrayFire function name. The variadic
+// portion corresponds to the arguments passed to the function. To specify the
+// image, use the variable "image" (from the FixtureImage class)
+#define IMAGE_BENCHMARK(benchmarkName, benchmarkFunction, ...)    \
+BENCHMARK_F(Image, benchmarkName , FixtureImage, \
+    image_samples, image_operations)                \
+{                                                   \
+    array B = benchmarkFunction ( __VA_ARGS__ );    \
+    af::sync();                                     \
+}                                                   \
 
+//              Benchmark Name      Function        Arguments
+IMAGE_BENCHMARK(Histogram,          af::histogram,  image, 256, 0, 255)
+IMAGE_BENCHMARK(Resize_Shrink_2x,   af::resize,     0.5, image, AF_INTERP_NEAREST)
+IMAGE_BENCHMARK(Resize_Expand_2x,   af::resize,     2.0, image, AF_INTERP_NEAREST)
+
+// Macro to simplify the creation of benchmarks.
+// Here benchmarkFunction will be an ArrayFire function name. The variadic
+// portion corresponds to the arguments passed to the function. To specify the
+// image, use the variable "image" (from the FixtureImage class)
+#define IMAGE_KERNEL_BENCHMARK(benchmarkName, benchmarkFunction, ...)    \
+BENCHMARK_F(Image, benchmarkName , FixtureImageWithKernel, \
+    image_samples, image_operations)                \
+{                                                   \
+    array B = benchmarkFunction ( __VA_ARGS__ );    \
+    af::sync();                                     \
+}        
+ 
+//                     Benchmark Name    Function        Arguments
+IMAGE_KERNEL_BENCHMARK(Convolve_5x5,     af::convolve2,  image, K_5x5, false)
+IMAGE_KERNEL_BENCHMARK(Convolve_9x9,     af::convolve2,  image, K_9x9, false)
+IMAGE_KERNEL_BENCHMARK(Convolve_11x11,   af::convolve2,  image, K_11x11, false)
+
+IMAGE_KERNEL_BENCHMARK(Erode_5x5,        af::erode,      image, K_5x5)
+IMAGE_KERNEL_BENCHMARK(Erode_9x9,        af::erode,      image, K_9x9)
+IMAGE_KERNEL_BENCHMARK(Erode_11x11,      af::erode,      image, K_11x11)
+
+IMAGE_KERNEL_BENCHMARK(Bilateral_5x5,    af::bilateral,  image, 2.5f, 50.0f)
+IMAGE_KERNEL_BENCHMARK(Bilateral_9x9,    af::bilateral,  image, 2.5f, 50.0f)
+IMAGE_KERNEL_BENCHMARK(Bilateral_11x11,  af::bilateral,  image, 2.5f, 50.0f)
+
+// Other remaining benchmarks
+BENCHMARK_F(Image, FAST, FixtureImage,  image_samples, image_operations)
+{
+    af::features features = af::fast(image, 20, 9, 0, 0.05f);
     af::sync();
 }
 
-BENCHMARK_F(Image, Resize_Shrink_2x, Fixture_Image_Directory,  image_samples, image_operations)
+BENCHMARK_F(Image, ORB, FixtureImage,  image_samples, image_operations)
 {
-    for(auto image: this->images)
-    {
-        array B = af::resize(0.5, image, AF_INTERP_NEAREST);
-    }
-
+    af::features features;
+    af::array descriptions;
+    af::orb(features, descriptions, image, 20, 500, 1.2, 1);
     af::sync();
 }
-
-BENCHMARK_F(Image, Resize_Expand_2x, Fixture_Image_Directory,  image_samples, image_operations)
-{
-    for(auto image: this->images)
-    {
-    
-        array B = af::resize(2, image, AF_INTERP_NEAREST);
-    }
-
-    af::sync();
-}
-
-BENCHMARK_F(Image, Convolve_5x5, Fixture_Image_Directory,  image_samples, image_operations)
-{
-    array K = randu(5, 5, f32);
-    for(auto image: this->images)
-    {
-        array B = af::convolve2(image, K, false);
-    }
-
-    af::sync();
-}
-
-
-BENCHMARK_F(Image, Convolve_9x9, Fixture_Image_Directory,  image_samples, image_operations)
-{
-    array K = randu(9, 9, f32);
-    for(auto image: this->images)
-    {
-        array B = af::convolve2(image, K, false);
-    }
-
-    af::sync();
-}
-
-
-BENCHMARK_F(Image, Convolve_11x11, Fixture_Image_Directory,  image_samples, image_operations)
-{
-    array K = randu(11, 11, f32);
-    for(auto image: this->images)
-    {
-        array B = af::convolve2(image, K, false);
-    }
-
-    af::sync();
-}
-
-BENCHMARK_F(Image, Erode_5x5, Fixture_Image_Directory,  image_samples, image_operations)
-{
-    array K = randu(5, 5, f32);
-    for(auto image: this->images)
-    {
-        array B = af::erode(image, K);
-    }
-
-    af::sync();
-}
-
-BENCHMARK_F(Image, Bilateral, Fixture_Image_Directory,  image_samples, image_operations)
-{
-    array K = randu(5, 5, f32);
-    for(auto image: this->images)
-    {
-        array B = bilateral(image, 2.5f, 50.0f);
-    }
-
-    af::sync();
-}
-
-BENCHMARK_F(Image, FAST, Fixture_Image_Directory,  image_samples, image_operations)
-{
-    for(auto image: this->images)
-    {
-        af::features features = af::fast(image, 20, 9, 0, 0.05f);
-    }
-
-    af::sync();
-}
-
-
-
