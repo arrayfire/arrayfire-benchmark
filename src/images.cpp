@@ -46,6 +46,7 @@ public:
         filename << image_directory << "/" << experimentSize << "p-img-0009999.jpeg";
         try {
             image = af::loadimage(filename.str().c_str(), true);
+            image = af::rgb2gray(image, 0.2126, 0.7152, 0.0722);
         }
         catch (af::exception & e)
         {
@@ -107,9 +108,9 @@ BENCHMARK_F(Image, benchmarkName , FixtureImage, \
 }                                                   \
 
 //              Benchmark Name      Function        Arguments
-IMAGE_BENCHMARK(Histogram,          af::histogram,  image, 256, 0, 255)
-IMAGE_BENCHMARK(Resize_Shrink_2x,   af::resize,     0.5, image, AF_INTERP_NEAREST)
-IMAGE_BENCHMARK(Resize_Expand_2x,   af::resize,     2.0, image, AF_INTERP_NEAREST)
+//IMAGE_BENCHMARK(Histogram,          af::histogram,  image, 256, 0, 255)
+//IMAGE_BENCHMARK(Resize_Shrink_2x,   af::resize,     0.5, image, AF_INTERP_NEAREST)
+//IMAGE_BENCHMARK(Resize_Expand_2x,   af::resize,     2.0, image, AF_INTERP_NEAREST)
 
 // Macro to simplify the creation of benchmarks.
 // Here benchmarkFunction will be an ArrayFire function name. The variadic
@@ -124,17 +125,17 @@ BENCHMARK_F(Image, benchmarkName , FixtureImageWithKernel, \
 }        
  
 //                     Benchmark Name    Function        Arguments
-IMAGE_KERNEL_BENCHMARK(Convolve_5x5,     af::convolve2,  image, K_5x5, false)
-IMAGE_KERNEL_BENCHMARK(Convolve_9x9,     af::convolve2,  image, K_9x9, false)
-IMAGE_KERNEL_BENCHMARK(Convolve_11x11,   af::convolve2,  image, K_11x11, false)
-
-IMAGE_KERNEL_BENCHMARK(Erode_5x5,        af::erode,      image, K_5x5)
-IMAGE_KERNEL_BENCHMARK(Erode_9x9,        af::erode,      image, K_9x9)
-IMAGE_KERNEL_BENCHMARK(Erode_11x11,      af::erode,      image, K_11x11)
-
-IMAGE_KERNEL_BENCHMARK(Bilateral_5x5,    af::bilateral,  image, 2.5f, 50.0f)
-IMAGE_KERNEL_BENCHMARK(Bilateral_9x9,    af::bilateral,  image, 2.5f, 50.0f)
-IMAGE_KERNEL_BENCHMARK(Bilateral_11x11,  af::bilateral,  image, 2.5f, 50.0f)
+//IMAGE_KERNEL_BENCHMARK(Convolve_5x5,     af::convolve2,  image, K_5x5, false)
+//IMAGE_KERNEL_BENCHMARK(Convolve_9x9,     af::convolve2,  image, K_9x9, false)
+//IMAGE_KERNEL_BENCHMARK(Convolve_11x11,   af::convolve2,  image, K_11x11, false)
+//
+//IMAGE_KERNEL_BENCHMARK(Erode_5x5,        af::erode,      image, K_5x5)
+//IMAGE_KERNEL_BENCHMARK(Erode_9x9,        af::erode,      image, K_9x9)
+//IMAGE_KERNEL_BENCHMARK(Erode_11x11,      af::erode,      image, K_11x11)
+//
+//IMAGE_KERNEL_BENCHMARK(Bilateral_5x5,    af::bilateral,  image, 2.5f, 50.0f)
+//IMAGE_KERNEL_BENCHMARK(Bilateral_9x9,    af::bilateral,  image, 2.5f, 50.0f)
+//IMAGE_KERNEL_BENCHMARK(Bilateral_11x11,  af::bilateral,  image, 2.5f, 50.0f)
 
 // Other remaining benchmarks
 BENCHMARK_F(Image, FAST, FixtureImage,  image_samples, image_operations)
@@ -147,6 +148,11 @@ BENCHMARK_F(Image, ORB, FixtureImage,  image_samples, image_operations)
 {
     af::features features;
     af::array descriptions;
-    af::orb(features, descriptions, image, 20, 500, 1.2, 1);
+    // At present af::orb will reduce the image by half N-times. When fewer than
+    // 8 pixels remain, it will thrown an error. Here we automatically determine
+    // the maximum level which ORB can process safely:
+    int min_size = std::min(image.dims()[0], image.dims()[1]);
+    int max_level = log2(min_size / 8);
+    af::orb(features, descriptions, image, 20, 500, 1.2, max_level);
     af::sync();
 }
