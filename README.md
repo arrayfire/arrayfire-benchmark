@@ -4,8 +4,25 @@ Benchmark software for [ArrayFire](https://github.com/arrayfire/arrayfire)
 
 ## Prerequisites
 
+### System libraries
+
+The benchmarking program requires the following system-level libraries:
+
+* ncurses
+* python
+* matplotlib
+
+On Ubuntu, you may install these packages using the following command:
+
+    sudo apt-get install libncurses-dev python-matplotlib
+
+### ArrayFire library
+
+Build and install the ArrayFire library following instructions here:
+
 * [ArrayFire](https://github.com/arrayfire/arrayfire)
-* ncurses. Install using `sudo apt-get install libncurses-dev`
+
+Note, you may install ArrayFire to a non-system path if needed.
 
 ## Checkout and build
 
