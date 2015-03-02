@@ -104,6 +104,9 @@ def plot_time_vs_size(results, show_backend=False, show_benchmark_name=False,
     exclude_groups = ["Image"]
     results = filter(lambda x: x['group'] not in exclude_groups, results)
     
+    if len(results) == 0:
+        return
+    
     colors = cm.rainbow(np.linspace(0, 1, len(results)))
 
     # plot execution time vs. data size
@@ -139,6 +142,9 @@ def plot_throughput_vs_size(results, show_backend=False, show_benchmark_name=Fal
     # exclude specific groups from being plotted by this function
     exclude_groups = ["Image"]
     results = filter(lambda x: x['group'] not in exclude_groups, results)
+
+    if len(results) == 0:
+        return
 
     colors = cm.rainbow(np.linspace(0, 1, len(results)))
 
@@ -177,6 +183,9 @@ def plot_image_rate_vs_size(results, show_backend=False, show_benchmark_name=Fal
     exclude_groups = ["Image"]
     results = filter(lambda x: x['group'] not in exclude_groups, results)
 
+    if len(results) == 0:
+        return
+
     colors = cm.rainbow(np.linspace(0, 1, len(results)))
 
     # plot images/second vs. data size
@@ -209,7 +218,7 @@ def plot_image_rate_vs_size(results, show_backend=False, show_benchmark_name=Fal
     plt.legend(loc='upper right', numpoints=1)
     label_and_plot(title, suffix, ylabel, xlabel, autosave=autosave, fmt=fmt)
 
-def plot_image_bar_chart(results, show_backend=False, show_benchmark_name=False, 
+def plot_image_throughput(results, show_backend=False, show_benchmark_name=False, 
     autosave=False, fmt="svg"):
 
     # This function only plots results from the "Image" group
@@ -222,13 +231,13 @@ def plot_image_bar_chart(results, show_backend=False, show_benchmark_name=False,
     colors = cm.rainbow(np.linspace(0, 1, len(results)))
 
     # plot images/second vs. data size
-    x_id = 0
-    width = 0.75
     labels = list()
+    color_id = 0;
     for result in results:
       
         # extract results 
-        ave_throughput = result['data_sizes'] / result['times']
+        x = result['data_sizes']
+        y = 1.0 / (result['times'] * 1E-6)
         # construct the label
         label = result['extra_data']['AF_DEVICE']
         if show_backend:
@@ -239,10 +248,10 @@ def plot_image_bar_chart(results, show_backend=False, show_benchmark_name=False,
             
         labels.append(label)
 
-        # plot this entry
-        plt.bar(x_id + width/2, ave_throughput, color=colors[x_id], align='center')
+        plt.scatter(x, y, color=colors[color_id], label=label, linewidth=2.0)
+        plt.plot(x,y, color=colors[color_id], label=None, linewidth=2.0)
         
-        x_id += 1
+        color_id += 1
 
     # set the title
     title = results[0]['group']
@@ -254,8 +263,7 @@ def plot_image_bar_chart(results, show_backend=False, show_benchmark_name=False,
         title += " " + results[0]['benchmark_name']
 
     # setup the x-labels to match the labels of the individual plots
-    ind = np.arange(x_id)
-    plt.xticks(ind + width / 2, labels)
+    plt.legend(loc='upper right', numpoints=1)
     label_and_plot(title, suffix, ylabel, xlabel, autosave=autosave, fmt=fmt)   
     
     
@@ -485,7 +493,7 @@ def main():
 #            plot_image_rate_vs_size(temp, show_backend=show_backend, 
 #				show_benchmark_name=show_benchmark_name, 
 #				fmt=args.save_format, autosave=args.autosave)
-            plot_image_bar_chart(temp, show_backend=show_backend, 
+            plot_image_throughput(temp, show_backend=show_backend, 
 				show_benchmark_name=show_benchmark_name, 
 				fmt=args.save_format, autosave=args.autosave)
          
