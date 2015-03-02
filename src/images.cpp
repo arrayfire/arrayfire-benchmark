@@ -45,16 +45,19 @@ public:
     /// Before each run, build a vector of random integers.
     virtual void setUp(int64_t experimentSize)
     {
-        std::stringstream filename;
-        filename << image_directory << "/" << experimentSize << "p-img-0009999.jpeg";
-        try {
-            image = af::loadimage(filename.str().c_str(), true);
-            image = af::rgb2gray(image, 0.2126, 0.7152, 0.0722);
-        }
-        catch (af::exception & e)
+        if(experimentSize > 0)
         {
-            // rethrow the exception
-            throw e;
+            std::stringstream filename;
+            filename << image_directory << "/" << experimentSize << "p-img-0009999.jpeg";
+            try {
+                image = af::loadimage(filename.str().c_str(), true);
+                image = af::rgb2gray(image, 0.2126, 0.7152, 0.0722);
+            }
+            catch (af::exception & e)
+            {
+                // rethrow the exception
+                throw e;
+            }
         }
     }
 };
