@@ -4,7 +4,8 @@ Benchmark software for [ArrayFire](https://github.com/arrayfire/arrayfire)
 
 ## Prerequisites
 
-[ArrayFire](https://github.com/arrayfire/arrayfire)
+* [ArrayFire](https://github.com/arrayfire/arrayfire)
+* ncurses. Install using `sudo apt-get install libncurses-dev`
 
 ## Checkout and build
 

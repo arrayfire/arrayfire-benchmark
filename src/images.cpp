@@ -31,11 +31,14 @@ public:
     virtual std::vector<int64_t> getExperimentValues() const
     {
         std::vector<int64_t> sizes;
-        sizes.push_back(240);
-        sizes.push_back(480);
-        sizes.push_back(720);
-        sizes.push_back(1080);
-        sizes.push_back(3840);
+        if(image_directory.size() > 0)
+        {
+            sizes.push_back(240);
+            sizes.push_back(480);
+            sizes.push_back(720);
+            sizes.push_back(1080);
+            sizes.push_back(3840);
+        }
         return sizes;
     }
 
