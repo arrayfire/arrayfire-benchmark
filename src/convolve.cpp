@@ -13,36 +13,39 @@ using namespace af;
 extern unsigned int samples;
 extern unsigned int operations;
 
-BASELINE_F(Convolve_f32, Baseline, Fixture_2D_f32, samples, operations)
-{
-	// time the creation of the random 5x5 array
-	array K = randu(5, 5, f32);
-	K.eval();
-	af::sync();
-}
+#define CONVOLVE_BASELINE(dataType, kernelWidth, kernelHeight) \
+BASELINE_F( Convolve_##kernelWidth##_##kernelHeight##_##dataType , \
+    2D_##kernelWidth##_##kernelHeight, \
+    Fixture_2D_##dataType , samples, operations) \
+{                                                           \
+    array K = randu( kernelWidth, kernelHeight , dataType); \
+    K.eval();                                               \
+    af::sync();                                             \
+}                                                           \
 
-BENCHMARK_F(Convolve_f32, 2D_5x5, Fixture_2D_f32, samples, operations)
-{
-	array K = randu(5, 5, f32);
-	K.eval();
-    array B = convolve(this->A, K);
-    B.eval();
-	af::sync();
-}
+#define CONVOLVE_BENCHMARK(dataType, kernelWidth, kernelHeight) \
+BENCHMARK_F( Convolve_##kernelWidth##_##kernelHeight##_##dataType , \
+    2D_##kernelWidth##_##kernelHeight , \
+    Fixture_2D_##dataType , samples, operations) \
+{                                                         \
+    array K = randu(kernelWidth, kernelHeight, dataType); \
+    K.eval();                                             \
+    array B = convolve(this->A, K);                       \
+    B.eval();                                             \
+    af::sync();                                           \
+}                                                         \
 
-BASELINE_F(Convolve_f64, Baseline, Fixture_2D_f64, samples, operations)
-{
-	// time the creation of the random 5x5 array
-	array K = randu(5, 5, f64);
-	K.eval();
-	af::sync();
-}
+CONVOLVE_BASELINE (f32, 5, 5);
+CONVOLVE_BENCHMARK(f32, 5, 5);
+CONVOLVE_BASELINE (f32, 9, 9);
+CONVOLVE_BENCHMARK(f32, 9, 9);
+CONVOLVE_BASELINE (f32, 11, 11);
+CONVOLVE_BENCHMARK(f32, 11, 11);
 
-BENCHMARK_F(Convolve_f64, 2D_5x5, Fixture_2D_f64, samples, operations)
-{
-	array K = randu(5, 5, f64);
-	K.eval();
-    array B = convolve(this->A, K);
-    B.eval();
-	af::sync();
-}
+CONVOLVE_BASELINE (f64, 5, 5);
+CONVOLVE_BENCHMARK(f64, 5, 5);
+CONVOLVE_BASELINE (f64, 9, 9);
+CONVOLVE_BENCHMARK(f64, 9, 9);
+CONVOLVE_BASELINE (f64, 11, 11);
+CONVOLVE_BENCHMARK(f64, 11, 11);
+
