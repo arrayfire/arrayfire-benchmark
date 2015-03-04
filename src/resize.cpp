@@ -13,75 +13,49 @@ using namespace af;
 extern unsigned int samples;
 extern unsigned int operations;
 
-// Benchmarks for 32-bit floating point tests
-BASELINE_F(Resize_f32, Baseline, Fixture_2D_f32, samples, operations) { }
+// Macro to simplify the creation of 1D resize tests
+#define RESIZE_BENCHMARK_1D(benchmarkName, resizeMethod, dataType, scale)  \
+BASELINE_F( Resize_##dataType , benchmarkName##_1D_##dataType##_##resizeMethod ,  \
+    Fixture_1D_##dataType, samples, operations)             \
+{ \
+    dim4 A_size  = this->A.dims();                                  \
+    array B = resize(A, A_size.dims[0] * scale, resizeMethod ); \
+    B.eval();                                                       \
+    af::sync();                                                     \
+} \
 
-BENCHMARK_F(Resize_f32, INTERP_NEAREST, Fixture_2D_f32, samples, operations)
-{
-	dim4 A_size = this->A.dims();
-	array B = resize(A, A_size.dims[0] / 2, A_size.dims[1] / 2, AF_INTERP_NEAREST);
-	B.eval();
-	af::sync();
-}
+// 1D resize benchmarks:
+BASELINE_F(Resize_f32, Baseline_1D, Fixture_1D_f32, samples, operations) {}
+// 32-bit benchmarks
+RESIZE_BENCHMARK_1D(Shrink, AF_INTERP_NEAREST, f32, 0.5)
+RESIZE_BENCHMARK_1D(Expand, AF_INTERP_NEAREST, f32, 2.0)
+RESIZE_BENCHMARK_1D(Shrink, AF_INTERP_LINEAR,  f32, 0.5)
+RESIZE_BENCHMARK_1D(Expand, AF_INTERP_LINEAR,  f32, 2.0)
+// 64-bit benchmarks
+RESIZE_BENCHMARK_1D(Shrink, AF_INTERP_NEAREST, f64, 0.5)
+RESIZE_BENCHMARK_1D(Expand, AF_INTERP_NEAREST, f64, 2.0)
+RESIZE_BENCHMARK_1D(Shrink, AF_INTERP_LINEAR,  f64, 0.5)
+RESIZE_BENCHMARK_1D(Expand, AF_INTERP_LINEAR,  f64, 2.0)
 
-BENCHMARK_F(Resize_f32, INTERP_LINEAR, Fixture_2D_f32, samples, operations)
-{
-#warning The AF_INTERP_LINEAR method has yet to be implemented. Enable this code when ArrayFire is ready
-//	dim4 A_size = A.dims();
-//	array B = resize(A, A_size.dims[0] / 2, A_size.dims[1] / 2, AF_INTERP_LINEAR);
-//	B.eval();
-}
+// Macro to simplify the creation of 2D resize tests
+#define RESIZE_BENCHMARK_2D(benchmarkName, resizeMethod, dataType, scale)  \
+BASELINE_F( Resize_##dataType , benchmarkName##_2D_##dataType##_##resizeMethod ,  \
+    Fixture_2D_##dataType, samples, operations)             \
+{ \
+    dim4 A_size  = this->A.dims();                                  \
+    array B = resize(A, A_size.dims[0] * scale, A_size.dims[1] * scale, resizeMethod ); \
+    B.eval();                                                       \
+    af::sync();                                                     \
+} \
 
-BENCHMARK_F(Resize_f32, INTERP_BILINEAR, Fixture_2D_f32, samples, operations)
-{
-	dim4 A_size = A.dims();
-	array B = resize(A, A_size.dims[0] / 2, A_size.dims[1] / 2, AF_INTERP_BILINEAR);
-	B.eval();
-	af::sync();
-}
-
-BENCHMARK_F(Resize_f32, INTERP_CUBIC, Fixture_2D_f32, samples, operations)
-{
-#warning The AF_INTERP_CUBIC method has yet to be implemented. Enable this code when ArrayFire is ready
-//	dim4 A_size = A.dims();
-//	array B = resize(A, A_size.dims[0] / 2, A_size.dims[1] / 2, AF_INTERP_CUBIC);
-//	B.eval();
-//	af::sync();
-}
-
-// Benchmarks for 64-bit floating point tests
-BASELINE_F(Resize_f64, Baseline, Fixture_2D_f64, samples, operations) { }
-
-BENCHMARK_F(Resize_f64, INTERP_NEAREST, Fixture_2D_f64, samples, operations)
-{
-	dim4 A_size = this->A.dims();
-	array B = resize(A, A_size.dims[0] / 2, A_size.dims[1] / 2, AF_INTERP_NEAREST);
-	B.eval();
-	af::sync();
-}
-
-BENCHMARK_F(Resize_f64, AF_INTERP_LINEAR, Fixture_2D_f64, samples, operations)
-{
-#warning The AF_INTERP_LINEAR method has yet to be implemented. Enable this code when ArrayFire is ready
-//	dim4 A_size = A.dims();
-//	array B = resize(A, A_size.dims[0] / 2, A_size.dims[1] / 2, AF_INTERP_LINEAR);
-//	B.eval();
-//	af::sync();
-}
-
-BENCHMARK_F(Resize_f64, INTERP_BILINEAR, Fixture_2D_f64, samples, operations)
-{
-	dim4 A_size = A.dims();
-	array B = resize(A, A_size.dims[0] / 2, A_size.dims[1] / 2, AF_INTERP_BILINEAR);
-	B.eval();
-	af::sync();
-}
-
-BENCHMARK_F(Resize_f64, INTERP_CUBIC, Fixture_2D_f64, samples, operations)
-{
-#warning The AF_INTERP_CUBIC method has yet to be implemented. Enable this code when ArrayFire is ready
-//	dim4 A_size = A.dims();
-//	array B = resize(A, A_size.dims[0] / 2, A_size.dims[1] / 2, AF_INTERP_CUBIC);
-//	B.eval();
-//	af::sync();
-}
+BASELINE_F(Resize_f32, Baseline_2D, Fixture_2D_f32, samples, operations) {}
+// 32-bit benchmarks
+RESIZE_BENCHMARK_2D(Shrink, AF_INTERP_NEAREST,   f32, 0.5)
+RESIZE_BENCHMARK_2D(Expand, AF_INTERP_NEAREST,   f32, 2.0)
+RESIZE_BENCHMARK_2D(Shrink, AF_INTERP_BILINEAR,  f32, 0.5)
+RESIZE_BENCHMARK_2D(Expand, AF_INTERP_BILINEAR,  f32, 2.0)
+// 64-bit benchmarks
+RESIZE_BENCHMARK_2D(Shrink, AF_INTERP_NEAREST,   f64, 0.5)
+RESIZE_BENCHMARK_2D(Expand, AF_INTERP_NEAREST,   f64, 2.0)
+RESIZE_BENCHMARK_2D(Shrink, AF_INTERP_BILINEAR,  f64, 0.5)
+RESIZE_BENCHMARK_2D(Expand, AF_INTERP_BILINEAR,  f64, 2.0)

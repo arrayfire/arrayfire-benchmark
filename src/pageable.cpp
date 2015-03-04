@@ -18,18 +18,19 @@ class PageFixture_2D_f32 : public Fixture_2D_f32
 public:
 	float * A_host;
 
-	PageFixture_2D_f32() {}
+	PageFixture_2D_f32() 
+    {
+        A_host = NULL;
+    }
 
 	virtual void setUp(int64_t experimentSize)
 	{
-#warning af::array::host<float> is not implemented
-//		A_host = A.host<float>();
+        A_host = A.host<float>();
 	}
 
 	virtual void tearDown()
 	{
-#warning af::array::free is not implemented. Fix this later
-//		array::free(A_host);
+        if(A_host) delete[] A_host;
 	}
 };
 
@@ -38,29 +39,38 @@ class PageFixture_2D_f64 : public Fixture_2D_f64
 public:
 	double * A_host;
 
-	PageFixture_2D_f64() {}
+	PageFixture_2D_f64() 
+    {
+        A_host = NULL;
+    }
 
 	virtual void setUp(int64_t experimentSize)
 	{
-#warning af::array::host<double> is not implemented
-//		A_host = A.host<double>();
+		A_host = A.host<double>();
 	}
 
 	virtual void tearDown()
 	{
-#warning af::array::free is not implemented. Fix this later
-//		array::free(A_host);
+        if(A_host) delete[] A_host;
 	}
 };
 
-BASELINE_F(Pageable_f32, Baseline, PageFixture_2D_f32, samples, operations) { }
-
-BENCHMARK_F(Pageable_f32, Benchmark, PageFixture_2D_f32, samples, operations)
-{
-#warning This test does nothing as critical portions of ArrayFire are not implemented.
-//	dim4 A_size = A.dims();
+//BASELINE_F(Pageable_f32, Baseline, PageFixture_2D_f32, samples, operations) { }
+//
+//BENCHMARK_F(Pageable_f32, Benchmark, PageFixture_2D_f32, samples, operations)
+//{
+//    dim4 A_size = A.dims();
 //    array B = array(A_size.dims[0], A_size.dims[1], A_host, af::afHost);
 //    B.eval();
-//	af::sync();
-}
-
+//    af::sync();
+//}
+//
+//BASELINE_F(Pageable_f64, Baseline, PageFixture_2D_f64, samples, operations) { }
+//
+//BENCHMARK_F(Pageable_f64, Benchmark, PageFixture_2D_f64, samples, operations)
+//{
+//    dim4 A_size = A.dims();
+//    array B = array(A_size.dims[0], A_size.dims[1], A_host, af::afHost);
+//    B.eval();
+//    af::sync();
+//}
