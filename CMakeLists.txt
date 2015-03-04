@@ -19,6 +19,8 @@ LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules)
 
 ## Include and build the Celero benchmark framework
 if(NOT TARGET celero)
+    # Disable some default options from Celero
+    SET(CELERO_ENABLE_EXPERIMENTS OFF CACHE BOOL "Automatically build Celero examples")
     ADD_SUBDIRECTORY (lib/celero)
 endif()
 include_directories(lib/celero/include)
