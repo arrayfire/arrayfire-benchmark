@@ -224,20 +224,27 @@ int main(int argc, char** argv)
 	// find a sepecific group
 	if(args.exist("group"))
 	{
+		bool foundGroup = false;
+
 		string groupName = args.get<string>("group");
 
-		auto it = std::find_if(all_benchmarks.begin(), all_benchmarks.end(),
-				[&groupName](const pair<string, string> & p) { return p.first == groupName; });
+		for(int i = 0; i < int(all_benchmarks.size()); i++)
+		{
+			auto benchmark = all_benchmarks[i];
+			if(benchmark.first == groupName)
+			{
+				benchmarks.push_back(benchmark);
+				foundGroup = true;
+			}
+
+		}
 
 		// If the experiment was not found, exit the program
-		if(it == all_benchmarks.end())
+		if(!foundGroup)
 		{
 			cout << "The group named '" << groupName << "' could not be found.";
 			return 0;
 		}
-
-		// append the benchmark name to the list
-		benchmarks.push_back((*it));
 	}
 
 	// If no test or group was specified, run all benchmarks.
@@ -261,7 +268,6 @@ int main(int argc, char** argv)
 	{
 		string group = benchmark.first;
 		string experiment = benchmark.second;
-		cout << " --- Running experiment --- " << endl;
 		executor::Run(group, experiment);
 	}
 
