@@ -16,8 +16,8 @@ extern unsigned int samples;
 extern unsigned int operations;
 
 // Benchmarks for 32-bit floating point tests
-BASELINE_F(Transpose_f32, Baseline, Fixture_2D_f32, samples, operations) { }
-BENCHMARK_F(Transpose_f32, Benchmark, Fixture_2D_f32, samples, operations)
+BASELINE_F(Transpose, Baseline, Fixture_2D_f32, samples, operations) { }
+BENCHMARK_F(Transpose, Transpose_f32, Fixture_2D_f32, samples, operations)
 {
 	array B = transpose(A);
 	B.eval();
@@ -25,8 +25,7 @@ BENCHMARK_F(Transpose_f32, Benchmark, Fixture_2D_f32, samples, operations)
 }
 
 // Benchmarks for 64-bit floating point tests
-BASELINE_F(Transpose_f64, Baseline, Fixture_2D_f64, samples, operations) { }
-BENCHMARK_F(Transpose_f64, Benchmark, Fixture_2D_f64, samples, operations)
+BENCHMARK_F(Transpose, Transpose_f64, Fixture_2D_f64, samples, operations)
 {
 	array B = transpose(A);
 	B.eval();

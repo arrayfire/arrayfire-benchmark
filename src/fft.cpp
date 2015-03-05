@@ -13,18 +13,16 @@ using namespace af;
 extern unsigned int samples;
 extern unsigned int operations;
 
-BASELINE_F(FFT_2D_f32, Baseline, Fixture_2D_f32, samples, operations){ }
+BASELINE_F(FFT_2D, Baseline, Fixture_2D_f32, samples, operations){ }
 
-BENCHMARK_F(FFT_2D_f32, Benchmark, Fixture_2D_f32, samples, operations)
+BENCHMARK_F(FFT_2D, FFT_2D_f32, Fixture_2D_f32, samples, operations)
 {
 	array B = fft2(A);
 	B.eval();
 	af::sync();
 }
 
-BASELINE_F(FFT_2D_f64, Baseline, Fixture_2D_f64, samples, operations){ }
-
-BENCHMARK_F(FFT_2D_f64, Benchmark, Fixture_2D_f64, samples, operations)
+BENCHMARK_F(FFT_2D, FFT_2D_f64, Fixture_2D_f64, samples, operations)
 {
 	array B = fft2(A);
 	B.eval();

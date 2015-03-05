@@ -16,8 +16,8 @@ extern unsigned int samples;
 extern unsigned int operations;
 
 // Benchmarks for 32-bit floating point tests
-BASELINE_F(Sort_f32, Baseline, Fixture_1D_f32, samples, operations) { }
-BENCHMARK_F(Sort_f32, ASCENDING, Fixture_1D_f32, samples, operations)
+BASELINE_F(Sort, Baseline, Fixture_1D_f32, samples, operations) { }
+BENCHMARK_F(Sort, Sort_f32_ASCENDING, Fixture_1D_f32, samples, operations)
 {
 	array B = sort(A);
 	B.eval();
@@ -25,7 +25,7 @@ BENCHMARK_F(Sort_f32, ASCENDING, Fixture_1D_f32, samples, operations)
 }
 
 // Benchmarks for 32-bit floating point tests
-BENCHMARK_F(Sort_f32, DESCENDING, Fixture_1D_f32, samples, operations)
+BENCHMARK_F(Sort, Sort_f32_DESCENDING, Fixture_1D_f32, samples, operations)
 {
 	array B = sort(A, false);
 	B.eval();
@@ -33,8 +33,7 @@ BENCHMARK_F(Sort_f32, DESCENDING, Fixture_1D_f32, samples, operations)
 }
 
 // Benchmarks for 64-bit floating point tests
-BASELINE_F(Sort_f64, Baseline, Fixture_1D_f64, samples, operations) { }
-BENCHMARK_F(Sort_f64, ASCENDING, Fixture_1D_f64, samples, operations)
+BENCHMARK_F(Sort, Sort_f64_ASCENDING, Fixture_1D_f64, samples, operations)
 {
 	array B = sort(A);
 	B.eval();
@@ -42,7 +41,7 @@ BENCHMARK_F(Sort_f64, ASCENDING, Fixture_1D_f64, samples, operations)
 }
 
 // Benchmarks for 64-bit floating point tests
-BENCHMARK_F(Sort_f64, DESCENDING, Fixture_1D_f64, samples, operations)
+BENCHMARK_F(Sort, Sort_f64_DESCENDING, Fixture_1D_f64, samples, operations)
 {
 	array B = sort(A, false);
 	B.eval();

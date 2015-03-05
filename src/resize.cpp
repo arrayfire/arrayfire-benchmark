@@ -15,7 +15,7 @@ extern unsigned int operations;
 
 // Macro to simplify the creation of 1D resize tests
 #define RESIZE_BENCHMARK_1D(benchmarkName, resizeMethod, dataType, scale)  \
-BASELINE_F( Resize_##dataType , benchmarkName##_1D_##dataType##_##resizeMethod ,  \
+BENCHMARK_F( Resize , Resize_1D_##dataType##_##benchmarkName##_##resizeMethod ,  \
     Fixture_1D_##dataType, samples, operations)             \
 { \
     dim4 A_size  = this->A.dims();                                  \
@@ -24,8 +24,9 @@ BASELINE_F( Resize_##dataType , benchmarkName##_1D_##dataType##_##resizeMethod ,
     af::sync();                                                     \
 } \
 
-// 1D resize benchmarks:
-BASELINE_F(Resize_f32, Baseline_1D, Fixture_1D_f32, samples, operations) {}
+// Resize baseline, it does nothing non-standard
+BASELINE_F(Resize, Baseline_1D, Fixture_1D_f32, samples, operations) {}
+
 // 32-bit benchmarks
 RESIZE_BENCHMARK_1D(Shrink, AF_INTERP_NEAREST, f32, 0.5)
 RESIZE_BENCHMARK_1D(Expand, AF_INTERP_NEAREST, f32, 2.0)
@@ -39,7 +40,7 @@ RESIZE_BENCHMARK_1D(Expand, AF_INTERP_LINEAR,  f64, 2.0)
 
 // Macro to simplify the creation of 2D resize tests
 #define RESIZE_BENCHMARK_2D(benchmarkName, resizeMethod, dataType, scale)  \
-BASELINE_F( Resize_##dataType , benchmarkName##_2D_##dataType##_##resizeMethod ,  \
+BASELINE_F( Resize , benchmarkName##_2D_##dataType##_##resizeMethod ,  \
     Fixture_2D_##dataType, samples, operations)             \
 { \
     dim4 A_size  = this->A.dims();                                  \
@@ -48,7 +49,6 @@ BASELINE_F( Resize_##dataType , benchmarkName##_2D_##dataType##_##resizeMethod ,
     af::sync();                                                     \
 } \
 
-BASELINE_F(Resize_f32, Baseline_2D, Fixture_2D_f32, samples, operations) {}
 // 32-bit benchmarks
 RESIZE_BENCHMARK_2D(Shrink, AF_INTERP_NEAREST,   f32, 0.5)
 RESIZE_BENCHMARK_2D(Expand, AF_INTERP_NEAREST,   f32, 2.0)

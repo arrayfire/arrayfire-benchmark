@@ -49,9 +49,9 @@ public:
 	}
 };
 
-BASELINE_F(PinnedMemory_f32, Baseline, PinnedFixture_2D_f32, samples, operations) { }
+BASELINE_F(PinnedMemory, Baseline, PinnedFixture_2D_f32, samples, operations) { }
 
-BENCHMARK_F(PinnedMemory_f32, Bandwidth, PinnedFixture_2D_f32, samples, operations)
+BENCHMARK_F(PinnedMemory, PinnedMemory_f32_Bandwidth, PinnedFixture_2D_f32, samples, operations)
 {
     dim4 A_size = A.dims();
     array B = array(A_size.dims[0], A_size.dims[1], A_host, af::afHost);
@@ -59,9 +59,7 @@ BENCHMARK_F(PinnedMemory_f32, Bandwidth, PinnedFixture_2D_f32, samples, operatio
     af::sync();
 }
 
-BASELINE_F(PinnedMemory_f64, Baseline, PinnedFixture_2D_f64, samples, operations) { }
-
-BENCHMARK_F(PinnedMemory_f64, Bandwidth, PinnedFixture_2D_f64, samples, operations)
+BENCHMARK_F(PinnedMemory, PinnedMemory_f64_Bandwidth, PinnedFixture_2D_f64, samples, operations)
 {
     dim4 A_size = A.dims();
     array B = array(A_size.dims[0], A_size.dims[1], A_host, af::afHost);

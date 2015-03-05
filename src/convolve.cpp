@@ -14,8 +14,8 @@ extern unsigned int samples;
 extern unsigned int operations;
 
 #define CONVOLVE_BASELINE(dataType, kernelWidth, kernelHeight) \
-BASELINE_F( Convolve_##kernelWidth##_##kernelHeight##_##dataType , \
-    2D_##kernelWidth##_##kernelHeight, \
+BASELINE_F( Convolve_##dataType##_##kernelWidth##x##kernelHeight , \
+	Baseline , \
     Fixture_2D_##dataType , samples, operations) \
 {                                                           \
     array K = randu( kernelWidth, kernelHeight , dataType); \
@@ -24,8 +24,8 @@ BASELINE_F( Convolve_##kernelWidth##_##kernelHeight##_##dataType , \
 }                                                           \
 
 #define CONVOLVE_BENCHMARK(dataType, kernelWidth, kernelHeight) \
-BENCHMARK_F( Convolve_##kernelWidth##_##kernelHeight##_##dataType , \
-    2D_##kernelWidth##_##kernelHeight , \
+BENCHMARK_F( Convolve_##dataType##_##kernelWidth##x##kernelHeight , \
+	Convolve_##dataType##_##kernelWidth##x##kernelHeight , \
     Fixture_2D_##dataType , samples, operations) \
 {                                                         \
     array K = randu(kernelWidth, kernelHeight, dataType); \

@@ -99,16 +99,19 @@ int main(int argc, char** argv)
 
 	if(args.exist("list-benchmarks"))
 	{
+		int fieldWidth = 21;
 		cout << endl;
 		cout << "To run a specific group of benchmarks, run with -g group_name." << endl;
 		cout << "To run a specific experiment, run with -e experiment_name." << endl;
 		cout << endl;
 		cout << "List of benchmarks:" << endl;
+		cout << " " << setw(fieldWidth + 1) << left << "Benchmark" << "Experiment" << endl;
+		cout << " " << setw(fieldWidth + 1) << left << "---------" << "----------" << endl;
 		vector<pair<string,string>> experiment_names = getExperimentNames();
 
 		sort(experiment_names.begin(), experiment_names.end());
 		for(auto experment_name: experiment_names)
-			cout << " " << experment_name.first << " " << experment_name.second << endl;
+			cout << " " << setw(fieldWidth) << left << experment_name.first << " " << experment_name.second << endl;
 
 		return 0;
 	}

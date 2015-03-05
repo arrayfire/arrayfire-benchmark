@@ -106,7 +106,7 @@ BASELINE_F(Image, Baseline, FixtureImage,  image_samples, image_operations) {}
 // portion corresponds to the arguments passed to the function. To specify the
 // image, use the variable "image" (from the FixtureImage class)
 #define IMAGE_BENCHMARK(benchmarkName, benchmarkFunction, ...)    \
-BENCHMARK_F(Image, benchmarkName , FixtureImage, \
+BENCHMARK_F(Image, Image_##benchmarkName , FixtureImage, \
     image_samples, image_operations)                \
 {                                                   \
     array B = benchmarkFunction ( __VA_ARGS__ );    \
@@ -114,16 +114,16 @@ BENCHMARK_F(Image, benchmarkName , FixtureImage, \
 }                                                   \
 
 //              Benchmark Name      Function        Arguments
-//IMAGE_BENCHMARK(Histogram,          af::histogram,  image, 256, 0, 255)
-//IMAGE_BENCHMARK(Resize_Shrink_2x,   af::resize,     0.5, image, AF_INTERP_NEAREST)
-//IMAGE_BENCHMARK(Resize_Expand_2x,   af::resize,     2.0, image, AF_INTERP_NEAREST)
+IMAGE_BENCHMARK(Histogram,          af::histogram,  image, 256, 0, 255)
+IMAGE_BENCHMARK(Resize_Shrink_2x,   af::resize,     0.5, image, AF_INTERP_NEAREST)
+IMAGE_BENCHMARK(Resize_Expand_2x,   af::resize,     2.0, image, AF_INTERP_NEAREST)
 
 // Macro to simplify the creation of benchmarks.
 // Here benchmarkFunction will be an ArrayFire function name. The variadic
 // portion corresponds to the arguments passed to the function. To specify the
 // image, use the variable "image" (from the FixtureImage class)
 #define IMAGE_KERNEL_BENCHMARK(benchmarkName, benchmarkFunction, ...)    \
-BENCHMARK_F(Image, benchmarkName , FixtureImageWithKernel, \
+BENCHMARK_F(Image, Image_##benchmarkName , FixtureImageWithKernel, \
     image_samples, image_operations)                \
 {                                                   \
     array B = benchmarkFunction ( __VA_ARGS__ );    \
@@ -131,26 +131,26 @@ BENCHMARK_F(Image, benchmarkName , FixtureImageWithKernel, \
 }        
  
 //                     Benchmark Name    Function        Arguments
-//IMAGE_KERNEL_BENCHMARK(Convolve_5x5,     af::convolve2,  image, K_5x5, false)
-//IMAGE_KERNEL_BENCHMARK(Convolve_9x9,     af::convolve2,  image, K_9x9, false)
-//IMAGE_KERNEL_BENCHMARK(Convolve_11x11,   af::convolve2,  image, K_11x11, false)
-//
-//IMAGE_KERNEL_BENCHMARK(Erode_5x5,        af::erode,      image, K_5x5)
-//IMAGE_KERNEL_BENCHMARK(Erode_9x9,        af::erode,      image, K_9x9)
-//IMAGE_KERNEL_BENCHMARK(Erode_11x11,      af::erode,      image, K_11x11)
-//
-//IMAGE_KERNEL_BENCHMARK(Bilateral_5x5,    af::bilateral,  image, 2.5f, 50.0f)
-//IMAGE_KERNEL_BENCHMARK(Bilateral_9x9,    af::bilateral,  image, 2.5f, 50.0f)
-//IMAGE_KERNEL_BENCHMARK(Bilateral_11x11,  af::bilateral,  image, 2.5f, 50.0f)
+IMAGE_KERNEL_BENCHMARK(Convolve_5x5,     af::convolve2,  image, K_5x5, false)
+IMAGE_KERNEL_BENCHMARK(Convolve_9x9,     af::convolve2,  image, K_9x9, false)
+IMAGE_KERNEL_BENCHMARK(Convolve_11x11,   af::convolve2,  image, K_11x11, false)
+
+IMAGE_KERNEL_BENCHMARK(Erode_5x5,        af::erode,      image, K_5x5)
+IMAGE_KERNEL_BENCHMARK(Erode_9x9,        af::erode,      image, K_9x9)
+IMAGE_KERNEL_BENCHMARK(Erode_11x11,      af::erode,      image, K_11x11)
+
+IMAGE_KERNEL_BENCHMARK(Bilateral_5x5,    af::bilateral,  image, 2.5f, 50.0f)
+IMAGE_KERNEL_BENCHMARK(Bilateral_9x9,    af::bilateral,  image, 2.5f, 50.0f)
+IMAGE_KERNEL_BENCHMARK(Bilateral_11x11,  af::bilateral,  image, 2.5f, 50.0f)
 
 // Other remaining benchmarks
-BENCHMARK_F(Image, FAST, FixtureImage,  image_samples, image_operations)
+BENCHMARK_F(Image, Image_FAST, FixtureImage,  image_samples, image_operations)
 {
     af::features features = af::fast(image, 20, 9, 0, 0.05f);
     af::sync();
 }
 
-BENCHMARK_F(Image, ORB, FixtureImage,  image_samples, image_operations)
+BENCHMARK_F(Image, Image_ORB, FixtureImage,  image_samples, image_operations)
 {
     af::features features;
     af::array descriptions;

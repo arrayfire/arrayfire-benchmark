@@ -15,16 +15,15 @@ extern unsigned int samples;
 extern unsigned int operations;
 
 // Benchmarks for 32-bit floating point tests
-BASELINE_F(Accumulate_1D_f32, Baseline, Fixture_1D_f32, samples, operations) { }
-BENCHMARK_F(Accumulate_1D_f32, Accumulate, Fixture_1D_f32, samples, operations)
+BASELINE_F(Accumulate, Baseline, Fixture_1D_f32, samples, operations) { }
+BENCHMARK_F(Accumulate, Accumulate_1D_f32, Fixture_1D_f32, samples, operations)
 {
 	array B = accum(A);
 	B.eval();
 	af::sync();
 }
 
-BASELINE_F(Accumulate_2D_f32, Baseline, Fixture_2D_f32, samples, operations) { }
-BENCHMARK_F(Accumulate_2D_f32, Accumulate, Fixture_2D_f32, samples, operations)
+BENCHMARK_F(Accumulate, Accumulate_2D_f32, Fixture_2D_f32, samples, operations)
 {
 	array B = accum(A);
 	B.eval();
@@ -32,16 +31,14 @@ BENCHMARK_F(Accumulate_2D_f32, Accumulate, Fixture_2D_f32, samples, operations)
 }
 
 // Benchmarks for 64-bit floating point tests
-BASELINE_F(Accumulate_1D_f64, Baseline, Fixture_1D_f64, samples, operations) { }
-BENCHMARK_F(Accumulate_1D_f64, Accumulate, Fixture_1D_f64, samples, operations)
+BENCHMARK_F(Accumulate, Accumulate_1D_f64, Fixture_1D_f64, samples, operations)
 {
 	array B = accum(A);
 	B.eval();
 	af::sync();
 }
 
-BASELINE_F(Accumulate_2D_f64, Baseline, Fixture_2D_f64, samples, operations) { }
-BENCHMARK_F(Accumulate_2D_f64, Accumulate, Fixture_2D_f64, samples, operations)
+BENCHMARK_F(Accumulate, Accumulate_2D_f64, Fixture_2D_f64, samples, operations)
 {
 	array B = accum(A);
 	B.eval();
