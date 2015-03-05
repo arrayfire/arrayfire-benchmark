@@ -1,6 +1,7 @@
 #include <celero/Celero.h>
 #include <celero/Archive.h>
 #include <celero/Celero.h>
+#include <celero/CommandLine.h>
 #include <celero/Console.h>
 #include <celero/Benchmark.h>
 #include <celero/TestVector.h>
@@ -45,13 +46,38 @@ void getAFDeviceInfo(string & device_name, string & device_platform, string & de
 	device_compute = string(t_device_compute);
 }
 
+/// Get a vector containing all pairs of (group, benchmark) registered with Celero
+vector<pair<string,string>> getExperimentNames()
+{
+	vector<pair<string,string>> names;
+
+	TestVector& tests = celero::TestVector::Instance();
+	for(::size_t i = 0; i < tests.size(); i++)
+	{
+		auto bm = celero::TestVector::Instance()[i];
+		string parent_name = bm->getName();
+		for(::size_t j = 0; j < bm->getExperimentSize(); j++)
+		{
+			auto experiment = bm->getExperiment(j);
+			string experiment_name = experiment->getName();
+			auto temp = make_pair(parent_name, experiment_name);
+			names.push_back(temp);
+		}
+	}
+
+	return names;
+}
+
 int main(int argc, char** argv)
 {
 	string device_name, device_platform, device_toolkit, device_compute;
 
+	bool disableImageBenchmarks = false;
+
 	cmdline::parser args;
-	args.add("list-groups", '\0', "Prints a list of all available benchmarks.");
+	args.add("list-benchmarks", '\0', "Prints a list of all available benchmarks.");
 	args.add<string>("group", 'g', "Runs a specific group of benchmarks.", false, "");
+	args.add<string>("experiment", 'e', "Runs a specific benchmark.", false, "");
 	args.add("list-backends", '\0', "Prints a list of all available benchmarks.");
 	args.add<uint64_t>("backend", 'b', "Sets the backend on which the benchmark will be executed", false);
 	args.add<string>("recordTable", 'r', "Appends the results table to the named file.", false, "");
@@ -68,31 +94,21 @@ int main(int argc, char** argv)
 	}
     else
     {
-        cout << "No image directory was specified, disabling image benchmarks." << endl;
+        disableImageBenchmarks = true;
     }
 
-	if(args.exist("list-groups"))
+	if(args.exist("list-benchmarks"))
 	{
 		cout << endl;
-		cout << "Available tests:" << endl;
-		TestVector& tests = celero::TestVector::Instance();
-		vector<pair<string,string>> test_names;
-		for(::size_t i = 0; i < tests.size(); i++)
-		{
-			auto bm = celero::TestVector::Instance()[i];
-			string parent_name = bm->getName();
-			for(::size_t j = 0; j < bm->getExperimentSize(); j++)
-			{
-			    auto experiment = bm->getExperiment(j);
-				string experiment_name = experiment->getName();
-				auto temp = make_pair(parent_name, experiment_name);
-			    test_names.push_back(temp);
-			}
-		}
+		cout << "To run a specific group of benchmarks, run with -g group_name." << endl;
+		cout << "To run a specific experiment, run with -e experiment_name." << endl;
+		cout << endl;
+		cout << "List of benchmarks:" << endl;
+		vector<pair<string,string>> experiment_names = getExperimentNames();
 
-		//sort(test_names.begin(), test_names.end());
-		for(auto test_name: test_names)
-			cout << " " << test_name.first << " " << test_name.second << endl;
+		sort(experiment_names.begin(), experiment_names.end());
+		for(auto experment_name: experiment_names)
+			cout << " " << experment_name.first << " " << experment_name.second << endl;
 
 		return 0;
 	}
@@ -178,20 +194,76 @@ int main(int argc, char** argv)
 			});
 	}
 
-	string finalOutput;
+	// get a list of all experiments
+	vector<pair<string,string>> all_benchmarks = getExperimentNames();
+	// select which tests we will execute
+	vector<pair<string,string>> benchmarks;
 
-	// Has a run group been specified?
-	argument = args.get<string>("group");
-	if(argument.empty() == false)
+	// find a specific experiment
+	if(args.exist("experiment"))
 	{
-		executor::Run(argument);
+		string experimentName = args.get<string>("experiment");
+
+		auto it = std::find_if(all_benchmarks.begin(), all_benchmarks.end(),
+				[&experimentName](const pair<string, string> & p) { return p.second == experimentName; });
+
+		// If the experiment was not found, exit the program
+		if(it == all_benchmarks.end())
+		{
+			cout << "The experiment named '" << experimentName << "' could not be found.";
+			return 0;
+		}
+
+		// append the benchmark name to the list
+		benchmarks.push_back((*it));
 	}
-	else
+
+	// find a sepecific group
+	if(args.exist("group"))
 	{
-		executor::RunAll();
+		string groupName = args.get<string>("group");
+
+		auto it = std::find_if(all_benchmarks.begin(), all_benchmarks.end(),
+				[&groupName](const pair<string, string> & p) { return p.first == groupName; });
+
+		// If the experiment was not found, exit the program
+		if(it == all_benchmarks.end())
+		{
+			cout << "The group named '" << groupName << "' could not be found.";
+			return 0;
+		}
+
+		// append the benchmark name to the list
+		benchmarks.push_back((*it));
+	}
+
+	// If no test or group was specified, run all benchmarks.
+	if(benchmarks.size() == 0)
+		benchmarks = all_benchmarks;
+
+	// Disable image benchmarks if the image directory was not specified.
+	if(disableImageBenchmarks)
+	{
+        cout << "No image directory was specified, disabling image benchmarks." << endl;
+
+		for(int i = benchmarks.size() - 1; i > -1; i--)
+		{
+			if(benchmarks[i].first == "Image")
+				benchmarks.erase(benchmarks.begin() + i);
+		}
+	}
+
+	// run the tests
+	for(auto benchmark: benchmarks)
+	{
+		string group = benchmark.first;
+		string experiment = benchmark.second;
+		cout << " --- Running experiment --- " << endl;
+		executor::Run(group, experiment);
 	}
 
 	// Final output.
+	string finalOutput;
 	print::StageBanner(finalOutput);
 
 	return 0;

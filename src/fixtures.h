@@ -90,7 +90,6 @@ public:
 		}
 
 		return problemSpace;
-
 	}
 
 	/// Before each run, build a vector of random integers.
