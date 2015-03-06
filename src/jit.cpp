@@ -133,7 +133,7 @@ JIT_BENCHMARK(TRIGADD,  af::sin(A) + af::cos(B), AF_JIT_Fixture)
 JIT_BENCHMARK(TRIGMULT, B * af::cos(A), AF_JIT_Fixture)
 JIT_BENCHMARK(TRIGDIV,  af::cos(A) / B, AF_JIT_Fixture)
 
-// Lastly a few interseting cases
+// Lastly a few interesting cases
 
 // JIT with no function calls
 BENCHMARK_F( JIT , JIT_NO_FUNCTION_CALL , AF_JIT_Fixture , samples, operations)
