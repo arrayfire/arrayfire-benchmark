@@ -71,14 +71,18 @@ public:
 
     FixtureImageWithKernel() {}
 
-    virtual void setup(int64_t experimentSize)
+    virtual void setUp(int64_t experimentSize)
     {
         // use the standard image setup function and create a few defined
         // kernel sizes
         FixtureImage::setUp(experimentSize);
         K_5x5   = randu(5, 5, f32);
-        K_9x9   = randu(5, 5, f32);
-        K_11x11 = randu(5, 5, f32);
+	K_5x5.eval();
+        K_9x9   = randu(9, 9, f32);
+	K_9x9.eval();
+        K_11x11 = randu(11, 11, f32);
+	K_11x11.eval();
+	af::sync();
     }
 };
 
