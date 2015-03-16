@@ -7,12 +7,13 @@
 
 #include <celero/Celero.h>
 #include <arrayfire.h>
+#include "fixtures.h"
 using namespace af;
 
 extern unsigned int samples;
 extern unsigned int operations;
 
-class AF_GFOR_Fixture : public celero::TestFixture
+class AF_GFOR_Fixture : public AF_Fixture
 {
 public:
     af_dtype data_type;
@@ -64,7 +65,6 @@ BENCHMARK_F( GFOR , GFOR_NO_LOOP_SUM , AF_GFOR_Fixture , 1, 1) //samples, operat
     output = sum(sum(input_cube));
 
     output.eval();
-    af::sync();
 }
 
 // Benchmark without using gfor:
@@ -75,8 +75,7 @@ BENCHMARK_F( GFOR , GFOR_FOR_LOOP_SUM , AF_GFOR_Fixture , 1, 1) //samples, opera
         output(i) = sum(sum(input_cube(span, span, i)));
     }
 
-    output.eval();
-    af::sync();
+    output.eval();;
 }
 
 
@@ -89,6 +88,5 @@ BENCHMARK_F( GFOR , GFOR_SUM , AF_GFOR_Fixture , 1, 1) //samples, operations)
     }
 
     output.eval();
-    af::sync();
 }
 
