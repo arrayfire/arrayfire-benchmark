@@ -21,7 +21,7 @@ unsigned int image_operations = 1000;
 extern std::string image_directory;
 
 // Base class for directories of images
-class FixtureImage : public celero::TestFixture
+class FixtureImage : public AF_Fixture
 {
 public:
     af::array image;
@@ -114,7 +114,6 @@ BENCHMARK_F(Image, Image_##benchmarkName , FixtureImage, \
     image_samples, image_operations)                \
 {                                                   \
     array B = benchmarkFunction ( __VA_ARGS__ );    \
-    af::sync();                                     \
 }                                                   \
 
 //              Benchmark Name      Function        Arguments
@@ -131,7 +130,6 @@ BENCHMARK_F(Image, Image_##benchmarkName , FixtureImageWithKernel, \
     image_samples, image_operations)                \
 {                                                   \
     array B = benchmarkFunction ( __VA_ARGS__ );    \
-    af::sync();                                     \
 }        
  
 //                     Benchmark Name    Function        Arguments
@@ -151,7 +149,6 @@ IMAGE_KERNEL_BENCHMARK(Bilateral_11x11,  af::bilateral,  image, 2.5f, 50.0f)
 BENCHMARK_F(Image, Image_FAST, FixtureImage,  image_samples, image_operations)
 {
     af::features features = af::fast(image, 20, 9, 0, 0.05f);
-    af::sync();
 }
 
 BENCHMARK_F(Image, Image_ORB, FixtureImage,  image_samples, image_operations)
@@ -164,5 +161,4 @@ BENCHMARK_F(Image, Image_ORB, FixtureImage,  image_samples, image_operations)
     int min_size = std::min(image.dims()[0], image.dims()[1]);
     int max_level = log2(min_size / 8);
     af::orb(features, descriptions, image, 20, 500, 1.2, max_level);
-    af::sync();
 }

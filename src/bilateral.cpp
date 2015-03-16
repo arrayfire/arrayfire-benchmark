@@ -19,12 +19,10 @@ BENCHMARK_F(BilateralFilter, BilateralFilter_f32, Fixture_2D_f32, samples, opera
 {
 	array B = bilateral(this->A, 2.5f, 50.0f);
 	B.eval();
-	af::sync();
 }
 
 BENCHMARK_F(BilateralFilter, BilateralFilter_f64, Fixture_2D_f64, samples, operations)
 {
 	array B = bilateral(this->A, 2.5f, 50.0f);
 	B.eval();
-	af::sync();
 }

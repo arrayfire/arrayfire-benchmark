@@ -23,7 +23,6 @@ BENCHMARK_F( Resize , benchmarkName##_2D_##dataType##_##resizeMethod ,  \
 { \
     array B = af::resize(scale, A, resizeMethod ); \
     B.eval();                                  \
-    af::sync();                                \
 } \
 
 // 32-bit benchmarks

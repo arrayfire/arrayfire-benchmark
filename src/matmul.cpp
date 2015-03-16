@@ -20,13 +20,11 @@ BENCHMARK_F(MatrixMultiply, MatrixMultiply_f32, Fixture_2D_f32, samples, operati
 {
 	array B = matmul(A, A);
 	B.eval();
-	af::sync();
 }
 
 BENCHMARK_F(MatrixMultiply, MatrixMultiply_f64, Fixture_2D_f64, samples, operations)
 {
 	array B = matmul(A, A);
 	B.eval();
-	af::sync();
 }
 

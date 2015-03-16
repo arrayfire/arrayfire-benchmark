@@ -20,7 +20,6 @@ BASELINE_F( Convolve_##dataType##_##kernelWidth##x##kernelHeight , \
 {                                                           \
     array K = randu( kernelWidth, kernelHeight , dataType); \
     K.eval();                                               \
-    af::sync();                                             \
 }                                                           \
 
 #define CONVOLVE_BENCHMARK(dataType, kernelWidth, kernelHeight) \
@@ -32,7 +31,6 @@ BENCHMARK_F( Convolve_##dataType##_##kernelWidth##x##kernelHeight , \
     K.eval();                                             \
     array B = convolve(this->A, K);                       \
     B.eval();                                             \
-    af::sync();                                           \
 }                                                         \
 
 CONVOLVE_BASELINE (f32, 5, 5)

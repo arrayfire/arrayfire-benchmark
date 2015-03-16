@@ -20,12 +20,10 @@ BENCHMARK_F(Bandwidth, Bandwidth_f32, Fixture_2D_f32, samples, operations)
 {
 	array B = this->A.copy();
 	B.eval();
-	af::sync();
 }
 
 BENCHMARK_F(Bandwidth, Bandwidth_f64, Fixture_2D_f64, samples, operations)
 {
 	array B = this->A.copy();
 	B.eval();
-	af::sync();
 }

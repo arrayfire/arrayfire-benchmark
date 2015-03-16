@@ -20,26 +20,22 @@ BENCHMARK_F(MedianFilter, MedianFilter_f32_4x4_PAD_ZERO, Fixture_2D_f32, samples
 {
 	array B = medfilt(A, 4, 4, af_pad_type::AF_ZERO);
 	B.eval();
-	af::sync();
 }
 
 BENCHMARK_F(MedianFilter, MedianFilter_f32_4x4_PAD_SYMMETRIC, Fixture_2D_f32, samples, operations)
 {
 	array B = medfilt(A, 4, 4, af_pad_type::AF_SYMMETRIC);
 	B.eval();
-	af::sync();
 }
 
 BENCHMARK_F(MedianFilter, MedianFilter_f64_4x4_PAD_ZERO, Fixture_2D_f64, samples, operations)
 {
 	array B = medfilt(A, 4, 4, af_pad_type::AF_ZERO);
 	B.eval();
-	af::sync();
 }
 
 BENCHMARK_F(MedianFilter, MedianFilter_f64_4x4_PAD_SYMMETRIC, Fixture_2D_f64, samples, operations)
 {
 	array B = medfilt(A, 4, 4, af_pad_type::AF_SYMMETRIC);
 	B.eval();
-	af::sync();
 }

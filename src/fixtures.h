@@ -12,8 +12,18 @@
 #include <arrayfire.h>
 using namespace af;
 
+class AF_Fixture : public celero::TestFixture
+{
+public:
+
+	void onExperimentEnd()
+	{
+		af::sync();
+	}
+};
+
 // Base class for all ArrayFire 1D fixtures
-class AF_Fixture_1D : public celero::TestFixture
+class AF_Fixture_1D : public AF_Fixture
 {
 public:
 	af_dtype data_type;
@@ -66,7 +76,7 @@ public:
 };
 
 // Base class for all ArrayFire 2D fixtures
-class AF_Fixture_2D : public celero::TestFixture
+class AF_Fixture_2D : public AF_Fixture
 {
 public:
 	af_dtype data_type;

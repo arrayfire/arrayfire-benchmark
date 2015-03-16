@@ -19,12 +19,10 @@ BENCHMARK_F(FFT_2D, FFT_2D_f32, Fixture_2D_f32, samples, operations)
 {
 	array B = fft2(A);
 	B.eval();
-	af::sync();
 }
 
 BENCHMARK_F(FFT_2D, FFT_2D_f64, Fixture_2D_f64, samples, operations)
 {
 	array B = fft2(A);
 	B.eval();
-	af::sync();
 }

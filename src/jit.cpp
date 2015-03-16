@@ -7,12 +7,13 @@
 
 #include <celero/Celero.h>
 #include <arrayfire.h>
+#include "fixtures.h"
 using namespace af;
 
 extern unsigned int samples;
 extern unsigned int operations;
 
-class AF_JIT_Fixture : public celero::TestFixture
+class AF_JIT_Fixture : public AF_Fixture
 {
 public:
     af_dtype data_type;
@@ -65,7 +66,6 @@ BENCHMARK_F( JIT , JIT_##functionName , fixture , samples, operations) \
 {   \
     af::array result = operation ;  \
     result.eval();                  \
-    af::sync();                     \
 }   \
 
 //
@@ -140,7 +140,6 @@ BENCHMARK_F( JIT , JIT_NO_FUNCTION_CALL , AF_JIT_Fixture , samples, operations)
 {
     af::array result = (A + B) + (A - B);
     result.eval();
-    af::sync();
 }
 
 // JIT with function calls
@@ -151,5 +150,4 @@ BENCHMARK_F( JIT , JIT_FUNCTION_CALL , AF_JIT_Fixture , samples, operations)
 {
     af::array result = jit_add(A, B) + jit_subtract(A, B);
     result.eval();
-    af::sync();
 }

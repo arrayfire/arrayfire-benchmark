@@ -19,7 +19,6 @@ BASELINE_F(Histogram_f32, Baseline, Fixture_2D_f32, samples, operations)
 	// rescale values to 0 -> 255 to correspond to bin ranges
     A *= 255;
     A.eval();
-	af::sync();
 }
 
 BENCHMARK_F(Histogram_f32, Histogram_f32, Fixture_2D_f32, samples, operations)
@@ -29,7 +28,6 @@ BENCHMARK_F(Histogram_f32, Histogram_f32, Fixture_2D_f32, samples, operations)
     A.eval();
 	array B = histogram(A, 256, 0, 255);
 	B.eval();
-	af::sync();
 }
 
 
@@ -38,7 +36,6 @@ BASELINE_F(Histogram_f64, Baseline, Fixture_2D_f64, samples, operations)
 	// rescale values to 0 -> 255 to correspond to bin ranges
     A *= 255;
     A.eval();
-	af::sync();
 }
 
 BENCHMARK_F(Histogram_f64, Histogram_f64, Fixture_2D_f64, samples, operations)
@@ -48,5 +45,4 @@ BENCHMARK_F(Histogram_f64, Histogram_f64, Fixture_2D_f64, samples, operations)
     A.eval();
 	array B = histogram(A, 256, 0, 255);
 	B.eval();
-	af::sync();
 }

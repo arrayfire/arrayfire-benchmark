@@ -21,7 +21,6 @@ BENCHMARK_F(Sort, Sort_f32_ASCENDING, Fixture_1D_f32, samples, operations)
 {
 	array B = sort(A);
 	B.eval();
-	af::sync();
 }
 
 // Benchmarks for 32-bit floating point tests
@@ -29,7 +28,6 @@ BENCHMARK_F(Sort, Sort_f32_DESCENDING, Fixture_1D_f32, samples, operations)
 {
 	array B = sort(A, false);
 	B.eval();
-	af::sync();
 }
 
 // Benchmarks for 64-bit floating point tests
@@ -37,7 +35,6 @@ BENCHMARK_F(Sort, Sort_f64_ASCENDING, Fixture_1D_f64, samples, operations)
 {
 	array B = sort(A);
 	B.eval();
-	af::sync();
 }
 
 // Benchmarks for 64-bit floating point tests
@@ -45,5 +42,4 @@ BENCHMARK_F(Sort, Sort_f64_DESCENDING, Fixture_1D_f64, samples, operations)
 {
 	array B = sort(A, false);
 	B.eval();
-	af::sync();
 }
