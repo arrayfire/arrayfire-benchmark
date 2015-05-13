@@ -34,13 +34,14 @@ Basic building instructions:
     cmake ..
     make
 
-If you have ArrayFire installed in a non-standard location, specify
+If you have ArrayFire installed in a non-standard location, specify the directory
+which contains the ArrayFireConfig* files, this will be located in the `share/ArrayFire`
+directory. For example, if ArrayFire is installed locally to `/opt/ArrayFire` then
+we would modify the cmake command above to be:
 
 ```
--DArrayFire_ROOT_DIR=/path/to/arrayfire
+cmake -DArrayFire_DIR=/opt/ArrayFire/share/ArrayFire ..
 ```
-
-as part of the `cmake` command.
 
 ## Using the benchmark suite
 
