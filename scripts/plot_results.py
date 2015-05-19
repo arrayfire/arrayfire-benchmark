@@ -257,7 +257,7 @@ def plot_image_throughput(results, show_backend=False, show_benchmark_name=False
     title = results[0]['group']
     suffix = "throughput_ave_images_per_sec"
     ylabel = r"Average throughput (images / second)"
-    xlabel = ""
+    xlabel = r"Image height (pixels, 16:9 aspect ratio)"
     
     if show_benchmark_name:
         title += " " + results[0]['benchmark_name']
