@@ -159,7 +159,7 @@ int main(int argc, char** argv)
 	if(argument.empty() == false)
 	{
 		// Get information about ArrayFire
-		string af_version = string(AF_VERSION) + string(AF_VERSION_MINOR);
+		string af_version(AF_VERSION);
 		string af_revision(AF_REVISION);
 
 		// Get information about the device on which we are running

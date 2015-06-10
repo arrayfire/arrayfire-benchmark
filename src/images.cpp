@@ -133,9 +133,9 @@ BENCHMARK_F(Image, Image_##benchmarkName , FixtureImageWithKernel, \
 }        
  
 //                     Benchmark Name    Function        Arguments
-IMAGE_KERNEL_BENCHMARK(Convolve_5x5,     af::convolve2,  image, K_5x5, false)
-IMAGE_KERNEL_BENCHMARK(Convolve_9x9,     af::convolve2,  image, K_9x9, false)
-IMAGE_KERNEL_BENCHMARK(Convolve_11x11,   af::convolve2,  image, K_11x11, false)
+IMAGE_KERNEL_BENCHMARK(Convolve_5x5,     af::convolve2,  image, K_5x5)
+IMAGE_KERNEL_BENCHMARK(Convolve_9x9,     af::convolve2,  image, K_9x9)
+IMAGE_KERNEL_BENCHMARK(Convolve_11x11,   af::convolve2,  image, K_11x11)
 
 IMAGE_KERNEL_BENCHMARK(Erode_5x5,        af::erode,      image, K_5x5)
 IMAGE_KERNEL_BENCHMARK(Erode_9x9,        af::erode,      image, K_9x9)
