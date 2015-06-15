@@ -50,7 +50,7 @@ public:
             std::stringstream filename;
             filename << image_directory << "/" << experimentSize << "p-img-0009999.jpeg";
             try {
-                image = af::loadimage(filename.str().c_str(), true);
+                image = af::loadImage(filename.str().c_str(), true);
                 image = af::rgb2gray(image, 0.2126, 0.7152, 0.0722);
             }
             catch (af::exception & e)
@@ -67,7 +67,7 @@ class FixtureImageWithKernel : public FixtureImage
 public:
     af::array K_5x5;
     af::array K_9x9;
-    af::array K_11x11; 
+    af::array K_11x11;
 
     FixtureImageWithKernel() {}
 
@@ -130,8 +130,8 @@ BENCHMARK_F(Image, Image_##benchmarkName , FixtureImageWithKernel, \
     image_samples, image_operations)                \
 {                                                   \
     array B = benchmarkFunction ( __VA_ARGS__ );    \
-}        
- 
+}
+
 //                     Benchmark Name    Function        Arguments
 IMAGE_KERNEL_BENCHMARK(Convolve_5x5,     af::convolve2,  image, K_5x5)
 IMAGE_KERNEL_BENCHMARK(Convolve_9x9,     af::convolve2,  image, K_9x9)
