@@ -5,27 +5,6 @@
 
 ROOT_DIR=~/benchmarking
 
-# Update clBLAS
-cd ${ROOT_DIR}/clBLAS
-git pull
-cd build
-cmake ../src -DCMAKE_BUILD_TYPE=Release
-make -j8
-make install
-
-# Update clFFT
-cd ${ROOT_DIR}/clFFT
-git pull
-cd build
-cmake ../src -DCMAKE_BUILD_TYPE=Release
-make -j8
-make install
-
-# update boost compute
-# this is a header-only library, so we need not compile anything
-cd ${ROOT_DIR}/compute
-git pull
-
 # update ArrayFire
 cd ${ROOT_DIR}/arrayfire
 git pull
