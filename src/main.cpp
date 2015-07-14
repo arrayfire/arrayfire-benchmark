@@ -19,6 +19,7 @@
 #include <fstream>
 #include <cmath>
 #include <ctime>
+#include <string>
 
 #include "arrayfire.h"
 #include "af/version.h"
@@ -73,7 +74,12 @@ int main(int argc, char** argv)
 {
 	string device_name, device_platform, device_toolkit, device_compute;
 
-	bool disableImageBenchmarks = false;
+	bool enableImageBenchmarks = true;
+#ifdef BENCHMARK_DATA_DIRECTORY
+    image_directory = string(BENCHMARK_DATA_DIRECTORY);
+#else
+	enableImageBenchmarks = false;
+#endif
 
 	cmdline::parser args;
 	args.add("list-benchmarks", '\0', "Prints a list of all available benchmarks.");
@@ -89,14 +95,7 @@ int main(int argc, char** argv)
 	args.footer("[image_directory]");
 	args.parse_check(argc, argv);
 
-	if(args.rest().size() > 0)
-	{
-		image_directory = args.rest()[0];
-	}
-    else
-    {
-        disableImageBenchmarks = true;
-    }
+
 
 	if(args.exist("list-benchmarks"))
 	{
@@ -253,7 +252,7 @@ int main(int argc, char** argv)
 		benchmarks = all_benchmarks;
 
 	// Disable image benchmarks if the image directory was not specified.
-	if(disableImageBenchmarks)
+	if(!enableImageBenchmarks)
 	{
         cout << "No image directory was specified, disabling image benchmarks." << endl;
 
