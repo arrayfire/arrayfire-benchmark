@@ -34,5 +34,5 @@ git submodule init
 git submodule update
 # compile it
 cd build
-cmake -DArrayFire_DIR=${ROOT_DIR}/package/arrayfire/share/ArrayFire/cmake ..
+cmake -DArrayFire_DIR=${ROOT_DIR}/package/share/ArrayFire/cmake ..
 make -j8
