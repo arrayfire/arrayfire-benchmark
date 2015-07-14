@@ -85,8 +85,8 @@ int main(int argc, char** argv)
 	args.add("list-benchmarks", '\0', "Prints a list of all available benchmarks.");
 	args.add<string>("benchmark", 'b', "Runs a specific benchmark.", false, "");
 	args.add<string>("group", 'g', "Runs a specific group of benchmarks.", false, "");
-	args.add("list-backends", '\0', "Prints a list of all available benchmarks.");
-	args.add<uint64_t>("backend", '\0', "Sets the backend on which the benchmark will be executed", false);
+	args.add("list-devices", '\0', "Prints a list of all available devices on this backend.");
+	args.add<uint64_t>("device", 'd', "Sets the device on which the benchmark will be executed", false);
 	args.add<string>("recordTable", 'r', "Appends the results table to the named file.", false, "");
 //	args.add<string>("outputTable", 't', "Saves a results table to the named file.", false, "");
 //	args.add<string>("junit", 'j', "Saves a JUnit XML-formatted file to the named file.", false, "");
@@ -116,7 +116,7 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
-	if(args.exist("list-backends"))
+	if(args.exist("list-devices"))
 	{
 		cout << "Available devices:" << endl;
 
@@ -138,7 +138,7 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
-	auto intBackend = args.get<uint64_t>("backend");
+	auto intBackend = args.get<uint64_t>("device");
 	if(intBackend > 0)
 	{
 		af::setDevice(intBackend);
