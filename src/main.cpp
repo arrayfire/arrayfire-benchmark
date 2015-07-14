@@ -21,6 +21,8 @@
 #include <ctime>
 #include <string>
 
+#include <unistd.h>
+
 #include "arrayfire.h"
 #include "af/version.h"
 #include "AFResultTable.h"
@@ -48,6 +50,15 @@ void getAFDeviceInfo(string & device_name, string & device_platform, string & de
 	device_compute = string(t_device_compute);
 }
 
+/// Returns this computer's hostname
+string getHostName()
+{
+    char hostname[1024] = "";
+    gethostname(hostname, sizeof(hostname));
+
+    return string(hostname);
+}
+
 /// Get a vector containing all pairs of (group, benchmark) registered with Celero
 vector<pair<string,string>> getExperimentNames()
 {
@@ -73,6 +84,8 @@ vector<pair<string,string>> getExperimentNames()
 int main(int argc, char** argv)
 {
 	string device_name, device_platform, device_toolkit, device_compute;
+    string hostname = getHostName();
+
 
 	bool enableImageBenchmarks = true;
 #ifdef BENCHMARK_DATA_DIRECTORY
@@ -87,7 +100,7 @@ int main(int argc, char** argv)
 	args.add<string>("group", 'g', "Runs a specific group of benchmarks.", false, "");
 	args.add("list-devices", '\0', "Prints a list of all available devices on this backend.");
 	args.add<uint64_t>("device", 'd', "Sets the device on which the benchmark will be executed", false);
-	args.add<string>("recordTable", 'r', "Appends the results table to the named file.", false, "");
+//	args.add<string>("recordTable", 'r', "Appends the results table to the named file.", false, "");
 //	args.add<string>("outputTable", 't', "Saves a results table to the named file.", false, "");
 //	args.add<string>("junit", 'j', "Saves a JUnit XML-formatted file to the named file.", false, "");
 //	args.add<string>("archive", 'a', "Saves or updates a result archive file.", false, "");
@@ -154,48 +167,49 @@ int main(int argc, char** argv)
 	celero::print::GreenBar("");
 	celero::timer::CachePerformanceFrequency();
 
-	// Has a result output file been specified?
-	auto argument = args.get<string>("recordTable");
-	if(argument.empty() == false)
-	{
-		// Get information about ArrayFire
-		string af_version(AF_VERSION);
-		string af_revision(AF_REVISION);
+    // Get information about ArrayFire
+    string af_version(AF_VERSION);
+    string af_revision(AF_REVISION);
 
-		// Get information about the device on which we are running
-		getAFDeviceInfo(device_name, device_platform, device_toolkit, device_compute);
+    // Get information about the device on which we are running
+    getAFDeviceInfo(device_name, device_platform, device_toolkit, device_compute);
 
-		if(device_name.size() == 0)
-		    device_name = "UNKNOWN";
-		if(device_platform.size() == 0)
-		    device_platform = "UNKNOWN";
-		if(device_toolkit.size() == 0)
-		    device_toolkit = "UNKNOWN";
-		if(device_compute.size() == 0)
-            device_compute = "UNKNOWN";
+    if(device_name.size() == 0)
+        device_name = "UNKNOWN";
+    if(device_platform.size() == 0)
+        device_platform = "UNKNOWN";
+    if(device_toolkit.size() == 0)
+        device_toolkit = "UNKNOWN";
+    if(device_compute.size() == 0)
+        device_compute = "UNKNOWN";
 
-		// Get the current time. Strip the newline from asctime(...)
-		time_t current_time = time(nullptr);
-		string local_time = asctime(localtime(&current_time));
-		local_time.erase(remove(local_time.begin(), local_time.end(), '\n'), local_time.end());
+    // Get the current time. Strip the newline from asctime(...)
+    time_t current_time = time(nullptr);
+    struct tm * timeinfo = gmtime(&current_time);
+    string local_time = asctime(localtime(&current_time));
+    local_time.erase(remove(local_time.begin(), local_time.end(), '\n'), local_time.end());
+    char timestamp[1024];
+    strftime(timestamp, sizeof(timestamp), "%Y-%m-%d_%H_%M_%S", timeinfo);
 
-		AFResultsTable::Instance().setFileName(argument);
-		AFResultsTable::Instance().addStaticColumn("AF_VERSION", af_version);
-		AFResultsTable::Instance().addStaticColumn("AF_REVISION", af_revision);
-		AFResultsTable::Instance().addStaticColumn("AF_DEVICE", device_name);
-		AFResultsTable::Instance().addStaticColumn("AF_PLATFORM", device_platform);
-		AFResultsTable::Instance().addStaticColumn("AF_TOOLKIT", device_toolkit);
-		AFResultsTable::Instance().addStaticColumn("AF_COMPUTE", device_compute);
-		AFResultsTable::Instance().addStaticColumn("LOCAL_TIME", local_time);
-		AFResultsTable::Instance().addStaticColumn("POSIX_TIME", to_string(current_time));
+    stringstream filename;
+    filename << timestamp << "_" << hostname << "_" << device_platform << "_"
+        << device_name << ".csv";
 
+    AFResultsTable::Instance().setFileName(filename.str());
+    AFResultsTable::Instance().addStaticColumn("AF_VERSION", af_version);
+    AFResultsTable::Instance().addStaticColumn("AF_REVISION", af_revision);
+    AFResultsTable::Instance().addStaticColumn("AF_DEVICE", device_name);
+    AFResultsTable::Instance().addStaticColumn("AF_PLATFORM", device_platform);
+    AFResultsTable::Instance().addStaticColumn("AF_TOOLKIT", device_toolkit);
+    AFResultsTable::Instance().addStaticColumn("AF_COMPUTE", device_compute);
+    AFResultsTable::Instance().addStaticColumn("LOCAL_TIME", local_time);
+    AFResultsTable::Instance().addStaticColumn("POSIX_TIME", to_string(current_time));
 
-		celero::AddExperimentResultCompleteFunction(
-			[](shared_ptr<celero::Result> p)
-			{
-				AFResultsTable::Instance().add(p);
-			});
-	}
+    celero::AddExperimentResultCompleteFunction(
+    [](shared_ptr<celero::Result> p)
+    {
+        AFResultsTable::Instance().add(p);
+    });
 
 	// get a list of all experiments
 	vector<pair<string,string>> all_benchmarks = getExperimentNames();
