@@ -38,7 +38,7 @@ void getAFDeviceInfo(string & device_name, string & device_platform, string & de
 	char t_device_platform[64] = {0};
 	char t_device_toolkit[64] = {0};
 	char t_device_compute[64] = {0};
-	af::deviceprop(t_device_name, t_device_platform, t_device_toolkit, t_device_compute);
+	af::deviceInfo(t_device_name, t_device_platform, t_device_toolkit, t_device_compute);
 
 	device_name = string(t_device_name);
 	device_platform = string(t_device_platform);
@@ -164,7 +164,7 @@ int main(int argc, char** argv)
 
 		// Get information about the device on which we are running
 		getAFDeviceInfo(device_name, device_platform, device_toolkit, device_compute);
-		
+
 		if(device_name.size() == 0)
 		    device_name = "UNKNOWN";
 		if(device_platform.size() == 0)
@@ -173,7 +173,7 @@ int main(int argc, char** argv)
 		    device_toolkit = "UNKNOWN";
 		if(device_compute.size() == 0)
             device_compute = "UNKNOWN";
-            
+
 		// Get the current time. Strip the newline from asctime(...)
 		time_t current_time = time(nullptr);
 		string local_time = asctime(localtime(&current_time));
