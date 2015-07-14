@@ -7,7 +7,7 @@ ROOT_DIR=~/benchmarking
 
 # Ensure we have a copy of ArrayFire on the system
 if [ ! -d ${ROOT_DIR}/arrayfire ] ; then
-    git checkout https://github.com/arrayfire/arrayfire.git
+    git clone https://github.com/arrayfire/arrayfire.git
 else
     cd ${ROOT_DIR}/arrayfire
     git pull
@@ -24,7 +24,7 @@ make install
 
 # Ensure the benchmark suite exists on the local machine
 if [ ! -d ${ROOT_DIR}/arrayfire_benchmark ] ; then
-    git checkout https://github.com/bkloppenborg/arrayfire_benchmark
+    git clone https://github.com/bkloppenborg/arrayfire_benchmark
 else
     cd ${ROOT_DIR}/arrayfire_benchmark
     git pull
