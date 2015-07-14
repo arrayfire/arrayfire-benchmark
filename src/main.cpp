@@ -29,6 +29,7 @@ using namespace std;
 
 unsigned int samples = 10;
 unsigned int operations = 10;
+
 string image_directory = "";
 
 // Wraps af::deviceprop with C++ data types. Handles allocation/deallocation of char*
@@ -76,10 +77,10 @@ int main(int argc, char** argv)
 
 	cmdline::parser args;
 	args.add("list-benchmarks", '\0', "Prints a list of all available benchmarks.");
+	args.add<string>("benchmark", 'b', "Runs a specific benchmark.", false, "");
 	args.add<string>("group", 'g', "Runs a specific group of benchmarks.", false, "");
-	args.add<string>("experiment", 'e', "Runs a specific benchmark.", false, "");
 	args.add("list-backends", '\0', "Prints a list of all available benchmarks.");
-	args.add<uint64_t>("backend", 'b', "Sets the backend on which the benchmark will be executed", false);
+	args.add<uint64_t>("backend", '\0', "Sets the backend on which the benchmark will be executed", false);
 	args.add<string>("recordTable", 'r', "Appends the results table to the named file.", false, "");
 //	args.add<string>("outputTable", 't', "Saves a results table to the named file.", false, "");
 //	args.add<string>("junit", 'j', "Saves a JUnit XML-formatted file to the named file.", false, "");
@@ -102,10 +103,10 @@ int main(int argc, char** argv)
 		int fieldWidth = 21;
 		cout << endl;
 		cout << "To run a specific group of benchmarks, run with -g group_name." << endl;
-		cout << "To run a specific experiment, run with -e experiment_name." << endl;
+		cout << "To run a specific experiment, run with -b benchmark_name." << endl;
 		cout << endl;
 		cout << "List of benchmarks:" << endl;
-		cout << " " << setw(fieldWidth + 1) << left << "Benchmark" << "Experiment" << endl;
+		cout << " " << setw(fieldWidth + 1) << left << "Group" << "Benchmark" << endl;
 		cout << " " << setw(fieldWidth + 1) << left << "---------" << "----------" << endl;
 		vector<pair<string,string>> experiment_names = getExperimentNames();
 
@@ -203,17 +204,17 @@ int main(int argc, char** argv)
 	vector<pair<string,string>> benchmarks;
 
 	// find a specific experiment
-	if(args.exist("experiment"))
+	if(args.exist("benchmark"))
 	{
-		string experimentName = args.get<string>("experiment");
+		string benchmarkName = args.get<string>("benchmark");
 
 		auto it = std::find_if(all_benchmarks.begin(), all_benchmarks.end(),
-				[&experimentName](const pair<string, string> & p) { return p.second == experimentName; });
+				[&benchmarkName](const pair<string, string> & p) { return p.second == benchmarkName; });
 
 		// If the experiment was not found, exit the program
 		if(it == all_benchmarks.end())
 		{
-			cout << "The experiment named '" << experimentName << "' could not be found.";
+			cout << "The benchmark named '" << benchmarkName << "' could not be found.";
 			return 0;
 		}
 
