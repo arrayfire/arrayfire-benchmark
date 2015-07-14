@@ -18,7 +18,9 @@ git submodule update
 # Compile ArrayFire and install it to a local directory
 mkdir -p ${ROOT_DIR}/arrayfire/build
 cd ${ROOT_DIR}/arrayfire/build
-cmake -DCMAKE_INSTALL_PREFIX=${ROOT_DIR}/package ..
+# configure ArrayFire to build as quickly as possible
+cmake -DCMAKE_INSTALL_PREFIX=${ROOT_DIR}/package \
+    -DBUILD_EXAMPLES=OFF -DBUILD_DOCS=OFF -DBUILD_TEST=OFF ..
 make -j8
 make install
 
