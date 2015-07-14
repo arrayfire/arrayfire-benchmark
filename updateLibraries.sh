@@ -20,7 +20,8 @@ mkdir -p ${ROOT_DIR}/arrayfire/build
 cd ${ROOT_DIR}/arrayfire/build
 # configure ArrayFire to build as quickly as possible
 cmake -DCMAKE_INSTALL_PREFIX=${ROOT_DIR}/package \
-    -DBUILD_EXAMPLES=OFF -DBUILD_DOCS=OFF -DBUILD_TEST=OFF ..
+    -DBUILD_EXAMPLES=OFF -DBUILD_DOCS=OFF -DBUILD_TEST=OFF \
+    -DBUILD_GRAPHICS=OFF..
 make -j8
 make install
 
