@@ -11,7 +11,7 @@ from celero_parser import *
 import math
 import itertools
 import bokeh.plotting as bplt
-
+from bokeh.models import HoverTool
 
 def unique_colors():
     # colors to use
@@ -37,42 +37,53 @@ def plot_image_throughput(results, show_backend=False, show_benchmark_name=False
         return
 
     title = results[0]['group']
-#    suffix = "throughput_ave_images_per_sec"
     ylabel = r"Average throughput (images / second)"
     xlabel = r"Image height (pixels, 16:9 aspect ratio)"
-#
-#    if show_benchmark_name:
-#        title += " " + results[0]['benchmark_name']
 
-    bplt.output_file("image_throughput.html", title=title)
-    fig = bplt.figure(title=title)
-
+    # configure the colors
     colors = unique_colors()
 
+    # configure the hover box
+    hover = HoverTool(
+        tooltips = [
+            ("Device", "@device"),
+            ("Backend", "@platform"),
+            ("(x,y)", "(@x,@y)")
+        ])
+
+    # configure the plot title and axis labels
+    bplt.output_file("image_throughput.html", title=title)
+    fig = bplt.figure(title=title, tools=[hover,'save,box_zoom,resize,reset'])
+    fig.xaxis.axis_label = xlabel
+    fig.yaxis.axis_label = ylabel
+
+
     # plot images/second vs. data size
-    labels = list()
     for result in results:
+        # get the color we will use for this plot
+        color = colors.next()
 
         # extract results
         x = result['data_sizes']
         y = 1.0 / (result['times'] * 1E-6)
-        # construct the label
-        label = result['extra_data']['AF_DEVICE']
-        if show_backend:
-            label += " " + result['extra_data']['AF_PLATFORM']
-
+        platform = result['extra_data']['AF_PLATFORM']
+        # get the device name, override if necessary
+        device = result['extra_data']['AF_DEVICE']
         if 'AF_LABEL' in result['extra_data'].keys():
-            label = result['extra_data']['AF_LABEL']
+            device = result['extra_data']['AF_LABEL']
 
-        labels.append(label)
+        source = bplt.ColumnDataSource(
+            data = dict(x=x,y=y,
+                device=[device]*len(x),
+                platform=[platform]*len(x),
+            ))
 
-        color = colors.next()
-        fig.line(x,y, legend=label, color=color, line_width=2)
-        fig.circle(x, y, legend=label, color=color, fill_color="white", size=8)
+        # generate the plot
+        fig.line(x,y, legend=device, color=color, line_width=2)
+        s = fig.scatter('x', 'y', source=source, legend=device, color=color,
+            fill_color="white", size=8)
 
-    fig.xaxis.axis_label = xlabel
-    fig.yaxis.axis_label = ylabel
-
+    # save the plot
     bplt.save(fig)
     quit()
 
