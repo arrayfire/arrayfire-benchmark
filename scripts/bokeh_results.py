@@ -10,7 +10,7 @@ from celero_parser import *
 # plotting
 import math
 import itertools
-from bokeh.plotting import *
+import bokeh.plotting as bplt
 
 
 def unique_colors():
@@ -36,8 +36,16 @@ def plot_image_throughput(results, show_backend=False, show_benchmark_name=False
     if len(results) == 0:
         return
 
-    output_file("image_throughput.html")
-    p = figure()
+    title = results[0]['group']
+#    suffix = "throughput_ave_images_per_sec"
+    ylabel = r"Average throughput (images / second)"
+    xlabel = r"Image height (pixels, 16:9 aspect ratio)"
+#
+#    if show_benchmark_name:
+#        title += " " + results[0]['benchmark_name']
+
+    bplt.output_file("image_throughput.html", title=title)
+    fig = bplt.figure(title=title)
 
     colors = unique_colors()
 
@@ -59,19 +67,14 @@ def plot_image_throughput(results, show_backend=False, show_benchmark_name=False
         labels.append(label)
 
         color = colors.next()
-        p.circle(x, y, color=color)
-        p.line(x,y, color=color)
+        fig.line(x,y, legend=label, color=color, line_width=2)
+        fig.circle(x, y, legend=label, color=color, fill_color="white", size=8)
 
-    # set the title
-#    title = results[0]['group']
-#    suffix = "throughput_ave_images_per_sec"
-#    ylabel = r"Average throughput (images / second)"
-#    xlabel = r"Image height (pixels, 16:9 aspect ratio)"
-#
-#    if show_benchmark_name:
-#        title += " " + results[0]['benchmark_name']
+    fig.xaxis.axis_label = xlabel
+    fig.yaxis.axis_label = ylabel
 
-    show(p)
+    bplt.save(fig)
+    quit()
 
 def import_directory(directory):
     """
