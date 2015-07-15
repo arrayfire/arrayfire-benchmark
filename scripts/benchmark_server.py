@@ -7,7 +7,7 @@ from bokeh.models import Plot, ColumnDataSource, HoverTool
 from bokeh.properties import Instance
 from bokeh.server.app import bokeh_app
 from bokeh.server.utils.plugins import object_page
-from bokeh.models.widgets import HBox, Select, VBoxForm, MultiSelect
+from bokeh.models.widgets import HBox, Select, VBoxForm, CheckboxGroup
 
 # Celero recordtable parser
 import glob
@@ -28,7 +28,9 @@ class BenchmarkApp(HBox):
     benchmarks = Instance(Select)
     x_axis_options = Instance(Select)
     y_axis_options = Instance(Select)
-    device_names = Instance(MultiSelect)
+    # TODO: Convert this to a MultiSelect once it is fixed
+    # https://github.com/bokeh/bokeh/issues/2495
+    device_names = Instance(CheckboxGroup)
 
     # plot and interaction
     plot = Instance(Plot)
@@ -45,46 +47,48 @@ class BenchmarkApp(HBox):
         """
         obj = cls()
 
-        obj.source = ColumnDataSource(data=dict(x=[], y=[]))
+        obj.source = ColumnDataSource(data=dict())
+        for i in range(0, MAX_PLOTS):
+            y_id, device_id, platform_id = BenchmarkApp.make_field_ids(i)
+            obj.source.data['x'] = []
+            obj.source.data[y_id] = []
+            obj.source.data[device_id] = []
+            obj.source.data[platform_id] = []
 
         # setup user input
         obj.x_axis_options = Select(title="X:", value=axis_options[0], options=axis_options)
         obj.y_axis_options = Select(title="Y:", value=axis_options[2], options=axis_options)
         obj.benchmarks = Select(title="Benchmark:", value=benchmark_names[0],
             options=benchmark_names)
-        obj.device_names = MultiSelect(title="Devices (bokeh display bug here):", value=[device_names[0]], options=device_names)
+        obj.device_names = CheckboxGroup(labels=device_names, active=[0])
 
         # configure the hover box
-        obj.hover = HoverTool(
-            tooltips = [
-                ("Device", "@device"),
-                ("Backend", "@platform"),
-                ("(x,y)", "(@x,@y)")
-            ])
 
-        toolset = [obj.hover,'save,box_zoom,resize,reset']
+        toolset = ['hover,save,box_zoom,resize,reset']
 
         title = obj.benchmarks.value + " " + \
             "(" + obj.y_axis_options.value + " vs." + obj.x_axis_options.value + ")"
 
+        plot = figure(title_text_font_size="12pt",
+            plot_height=400,
+            plot_width=400,
+            tools=toolset,
+            title=title,
+        )
 
         # Generate a figure container
-        plot = figure(title_text_font_size="12pt",
-                      plot_height=400,
-                      plot_width=400,
-                      tools=toolset,
-                      title=title,
-        )
-
         # Plot the line by the x,y values in the source property
-        plot.line('x', 'y', source=obj.source,
-            line_width=3,
-            line_alpha=0.6,
-        )
-        plot.scatter('x', 'y', source=obj.source,
-            fill_color="white",
-            size=8,
-        )
+        for i in range(0, MAX_PLOTS):
+
+            y_id, device_id, platform_id = BenchmarkApp.make_field_ids(i)
+
+            plot.line(   'x', y_id, source=obj.source, line_width=3, line_alpha=0.6)
+            s = plot.scatter('x', y_id, source=obj.source, fill_color="white", size=8)
+            s.select(dict(type=HoverTool)).tooltips = {
+                "Device": "@" + device_id,
+                "Backend": "@" + platform_id,
+                "(x,y)": "(@x,@" + y_id + ")"
+            }
 
         obj.plot = plot
         obj.update_data()
@@ -109,10 +113,11 @@ class BenchmarkApp(HBox):
         if not self.benchmarks:
             return
 
-        # Text box event registration
+        # Event registration
         self.benchmarks.on_change('value', self, 'input_change')
         self.x_axis_options.on_change('value', self, 'input_change')
         self.y_axis_options.on_change('value', self, 'input_change')
+        self.device_names.on_change('value', self, 'input_change')
 
     def input_change(self, obj, attrname, old, new):
         """Executes whenever the input form changes.
@@ -142,6 +147,16 @@ class BenchmarkApp(HBox):
         elif axis_filter == 'throughput [1/sec]':
             return 1.0 / (celero_result['times'] * 1E-6)
 
+    @classmethod
+    def make_field_ids(self, id_number):
+        i = str(id_number)
+        y_id = 'y' + i
+        device_id = 'device' + i
+        platform_id = 'platform' + i
+
+        return [y_id, device_id, platform_id]
+
+
     def update_data(self):
         """Called each time that any watched property changes.
 
@@ -152,7 +167,7 @@ class BenchmarkApp(HBox):
 
         # apply filters based upon the user's selection
         benchmark = self.benchmarks.value
-        devices = self.device_names.value
+        devices = list(device_names[i] for i in self.device_names.active)
 
         # extract only the results which match this group
         filtered_results = filter(lambda x: x['benchmark_name'] == benchmark, celero_results)
@@ -161,28 +176,40 @@ class BenchmarkApp(HBox):
 
         # select the desired devices
         filtered_results = filter(lambda x: x['extra_data']['AF_DEVICE'] in devices, filtered_results)
+        filtered_results = filter(lambda x: x['extra_data']['AF_PLATFORM'] == "CUDA", filtered_results)
 
-        # Temporary, grab the first result
-        result = filtered_results[0]
+        print len(filtered_results)
 
-        # Extract the results from the benchmark
-        platform = result['extra_data']['AF_PLATFORM']
-        device = result['extra_data']['AF_DEVICE']
+        self.source.data = dict()
+        result_number = 0
+        for result in filtered_results:
+            # ensure we don't plot too many results
+            if result_number > MAX_PLOTS:
+                break
 
-        x = self.getXY(result, self.x_axis_options.value)
-        y = self.getXY(result, self.y_axis_options.value)
+            y_id, device_id, platform_id = self.make_field_ids(result_number)
 
-        print benchmark
-        print devices
+            # Extract the results from the benchmark
+            platform = result['extra_data']['AF_PLATFORM']
+            device = result['extra_data']['AF_DEVICE']
 
-        logging.debug("Params: %s %s", benchmark, devices)
+            print [device, platform]
 
-        # store the benchmark results in the self.source object
-        # NOTE: we replicate the device and platform data here so that
-        # it works correctly with the mouseover/hover
-        self.source.data = dict(x=x, y=y,
-            device=[device]*len(x),
-            platform=[platform]*len(x))
+            x = self.getXY(result, self.x_axis_options.value)
+            y = self.getXY(result, self.y_axis_options.value)
+
+            logging.debug("Params: %s %s", benchmark, devices)
+
+            # store the benchmark results in the self.source object
+            # NOTE: we replicate the device and platform data here so that
+            # it works correctly with the mouseover/hover
+            self.source.data['x'] = x
+            self.source.data[y_id] = y
+            self.source.data[device_id] = [device] * len(x)
+            self.source.data[platform_id] = [platform] * len(x)
+
+            # increment the counter
+            result_number += 1
 
 def import_directory(directory):
     """
@@ -212,6 +239,7 @@ benchmark_names = list_recordTable_benchmarks(celero_results)
 benchmark_names = filter(lambda x: x != "Baseline", benchmark_names)
 
 device_names = list_recordTable_attribute(celero_results, 'AF_DEVICE')
+MAX_PLOTS = 4
 
 @bokeh_app.route("/bokeh/benchmarks/")
 @object_page("benchmark")
