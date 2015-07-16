@@ -7,7 +7,7 @@ from bokeh.models import Plot, ColumnDataSource, HoverTool
 from bokeh.properties import Instance
 from bokeh.server.app import bokeh_app
 from bokeh.server.utils.plugins import object_page
-from bokeh.models.widgets import HBox, Select, VBoxForm, CheckboxGroup
+from bokeh.models.widgets import HBox, Select, VBoxForm, CheckboxGroup, CheckboxButtonGroup
 from bokeh.models.widgets import DataTable, TableColumn
 
 # Celero recordtable parser
@@ -32,6 +32,8 @@ class BenchmarkApp(HBox):
     # TODO: Convert this to a MultiSelect once it is fixed
     # https://github.com/bokeh/bokeh/issues/2495
     device_names = Instance(CheckboxGroup)
+    platform_names = Instance(CheckboxButtonGroup)
+    # data displays, not enabled by default
     data_display0 = Instance(DataTable)
     data_display1 = Instance(DataTable)
 
@@ -75,6 +77,7 @@ class BenchmarkApp(HBox):
         obj.benchmarks = Select(title="Benchmark:", value=benchmark_names[0],
             options=benchmark_names)
         obj.device_names = CheckboxGroup(labels=device_names, active=[0])
+        obj.platform_names = CheckboxButtonGroup(labels=platform_names, active=[0])
 
         # configure the toolset
         toolset = ['wheel_zoom,save,box_zoom,resize,reset']
@@ -113,7 +116,7 @@ class BenchmarkApp(HBox):
         obj.update_data()
 
         obj.inputs = VBoxForm(
-            children=[obj.benchmarks, obj.device_names,
+            children=[obj.benchmarks, obj.device_names, obj.platform_names,
                 obj.x_axis_options, obj.y_axis_options,
 #                obj.data_display0, obj.data_display1
             ]
@@ -149,7 +152,9 @@ class BenchmarkApp(HBox):
         self.x_axis_options.on_change('value', self, 'input_change')
         self.y_axis_options.on_change('value', self, 'input_change')
 
+        # Event registration for checkboxes
         self.device_names.on_click(self.checkbox_handler)
+        self.platform_names.on_click(self.checkbox_handler)
 
     def checkbox_handler(self, active):
 
@@ -208,6 +213,9 @@ class BenchmarkApp(HBox):
         # apply filters based upon the user's selection
         benchmark = self.benchmarks.value
         devices = list(device_names[i] for i in self.device_names.active)
+        platforms = list(platform_names[i] for i in self.platform_names.active)
+
+        print platforms
 
         # extract only the results which match this group
         filtered_results = filter(lambda x: x['benchmark_name'] == benchmark, celero_results)
@@ -216,6 +224,7 @@ class BenchmarkApp(HBox):
 
         # select the desired devices
         filtered_results = filter(lambda x: x['extra_data']['AF_DEVICE'] in devices, filtered_results)
+        filtered_results = filter(lambda x: x['extra_data']['AF_PLATFORM'] in platforms, filtered_results)
 
         # extract the data
         sources = dict()
@@ -295,6 +304,8 @@ def import_directory(directory):
 
     return results
 
+# maximum number of plots, currently limited by source[0,1,2,3] variables
+MAX_PLOTS = 4
 # define x/y axis possibilities
 # NOTE: If you change an option here, change it in getXY above too
 axis_options = ['size', 'log10(size)', 'log2(size)', 'time [ms]', 'throughput [1/sec]']
@@ -307,9 +318,10 @@ celero_results = import_directory(data_dir)
 benchmark_names = list_recordTable_benchmarks(celero_results)
 benchmark_names = filter(lambda x: x != "Baseline", benchmark_names)
 
+platform_names = list_recordTable_attribute(celero_results, 'AF_PLATFORM')
 device_names = list_recordTable_attribute(celero_results, 'AF_DEVICE')
-MAX_PLOTS = 4
 
+#ma
 @bokeh_app.route("/bokeh/benchmarks/")
 @object_page("benchmark")
 def make_benchmarks():
