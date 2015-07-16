@@ -70,8 +70,8 @@ class BenchmarkApp(HBox):
 #        obj.data_display1 = DataTable(source=obj.source3, columns=columns)
 
         # setup user input
-        obj.x_axis_options = Select(title="X:", value=axis_options[0], options=axis_options)
-        obj.y_axis_options = Select(title="Y:", value=axis_options[2], options=axis_options)
+        obj.x_axis_options = Select(title="X:", value='size', options=axis_options)
+        obj.y_axis_options = Select(title="Y:", value='throughput [1/sec]', options=axis_options)
         obj.benchmarks = Select(title="Benchmark:", value=benchmark_names[0],
             options=benchmark_names)
         obj.device_names = CheckboxGroup(labels=device_names, active=[0])
@@ -93,17 +93,21 @@ class BenchmarkApp(HBox):
 
         # Generate a figure container
         # Plot the line by the x,y values in the source property
-        plot.line(   'x', 'y', source=obj.source0, line_width=3, line_alpha=0.6)
-        plot.scatter('x', 'y', source=obj.source0, fill_color="red", size=8)
+        plot.line(   'x', 'y', source=obj.source0, line_color="red",
+            line_width=3, line_alpha=0.6)
+        plot.scatter('x', 'y', source=obj.source0, fill_color="white", size=8)
 
-        plot.line(   'x', 'y', source=obj.source1, line_width=3, line_alpha=0.6)
+        plot.line(   'x', 'y', source=obj.source1, line_color="blue",
+            line_width=3, line_alpha=0.6)
         plot.scatter('x', 'y', source=obj.source1, fill_color="white", size=8)
 
-        plot.line(   'x', 'y', source=obj.source2, line_width=3, line_alpha=0.6)
-        plot.scatter('x', 'y', source=obj.source2, fill_color="blue", size=8)
+        plot.line(   'x', 'y', source=obj.source2, line_color="green",
+            line_width=3, line_alpha=0.6)
+        plot.scatter('x', 'y', source=obj.source2, fill_color="white", size=8)
 
-        plot.line(   'x', 'y', source=obj.source3, line_width=3, line_alpha=0.6)
-        plot.scatter('x', 'y', source=obj.source3, fill_color="black", size=8)
+        plot.line(   'x', 'y', source=obj.source3, line_color="purple",
+            line_width=3, line_alpha=0.6)
+        plot.scatter('x', 'y', source=obj.source3, fill_color="white", size=8)
 
         obj.plot = plot
         obj.update_data()
@@ -174,8 +178,12 @@ class BenchmarkApp(HBox):
         # TODO: Remove the baseline measurement from the timing results
         if axis_filter == 'size':
             return celero_result['data_sizes']
-        elif axis_filter == 'time [s]':
-            return celero_result['times'] * 1E-6
+        if axis_filter == 'log10(size)':
+            return np.log10(celero_result['data_sizes'])
+        if axis_filter == 'log2(size)':
+            return np.log2(celero_result['data_sizes'])
+        elif axis_filter == 'time [ms]':
+            return celero_result['times'] * 1E-3
         elif axis_filter == 'throughput [1/sec]':
             return 1.0 / (celero_result['times'] * 1E-6)
 
@@ -208,7 +216,6 @@ class BenchmarkApp(HBox):
 
         # select the desired devices
         filtered_results = filter(lambda x: x['extra_data']['AF_DEVICE'] in devices, filtered_results)
-        filtered_results = filter(lambda x: x['extra_data']['AF_PLATFORM'] == "CUDA", filtered_results)
 
         # extract the data
         sources = dict()
@@ -290,7 +297,7 @@ def import_directory(directory):
 
 # define x/y axis possibilities
 # NOTE: If you change an option here, change it in getXY above too
-axis_options = ['size', 'time [s]', 'throughput [1/sec]']
+axis_options = ['size', 'log10(size)', 'log2(size)', 'time [ms]', 'throughput [1/sec]']
 
 # Parse the data directory
 data_dir = "/home/bkloppenborg/workspace/arrayfire_benchmark/results"
