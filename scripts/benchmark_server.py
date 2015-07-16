@@ -8,6 +8,7 @@ from bokeh.properties import Instance
 from bokeh.server.app import bokeh_app
 from bokeh.server.utils.plugins import object_page
 from bokeh.models.widgets import HBox, Select, VBoxForm, CheckboxGroup
+from bokeh.models.widgets import DataTable, TableColumn
 
 # Celero recordtable parser
 import glob
@@ -24,13 +25,14 @@ class BenchmarkApp(HBox):
 
     inputs = Instance(VBoxForm)
 
-    # user input
+    # widgets
     benchmarks = Instance(Select)
     x_axis_options = Instance(Select)
     y_axis_options = Instance(Select)
     # TODO: Convert this to a MultiSelect once it is fixed
     # https://github.com/bokeh/bokeh/issues/2495
     device_names = Instance(CheckboxGroup)
+    data_display = Instance(DataTable)
 
     # plot and interaction
     plot = Instance(Plot)
@@ -47,13 +49,25 @@ class BenchmarkApp(HBox):
         """
         obj = cls()
 
+        # define columns for the table
+        columns = list()
+        columns.append(TableColumn(field='x', title='x'))
+
+        # set up the data source
         obj.source = ColumnDataSource(data=dict())
         for i in range(0, MAX_PLOTS):
+            # configure field names
             y_id, device_id, platform_id = BenchmarkApp.make_field_ids(i)
             obj.source.data['x'] = []
             obj.source.data[y_id] = []
             obj.source.data[device_id] = []
             obj.source.data[platform_id] = []
+
+            # set up columns for the table
+            columns.append(TableColumn(field=y_id, title=y_id))
+            columns.append(TableColumn(field=device_id, title=device_id))
+            columns.append(TableColumn(field=platform_id, title=platform_id))
+
 
         # setup user input
         obj.x_axis_options = Select(title="X:", value=axis_options[0], options=axis_options)
@@ -62,8 +76,9 @@ class BenchmarkApp(HBox):
             options=benchmark_names)
         obj.device_names = CheckboxGroup(labels=device_names, active=[0])
 
-        # configure the hover box
+        obj.data_display = DataTable(source=obj.source, columns=columns)
 
+        # configure the toolset
         toolset = ['hover,save,box_zoom,resize,reset']
 
         title = obj.benchmarks.value + " " + \
@@ -95,7 +110,7 @@ class BenchmarkApp(HBox):
 
         obj.inputs = VBoxForm(
             children=[obj.benchmarks, obj.device_names,
-                obj.x_axis_options, obj.y_axis_options,
+                obj.x_axis_options, obj.y_axis_options
             ]
         )
 
@@ -113,11 +128,16 @@ class BenchmarkApp(HBox):
         if not self.benchmarks:
             return
 
-        # Event registration
+        # Event registration for everything except checkboxes
         self.benchmarks.on_change('value', self, 'input_change')
         self.x_axis_options.on_change('value', self, 'input_change')
         self.y_axis_options.on_change('value', self, 'input_change')
-        self.device_names.on_change('value', self, 'input_change')
+
+        self.device_names.on_click(self.checkbox_handler)
+
+    def checkbox_handler(self, active):
+
+        self.update_data()
 
     def input_change(self, obj, attrname, old, new):
         """Executes whenever the input form changes.
@@ -178,8 +198,6 @@ class BenchmarkApp(HBox):
         filtered_results = filter(lambda x: x['extra_data']['AF_DEVICE'] in devices, filtered_results)
         filtered_results = filter(lambda x: x['extra_data']['AF_PLATFORM'] == "CUDA", filtered_results)
 
-        print len(filtered_results)
-
         self.source.data = dict()
         result_number = 0
         for result in filtered_results:
@@ -192,8 +210,6 @@ class BenchmarkApp(HBox):
             # Extract the results from the benchmark
             platform = result['extra_data']['AF_PLATFORM']
             device = result['extra_data']['AF_DEVICE']
-
-            print [device, platform]
 
             x = self.getXY(result, self.x_axis_options.value)
             y = self.getXY(result, self.y_axis_options.value)
