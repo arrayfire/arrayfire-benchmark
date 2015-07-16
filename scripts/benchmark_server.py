@@ -78,15 +78,8 @@ class BenchmarkApp(HBox):
 
         # configure the toolset
         toolset = ['wheel_zoom,save,box_zoom,resize,reset']
-
-        hover = HoverTool(
-            tooltips = [
-                ("Device", "@device"),
-                ("Backend", "@platform"),
-                ("(x,y)", "(@x,@y)")
-            ]
-        )
-        toolset.append(hover)
+        obj.hover = BenchmarkApp.make_hovertool()
+        toolset.append(obj.hover)
 
         title = obj.benchmarks.value + " " + \
             "(" + obj.y_axis_options.value + " vs." + obj.x_axis_options.value + ")"
@@ -126,6 +119,17 @@ class BenchmarkApp(HBox):
         obj.children.append(obj.plot)
 
         return obj
+
+    @classmethod
+    def make_hovertool(self):
+        hover = HoverTool(
+            tooltips = [
+                ("Device", "@device"),
+                ("Backend", "@platform"),
+                ("(x,y)", "(@x,@y)")
+            ]
+        )
+        return hover
 
     def setup_events(self):
         """Attaches the on_change event to the value property of the widget.
@@ -239,35 +243,35 @@ class BenchmarkApp(HBox):
         # assign the data
         self.source0.data = dict()
         if 'y0' in sources:
-            self.source0.data = dict(
-                x = sources['x'], y = sources['y0'],
-                device = sources['device0'],
-                platform = sources['platform0']
-            )
+            self.source0.data['x'] = sources['x']
+            self.source0.data['y'] = sources['y0']
+            self.source0.data['device'] = sources['device0']
+            self.source0.data['platform'] = sources['platform0']
+            self.source0._dirty = True
 
         self.source1.data = dict()
         if 'y1' in sources:
-            self.source1.data = dict(
-                x = sources['x'], y = sources['y1'],
-                device = sources['device1'],
-                platform = sources['platform1']
-            )
+            self.source1.data['x'] = sources['x']
+            self.source1.data['y'] = sources['y1']
+            self.source1.data['device'] = sources['device1']
+            self.source1.data['platform'] = sources['platform1']
+            self.source1._dirty = True
 
         self.source2.data = dict()
         if 'y2' in sources:
-            self.source2.data = dict(
-                x = sources['x'], y = sources['y2'],
-                device = sources['device2'],
-                platform = sources['platform2']
-            )
+            self.source2.data['x'] = sources['x']
+            self.source2.data['y'] = sources['y2']
+            self.source2.data['device'] = sources['device2']
+            self.source2.data['platform'] = sources['platform2']
+            self.source2._dirty = True
 
         self.source3.data = dict()
         if 'y3' in sources:
-            self.source3.data = dict(
-                x = sources['x'], y = sources['y3'],
-                device = sources['device3'],
-                platform = sources['platform3']
-            )
+            self.source3.data['x'] = sources['x']
+            self.source3.data['y'] = sources['y3']
+            self.source3.data['device'] = sources['device3']
+            self.source3.data['platform'] = sources['platform3']
+            self.source3._dirty = True
 
 def import_directory(directory):
     """
