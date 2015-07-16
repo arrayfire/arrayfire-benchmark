@@ -32,13 +32,17 @@ class BenchmarkApp(HBox):
     # TODO: Convert this to a MultiSelect once it is fixed
     # https://github.com/bokeh/bokeh/issues/2495
     device_names = Instance(CheckboxGroup)
-    data_display = Instance(DataTable)
+    data_display0 = Instance(DataTable)
+    data_display1 = Instance(DataTable)
 
     # plot and interaction
     plot = Instance(Plot)
     hover = Instance(HoverTool)
     # data
-    source = Instance(ColumnDataSource)
+    source0 = Instance(ColumnDataSource)
+    source1 = Instance(ColumnDataSource)
+    source2 = Instance(ColumnDataSource)
+    source3 = Instance(ColumnDataSource)
 
     @classmethod
     def create(cls):
@@ -49,25 +53,21 @@ class BenchmarkApp(HBox):
         """
         obj = cls()
 
-        # define columns for the table
-        columns = list()
-        columns.append(TableColumn(field='x', title='x'))
-
         # set up the data source
-        obj.source = ColumnDataSource(data=dict())
-        for i in range(0, MAX_PLOTS):
-            # configure field names
-            y_id, device_id, platform_id = BenchmarkApp.make_field_ids(i)
-            obj.source.data['x'] = []
-            obj.source.data[y_id] = []
-            obj.source.data[device_id] = []
-            obj.source.data[platform_id] = []
+        obj.source0 = ColumnDataSource(data=dict())
+        obj.source1 = ColumnDataSource(data=dict())
+        obj.source2 = ColumnDataSource(data=dict())
+        obj.source3 = ColumnDataSource(data=dict())
 
-            # set up columns for the table
-            columns.append(TableColumn(field=y_id, title=y_id))
-            columns.append(TableColumn(field=device_id, title=device_id))
-            columns.append(TableColumn(field=platform_id, title=platform_id))
+        columns = [
+            TableColumn(field='x', title='x'),
+            TableColumn(field='y', title='y'),
+            TableColumn(field='device', title='device'),
+            TableColumn(field='platform', title='platform')
+        ]
 
+#        obj.data_display0 = DataTable(source=obj.source2, columns=columns)
+#        obj.data_display1 = DataTable(source=obj.source3, columns=columns)
 
         # setup user input
         obj.x_axis_options = Select(title="X:", value=axis_options[0], options=axis_options)
@@ -76,10 +76,17 @@ class BenchmarkApp(HBox):
             options=benchmark_names)
         obj.device_names = CheckboxGroup(labels=device_names, active=[0])
 
-        obj.data_display = DataTable(source=obj.source, columns=columns)
-
         # configure the toolset
-        toolset = ['hover,save,box_zoom,resize,reset']
+        toolset = ['wheel_zoom,save,box_zoom,resize,reset']
+
+        hover = HoverTool(
+            tooltips = [
+                ("Device", "@device"),
+                ("Backend", "@platform"),
+                ("(x,y)", "(@x,@y)")
+            ]
+        )
+        toolset.append(hover)
 
         title = obj.benchmarks.value + " " + \
             "(" + obj.y_axis_options.value + " vs." + obj.x_axis_options.value + ")"
@@ -93,24 +100,25 @@ class BenchmarkApp(HBox):
 
         # Generate a figure container
         # Plot the line by the x,y values in the source property
-        for i in range(0, MAX_PLOTS):
+        plot.line(   'x', 'y', source=obj.source0, line_width=3, line_alpha=0.6)
+        plot.scatter('x', 'y', source=obj.source0, fill_color="red", size=8)
 
-            y_id, device_id, platform_id = BenchmarkApp.make_field_ids(i)
+        plot.line(   'x', 'y', source=obj.source1, line_width=3, line_alpha=0.6)
+        plot.scatter('x', 'y', source=obj.source1, fill_color="white", size=8)
 
-            plot.line(   'x', y_id, source=obj.source, line_width=3, line_alpha=0.6)
-            s = plot.scatter('x', y_id, source=obj.source, fill_color="white", size=8)
-            s.select(dict(type=HoverTool)).tooltips = {
-                "Device": "@" + device_id,
-                "Backend": "@" + platform_id,
-                "(x,y)": "(@x,@" + y_id + ")"
-            }
+        plot.line(   'x', 'y', source=obj.source2, line_width=3, line_alpha=0.6)
+        plot.scatter('x', 'y', source=obj.source2, fill_color="blue", size=8)
+
+        plot.line(   'x', 'y', source=obj.source3, line_width=3, line_alpha=0.6)
+        plot.scatter('x', 'y', source=obj.source3, fill_color="black", size=8)
 
         obj.plot = plot
         obj.update_data()
 
         obj.inputs = VBoxForm(
             children=[obj.benchmarks, obj.device_names,
-                obj.x_axis_options, obj.y_axis_options
+                obj.x_axis_options, obj.y_axis_options,
+#                obj.data_display0, obj.data_display1
             ]
         )
 
@@ -198,7 +206,8 @@ class BenchmarkApp(HBox):
         filtered_results = filter(lambda x: x['extra_data']['AF_DEVICE'] in devices, filtered_results)
         filtered_results = filter(lambda x: x['extra_data']['AF_PLATFORM'] == "CUDA", filtered_results)
 
-        self.source.data = dict()
+        # extract the data
+        sources = dict()
         result_number = 0
         for result in filtered_results:
             # ensure we don't plot too many results
@@ -219,13 +228,46 @@ class BenchmarkApp(HBox):
             # store the benchmark results in the self.source object
             # NOTE: we replicate the device and platform data here so that
             # it works correctly with the mouseover/hover
-            self.source.data['x'] = x
-            self.source.data[y_id] = y
-            self.source.data[device_id] = [device] * len(x)
-            self.source.data[platform_id] = [platform] * len(x)
+            sources['x'] = x
+            sources[y_id] = y
+            sources[device_id] = [device] * len(x)
+            sources[platform_id] = [platform] * len(x)
 
             # increment the counter
             result_number += 1
+
+        # assign the data
+        self.source0.data = dict()
+        if 'y0' in sources:
+            self.source0.data = dict(
+                x = sources['x'], y = sources['y0'],
+                device = sources['device0'],
+                platform = sources['platform0']
+            )
+
+        self.source1.data = dict()
+        if 'y1' in sources:
+            self.source1.data = dict(
+                x = sources['x'], y = sources['y1'],
+                device = sources['device1'],
+                platform = sources['platform1']
+            )
+
+        self.source2.data = dict()
+        if 'y2' in sources:
+            self.source2.data = dict(
+                x = sources['x'], y = sources['y2'],
+                device = sources['device2'],
+                platform = sources['platform2']
+            )
+
+        self.source3.data = dict()
+        if 'y3' in sources:
+            self.source3.data = dict(
+                x = sources['x'], y = sources['y3'],
+                device = sources['device3'],
+                platform = sources['platform3']
+            )
 
 def import_directory(directory):
     """
