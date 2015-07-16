@@ -215,8 +215,6 @@ class BenchmarkApp(HBox):
         devices = list(device_names[i] for i in self.device_names.active)
         platforms = list(platform_names[i] for i in self.platform_names.active)
 
-        print platforms
-
         # extract only the results which match this group
         filtered_results = filter(lambda x: x['benchmark_name'] == benchmark, celero_results)
         # remove the baseline measurements from the plots
