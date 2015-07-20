@@ -28,10 +28,10 @@ make install
 # Ensure the benchmark suite exists on the local machine
 cd ${ROOT_DIR}
 if [ ! -d ${ROOT_DIR}/arrayfire_benchmark ] ; then
-    git clone https://github.com/bkloppenborg/arrayfire_benchmark
+    git clone https://github.com/bkloppenborg/arrayfire-benchmark
 fi
 # update the benchmark suite
-cd ${ROOT_DIR}/arrayfire_benchmark
+cd ${ROOT_DIR}/arrayfire-benchmark
 git pull
 git submodule init
 git submodule update
