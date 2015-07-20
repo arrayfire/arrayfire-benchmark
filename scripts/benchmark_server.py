@@ -2,7 +2,7 @@
 # bokeh includes/configuration
 import logging
 logging.basicConfig(level=logging.DEBUG)
-from bokeh.plotting import figure, Figure
+from bokeh.plotting import figure, curdoc
 from bokeh.models import Plot, ColumnDataSource, HoverTool
 from bokeh.properties import Instance
 from bokeh.server.app import bokeh_app
@@ -46,21 +46,14 @@ class BenchmarkApp(HBox):
     source2 = Instance(ColumnDataSource)
     source3 = Instance(ColumnDataSource)
 
-    @classmethod
-    def create(cls):
-        """One-time creation of app's objects.
-
-        This function is called once, and is responsible for
-        creating all objects (plots, datasources, etc)
-        """
-        obj = cls()
-
+    def make_source(self):
         # set up the data source
-        obj.source0 = ColumnDataSource(data=dict())
-        obj.source1 = ColumnDataSource(data=dict())
-        obj.source2 = ColumnDataSource(data=dict())
-        obj.source3 = ColumnDataSource(data=dict())
+        self.source0 = ColumnDataSource(data=dict())
+        self.source1 = ColumnDataSource(data=dict())
+        self.source2 = ColumnDataSource(data=dict())
+        self.source3 = ColumnDataSource(data=dict())
 
+    def make_inputs(self):
         columns = [
             TableColumn(field='x', title='x'),
             TableColumn(field='y', title='y'),
@@ -72,20 +65,39 @@ class BenchmarkApp(HBox):
 #        obj.data_display1 = DataTable(source=obj.source3, columns=columns)
 
         # setup user input
-        obj.x_axis_options = Select(title="X:", value='size', options=axis_options)
-        obj.y_axis_options = Select(title="Y:", value='throughput [1/sec]', options=axis_options)
-        obj.benchmarks = Select(title="Benchmark:", value=benchmark_names[0],
+        self.x_axis_options = Select(title="X:", value='size', options=axis_options)
+        self.y_axis_options = Select(title="Y:", value='throughput [1/sec]', options=axis_options)
+        self.benchmarks = Select(title="Benchmark:", value=benchmark_names[0],
             options=benchmark_names)
-        obj.device_names = CheckboxGroup(labels=device_names, active=[0])
-        obj.platform_names = CheckboxButtonGroup(labels=platform_names, active=[0])
+        self.device_names = CheckboxGroup(labels=device_names, active=[0])
+        self.platform_names = CheckboxButtonGroup(labels=platform_names, active=[0])
+
+    @classmethod
+    def create(cls):
+        """One-time creation of app's objects.
+
+        This function is called once, and is responsible for
+        creating all objects (plots, datasources, etc)
+        """
+        obj = cls()
+
+        obj.make_source()
+        obj.make_inputs()
+        obj.make_plot()
+        obj.update_data()
+        obj.set_children()
+
+        return obj
+
+    def make_plot(self):
 
         # configure the toolset
         toolset = ['wheel_zoom,save,box_zoom,resize,reset']
-        obj.hover = BenchmarkApp.make_hovertool()
-        toolset.append(obj.hover)
+        self.hover = BenchmarkApp.make_hovertool()
+        toolset.append(self.hover)
 
-        title = obj.benchmarks.value + " " + \
-            "(" + obj.y_axis_options.value + " vs." + obj.x_axis_options.value + ")"
+        title = self.benchmarks.value + " " + \
+            "(" + self.y_axis_options.value + " vs." + self.x_axis_options.value + ")"
 
         plot = figure(title_text_font_size="12pt",
             plot_height=400,
@@ -98,36 +110,40 @@ class BenchmarkApp(HBox):
 
         # Generate a figure container
         # Plot the line by the x,y values in the source property
-        plot.line(   'x', 'y', source=obj.source0, line_color="red",
+        plot.line(   'x', 'y', source=self.source0, line_color="red",
             line_width=3, line_alpha=0.6)
-        plot.scatter('x', 'y', source=obj.source0, fill_color="white", size=8)
+        plot.scatter('x', 'y', source=self.source0, fill_color="white", size=8)
 
-        plot.line(   'x', 'y', source=obj.source1, line_color="blue",
+        plot.line(   'x', 'y', source=self.source1, line_color="blue",
             line_width=3, line_alpha=0.6)
-        plot.scatter('x', 'y', source=obj.source1, fill_color="white", size=8)
+        plot.scatter('x', 'y', source=self.source1, fill_color="white", size=8)
 
-        plot.line(   'x', 'y', source=obj.source2, line_color="green",
+        plot.line(   'x', 'y', source=self.source2, line_color="green",
             line_width=3, line_alpha=0.6)
-        plot.scatter('x', 'y', source=obj.source2, fill_color="white", size=8)
+        plot.scatter('x', 'y', source=self.source2, fill_color="white", size=8)
 
-        plot.line(   'x', 'y', source=obj.source3, line_color="purple",
+        plot.line(   'x', 'y', source=self.source3, line_color="purple",
             line_width=3, line_alpha=0.6)
-        plot.scatter('x', 'y', source=obj.source3, fill_color="white", size=8)
+        plot.scatter('x', 'y', source=self.source3, fill_color="white", size=8)
 
-        obj.plot = plot
-        obj.update_data()
+        # set the x/y axis labels
+#        plot.xaxis.axis_label = self.x_axis_options.value
+#        plot.yaxis.axis_label = self.y_axis_options.value
 
-        obj.inputs = VBoxForm(
-            children=[obj.benchmarks, obj.device_names, obj.platform_names,
-                obj.x_axis_options, obj.y_axis_options,
-#                obj.data_display0, obj.data_display1
+        self.plot = plot
+
+
+    def set_children(self):
+        self.inputs = VBoxForm(
+            children=[self.benchmarks, self.device_names, self.platform_names,
+                self.x_axis_options, self.y_axis_options,
+#                self.data_display0, self.data_display1
             ]
         )
 
-        obj.children.append(obj.inputs)
-        obj.children.append(obj.plot)
+        self.children.append(self.inputs)
+        self.children.append(self.plot)
 
-        return obj
 
     @classmethod
     def make_hovertool(self):
@@ -174,10 +190,9 @@ class BenchmarkApp(HBox):
             new : new value of attr
         """
         self.update_data()
+        self.make_plot()
+        curdoc().add(self)
 
-        # update the title
-        self.plot.title = self.benchmarks.value + " " + \
-            "(" + self.y_axis_options.value + " vs." + self.x_axis_options.value + ")"
 
     def getXY(self, celero_result, axis_filter):
         """Returns the X or Y value as specified by axis_filter"""
@@ -219,13 +234,6 @@ class BenchmarkApp(HBox):
         x_axis_label = self.x_axis_options.value
         y_axis_label = self.y_axis_options.value
 
-        # configure the plot
-        try:
-            self.plot.xaxis.axis_label = x_axis_label
-            self.plot.yaxis.axis_label = y_axis_label
-        except:
-            import code
-            code.interact(local=locals())
 
 
         # extract only the results which match this group
