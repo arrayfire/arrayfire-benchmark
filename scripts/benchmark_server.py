@@ -45,6 +45,12 @@ class BenchmarkApp(HBox):
     source1 = Instance(ColumnDataSource)
     source2 = Instance(ColumnDataSource)
     source3 = Instance(ColumnDataSource)
+    source4 = Instance(ColumnDataSource)
+    source5 = Instance(ColumnDataSource)
+    source6 = Instance(ColumnDataSource)
+    source7 = Instance(ColumnDataSource)
+    source8 = Instance(ColumnDataSource)
+    source9 = Instance(ColumnDataSource)
 
     def make_source(self):
         # set up the data source
@@ -52,6 +58,12 @@ class BenchmarkApp(HBox):
         self.source1 = ColumnDataSource(data=dict())
         self.source2 = ColumnDataSource(data=dict())
         self.source3 = ColumnDataSource(data=dict())
+        self.source4 = ColumnDataSource(data=dict())
+        self.source5 = ColumnDataSource(data=dict())
+        self.source6 = ColumnDataSource(data=dict())
+        self.source7 = ColumnDataSource(data=dict())
+        self.source8 = ColumnDataSource(data=dict())
+        self.source9 = ColumnDataSource(data=dict())
 
     def make_inputs(self):
         columns = [
@@ -89,6 +101,11 @@ class BenchmarkApp(HBox):
 
         return obj
 
+    def plot_data(self, source, linecolor, symbolfill):
+        self.plot.line(   'x', 'y', source=source, line_color=linecolor,
+            line_width=3, line_alpha=0.6)
+        self.plot.scatter('x', 'y', source=source, fill_color=symbolfill, size=8)
+
     def make_plot(self):
 
         # configure the toolset
@@ -99,38 +116,32 @@ class BenchmarkApp(HBox):
         title = self.benchmarks.value + " " + \
             "(" + self.y_axis_options.value + " vs." + self.x_axis_options.value + ")"
 
-        plot = figure(title_text_font_size="12pt",
+        self.plot = figure(title_text_font_size="12pt",
             plot_height=400,
             plot_width=400,
             tools=toolset,
             title=title,
         )
         # remove the logo
-        plot.logo = None
+        self.plot.logo = None
 
         # Generate a figure container
         # Plot the line by the x,y values in the source property
-        plot.line(   'x', 'y', source=self.source0, line_color="red",
-            line_width=3, line_alpha=0.6)
-        plot.scatter('x', 'y', source=self.source0, fill_color="white", size=8)
-
-        plot.line(   'x', 'y', source=self.source1, line_color="blue",
-            line_width=3, line_alpha=0.6)
-        plot.scatter('x', 'y', source=self.source1, fill_color="white", size=8)
-
-        plot.line(   'x', 'y', source=self.source2, line_color="green",
-            line_width=3, line_alpha=0.6)
-        plot.scatter('x', 'y', source=self.source2, fill_color="white", size=8)
-
-        plot.line(   'x', 'y', source=self.source3, line_color="purple",
-            line_width=3, line_alpha=0.6)
-        plot.scatter('x', 'y', source=self.source3, fill_color="white", size=8)
+        self.plot_data(self.source0, "#F0A3FF", "white")
+        self.plot_data(self.source1, "#0075DC", "white")
+        self.plot_data(self.source2, "#993F00", "white")
+        self.plot_data(self.source3, "#4C005C", "white")
+        self.plot_data(self.source4, "#191919", "white")
+        self.plot_data(self.source5, "#005C31", "white")
+        self.plot_data(self.source6, "#2BCE48", "white")
+        self.plot_data(self.source7, "#FFCC99", "white")
+        self.plot_data(self.source8, "#808080", "white")
+        self.plot_data(self.source9, "#94FFB5", "white")
 
         # set the x/y axis labels
 #        plot.xaxis.axis_label = self.x_axis_options.value
 #        plot.yaxis.axis_label = self.y_axis_options.value
 
-        self.plot = plot
 
 
     def set_children(self):
@@ -166,7 +177,7 @@ class BenchmarkApp(HBox):
             return
 
         # Event registration for everything except checkboxes
-        self.benchmarks.on_change('value', self, 'input_change')
+        self.benchmarks.on_change('value', self, 'benchmark_changed')
         self.x_axis_options.on_change('value', self, 'input_change')
         self.y_axis_options.on_change('value', self, 'input_change')
 
@@ -177,6 +188,12 @@ class BenchmarkApp(HBox):
     def checkbox_handler(self, active):
 
         self.update_data()
+
+    def benchmark_changed(self, obj, attrname, old, new):
+
+        self.update_data()
+        self.make_plot()
+        curdoc().add(self)
 
     def input_change(self, obj, attrname, old, new):
         """Executes whenever the input form changes.
@@ -211,6 +228,7 @@ class BenchmarkApp(HBox):
 
     @classmethod
     def make_field_ids(self, id_number):
+        """Creates a unique set of named fields for the y, device, and platform"""
         i = str(id_number)
         y_id = 'y' + i
         device_id = 'device' + i
@@ -233,7 +251,6 @@ class BenchmarkApp(HBox):
         platforms = list(platform_names[i] for i in self.platform_names.active)
         x_axis_label = self.x_axis_options.value
         y_axis_label = self.y_axis_options.value
-
 
 
         # extract only the results which match this group
@@ -262,8 +279,6 @@ class BenchmarkApp(HBox):
             x = self.getXY(result, x_axis_label)
             y = self.getXY(result, y_axis_label)
 
-            logging.debug("Params: %s %s", benchmark, devices)
-
             # store the benchmark results in the self.source object
             # NOTE: we replicate the device and platform data here so that
             # it works correctly with the mouseover/hover
@@ -276,37 +291,29 @@ class BenchmarkApp(HBox):
             result_number += 1
 
         # assign the data
-        self.source0.data = dict()
-        if 'y0' in sources:
-            self.source0.data['x'] = sources['x']
-            self.source0.data['y'] = sources['y0']
-            self.source0.data['device'] = sources['device0']
-            self.source0.data['platform'] = sources['platform0']
-            self.source0._dirty = True
+        self.assign_source(sources, self.source0, 0)
+        self.assign_source(sources, self.source1, 1)
+        self.assign_source(sources, self.source2, 2)
+        self.assign_source(sources, self.source3, 3)
+        self.assign_source(sources, self.source4, 4)
+        self.assign_source(sources, self.source5, 5)
+        self.assign_source(sources, self.source6, 6)
+        self.assign_source(sources, self.source7, 7)
+        self.assign_source(sources, self.source8, 8)
+        self.assign_source(sources, self.source9, 9)
 
-        self.source1.data = dict()
-        if 'y1' in sources:
-            self.source1.data['x'] = sources['x']
-            self.source1.data['y'] = sources['y1']
-            self.source1.data['device'] = sources['device1']
-            self.source1.data['platform'] = sources['platform1']
-            self.source1._dirty = True
+    def assign_source(self, src, dest, index):
+        """Assigns the data from src to the dictionary in dest if the
+        corresponding data exists in src."""
+        y_id, device_id, platform_id = self.make_field_ids(index)
 
-        self.source2.data = dict()
-        if 'y2' in sources:
-            self.source2.data['x'] = sources['x']
-            self.source2.data['y'] = sources['y2']
-            self.source2.data['device'] = sources['device2']
-            self.source2.data['platform'] = sources['platform2']
-            self.source2._dirty = True
-
-        self.source3.data = dict()
-        if 'y3' in sources:
-            self.source3.data['x'] = sources['x']
-            self.source3.data['y'] = sources['y3']
-            self.source3.data['device'] = sources['device3']
-            self.source3.data['platform'] = sources['platform3']
-            self.source3._dirty = True
+        dest.data = dict()
+        if y_id in src:
+            dest.data['x'] = src['x']
+            dest.data['y'] = src[y_id]
+            dest.data['device'] = src[device_id]
+            dest.data['platform'] = src[platform_id]
+            dest._dirty = True
 
 def import_directory(directory):
     """
