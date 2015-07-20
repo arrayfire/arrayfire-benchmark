@@ -93,6 +93,8 @@ class BenchmarkApp(HBox):
             tools=toolset,
             title=title,
         )
+        # remove the logo
+        plot.logo = None
 
         # Generate a figure container
         # Plot the line by the x,y values in the source property
@@ -210,10 +212,21 @@ class BenchmarkApp(HBox):
         data source property.
         """
 
-        # apply filters based upon the user's selection
+        # extract the user's input
         benchmark = self.benchmarks.value
         devices = list(device_names[i] for i in self.device_names.active)
         platforms = list(platform_names[i] for i in self.platform_names.active)
+        x_axis_label = self.x_axis_options.value
+        y_axis_label = self.y_axis_options.value
+
+        # configure the plot
+        try:
+            self.plot.xaxis.axis_label = x_axis_label
+            self.plot.yaxis.axis_label = y_axis_label
+        except:
+            import code
+            code.interact(local=locals())
+
 
         # extract only the results which match this group
         filtered_results = filter(lambda x: x['benchmark_name'] == benchmark, celero_results)
@@ -238,8 +251,8 @@ class BenchmarkApp(HBox):
             platform = result['extra_data']['AF_PLATFORM']
             device = result['extra_data']['AF_DEVICE']
 
-            x = self.getXY(result, self.x_axis_options.value)
-            y = self.getXY(result, self.y_axis_options.value)
+            x = self.getXY(result, x_axis_label)
+            y = self.getXY(result, y_axis_label)
 
             logging.debug("Params: %s %s", benchmark, devices)
 
