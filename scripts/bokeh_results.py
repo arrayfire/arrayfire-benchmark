@@ -12,6 +12,8 @@ import math
 import itertools
 import bokeh.plotting as bplt
 from bokeh.models import HoverTool
+from bokeh.models.widgets import Select
+from bokeh.io import output_file, save, vform
 
 def unique_colors():
     # colors to use
@@ -53,10 +55,12 @@ def plot_image_throughput(results, show_backend=False, show_benchmark_name=False
 
     # configure the plot title and axis labels
     bplt.output_file("image_throughput.html", title=title)
-    fig = bplt.figure(title=title, tools=[hover,'save,box_zoom,resize,reset'])
-    fig.xaxis.axis_label = xlabel
-    fig.yaxis.axis_label = ylabel
+    plot = bplt.figure(title=title, tools=[hover,'save,box_zoom,resize,reset'])
+    plot.xaxis.axis_label = xlabel
+    plot.yaxis.axis_label = ylabel
 
+    # temporary crap
+    select = Select(title="Option:", value="foo", options=["foo", "bar", "baz", "quux"])
 
     # plot images/second vs. data size
     for result in results:
@@ -79,12 +83,15 @@ def plot_image_throughput(results, show_backend=False, show_benchmark_name=False
             ))
 
         # generate the plot
-        fig.line(x,y, legend=device, color=color, line_width=2)
-        s = fig.scatter('x', 'y', source=source, legend=device, color=color,
+        plot.line(x,y, legend=device, color=color, line_width=2)
+        plot.scatter('x', 'y', source=source, legend=device, color=color,
             fill_color="white", size=8)
 
+    # set up the layout
+    layout = vform(select, plot)
+
     # save the plot
-    bplt.save(fig)
+    bplt.save(layout)
     quit()
 
 def import_directory(directory):
