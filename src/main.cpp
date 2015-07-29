@@ -99,15 +99,11 @@ int main(int argc, char** argv)
 	args.add<string>("benchmark", 'b', "Runs a specific benchmark.", false, "");
 	args.add<string>("group", 'g', "Runs a specific group of benchmarks.", false, "");
 	args.add("list-devices", '\0', "Prints a list of all available devices on this backend.");
-	args.add<uint64_t>("device", 'd', "Sets the device on which the benchmark will be executed", false);
-//	args.add<string>("recordTable", 'r', "Appends the results table to the named file.", false, "");
-//	args.add<string>("outputTable", 't', "Saves a results table to the named file.", false, "");
-//	args.add<string>("junit", 'j', "Saves a JUnit XML-formatted file to the named file.", false, "");
-//	args.add<string>("archive", 'a', "Saves or updates a result archive file.", false, "");
-//	args.add<uint64_t>("distribution", 'd', "Builds a file to help characterize the distribution of measurements and exits.", false, 0);
-	args.footer("[image_directory]");
+	args.add<uint64_t>("device", 'd',
+        "Sets the device on which the benchmark will be executed", false);
+	args.add<string>("replace-device-name", '\0',
+        "Replace the device name returned by ArrayFire with this value.", false, "");
 	args.parse_check(argc, argv);
-
 
 
 	if(args.exist("list-benchmarks"))
@@ -173,6 +169,9 @@ int main(int argc, char** argv)
 
     // Get information about the device on which we are running
     getAFDeviceInfo(device_name, device_platform, device_toolkit, device_compute);
+    // Permit the user to override poorly named devices
+    if(args.exist("replace-device-name"))
+        device_name = args.get<string>("replace-device-name");
 
     if(device_name.size() == 0)
         device_name = "UNKNOWN";
