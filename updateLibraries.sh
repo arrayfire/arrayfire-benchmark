@@ -6,6 +6,7 @@
 ROOT_DIR=~/benchmarking
 
 # Ensure we have a copy of ArrayFire on the system
+echo "Downloading/updating ArrayFire"
 cd ${ROOT_DIR}
 if [ ! -d ${ROOT_DIR}/arrayfire ] ; then
     git clone https://github.com/arrayfire/arrayfire.git
@@ -26,6 +27,7 @@ make -j8
 make install
 
 # Ensure the benchmark suite exists on the local machine
+echo "Downloading/updating the benchmark suite."
 cd ${ROOT_DIR}
 if [ ! -d ${ROOT_DIR}/arrayfire-benchmark ] ; then
     git clone https://github.com/bkloppenborg/arrayfire-benchmark
