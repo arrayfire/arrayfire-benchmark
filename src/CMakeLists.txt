@@ -16,15 +16,16 @@ ADD_LIBRARY(BENCHMARKS OBJECT ${SOURCE})
 if(${ArrayFire_CPU_FOUND})
     MESSAGE(STATUS "ArrayFire CPU backend found. Enabling CPU benchmark")
     ADD_EXECUTABLE(benchmark_cpu $<TARGET_OBJECTS:BENCHMARKS>)
-    TARGET_LINK_LIBRARIES(benchmark_cpu celero ${ArrayFire_CPU_LIBRARIES} 
+    TARGET_LINK_LIBRARIES(benchmark_cpu celero ${ArrayFire_CPU_LIBRARIES}
         ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 ENDIF()
 
 if(${ArrayFire_OpenCL_FOUND})
+    FIND_PACKAGE(OpenCL REQUIRED)
     MESSAGE(STATUS "ArrayFire OpenCL backend found. Enabling OpenCL benchmark")
     ADD_EXECUTABLE(benchmark_opencl $<TARGET_OBJECTS:BENCHMARKS>)
-    TARGET_LINK_LIBRARIES(benchmark_opencl celero ${ArrayFire_OpenCL_LIBRARIES} 
-        ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+    TARGET_LINK_LIBRARIES(benchmark_opencl celero ${ArrayFire_OpenCL_LIBRARIES}
+        ${OpenCL_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 ENDIF()
 
 if(${ArrayFire_CUDA_FOUND})
@@ -33,6 +34,6 @@ if(${ArrayFire_CUDA_FOUND})
     MESSAGE(STATUS ${CUDA_TOOLKIT_ROOT_DIR})
     MESSAGE(STATUS "ArrayFire CUDA found. Enabling CUDA benchmark")
     ADD_EXECUTABLE(benchmark_cuda $<TARGET_OBJECTS:BENCHMARKS>)
-    TARGET_LINK_LIBRARIES(benchmark_cuda celero ${ArrayFire_CUDA_LIBRARIES} 
+    TARGET_LINK_LIBRARIES(benchmark_cuda celero ${ArrayFire_CUDA_LIBRARIES}
         ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${CUDA_LIBRARIES} ${NVVM_LIB})
 ENDIF()
