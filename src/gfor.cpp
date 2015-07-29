@@ -38,7 +38,7 @@ public:
     {
         try
         {
-            int depth = 1000;
+            int depth = 100;
             input_cube = constant(1.0, experimentSize, experimentSize, depth, this->data_type);
             input_cube.eval();
             output = array(depth, this->data_type);
