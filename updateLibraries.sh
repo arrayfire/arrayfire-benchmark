@@ -27,7 +27,7 @@ make install
 
 # Ensure the benchmark suite exists on the local machine
 cd ${ROOT_DIR}
-if [ ! -d ${ROOT_DIR}/arrayfire_benchmark ] ; then
+if [ ! -d ${ROOT_DIR}/arrayfire-benchmark ] ; then
     git clone https://github.com/bkloppenborg/arrayfire-benchmark
 fi
 # update the benchmark suite
@@ -37,5 +37,6 @@ git submodule init
 git submodule update
 # compile it
 cd build
+rm -rf ./*
 cmake -DArrayFire_DIR=${ROOT_DIR}/package/share/ArrayFire/cmake ..
 make -j8
