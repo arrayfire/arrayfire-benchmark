@@ -1,0 +1,11 @@
+--- include/boost/compute/algorithm/detail/radix_sort.hpp	2015-05-13 15:43:55.720633411 -0400
++++ include/boost/compute/algorithm/detail/radix_sort.hpp	2015-05-13 15:41:56.250584393 -0400
+@@ -255,7 +255,7 @@
+         detail::parameter_cache::get_global_cache(device);
+
+     // sort parameters
+-    const uint_ k = parameters->get(cache_key, "k", 4);
++    const uint_ k = parameters->get(cache_key, "k", 2);
+     const uint_ k2 = 1 << k;
+     const uint_ block_size = parameters->get(cache_key, "tpb", 128);
+
