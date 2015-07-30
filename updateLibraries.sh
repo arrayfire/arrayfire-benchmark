@@ -26,19 +26,6 @@ cmake -DCMAKE_INSTALL_PREFIX=${ROOT_DIR}/package \
     -DBUILD_EXAMPLES=OFF -DBUILD_DOCS=OFF -DBUILD_TEST=OFF \
     -DBUILD_GRAPHICS=OFF ..
 make -j8
-
-# Apply the boost compute patch (hacky, but works with the build setup)
-BOOST_COMPUTE_DIR=(${ROOT_DIR}/arrayfire/build/third_party/compute-*)
-if [ -e "${BOOST_COMPUTE_DIR[0]}" ] ; then
-    echo ""
-    echo "Applying patch to Boost Compute"
-    echo ""
-    cd ${ROOT_DIR}/arrayfire/build/third_party/compute-*
-    patch -N include/boost/compute/algorithm/detail/radix_sort.hpp ${ROOT_DIR}/arrayfire-benchmark/boost_compute_sort.patch
-    cd ${ROOT_DIR}/arrayfire/build
-    make -j8
-fi
-# Install
 make install
 
 # Ensure the benchmark suite exists on the local machine
