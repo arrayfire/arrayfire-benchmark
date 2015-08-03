@@ -275,6 +275,8 @@ int main(int argc, char** argv)
 		}
 	}
 
+    print::TableBanner();
+
 	// run the tests
 	for(auto benchmark: benchmarks)
 	{
