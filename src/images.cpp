@@ -28,16 +28,16 @@ public:
 
     FixtureImage(){}
 
-    virtual std::vector<int64_t> getExperimentValues() const
+    virtual std::vector<std::pair<int64_t, uint64_t>> getExperimentValues() const
     {
-        std::vector<int64_t> sizes;
+        std::vector<std::pair<int64_t, uint64_t>> sizes;
         if(image_directory.size() > 0)
         {
-            sizes.push_back(240);
-            sizes.push_back(480);
-            sizes.push_back(720);
-            sizes.push_back(1080);
-            sizes.push_back(3840);
+            sizes.push_back(std::make_pair<int64_t, uint64_t>(240, 0));
+            sizes.push_back(std::make_pair<int64_t, uint64_t>(480, 0));
+            sizes.push_back(std::make_pair<int64_t, uint64_t>(720, 0));
+            sizes.push_back(std::make_pair<int64_t, uint64_t>(1080, 0));
+            sizes.push_back(std::make_pair<int64_t, uint64_t>(3840, 0));
         }
         return sizes;
     }

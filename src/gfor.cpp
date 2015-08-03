@@ -22,12 +22,15 @@ public:
 
     AF_GFOR_Fixture() { this->data_type = af_dtype::f32; }
 
-    virtual std::vector<int64_t> getExperimentValues() const
+    virtual std::vector<std::pair<int64_t, uint64_t>> getExperimentValues() const
     {
-        std::vector<int64_t> problemSpace;
+        std::vector<std::pair<int64_t, uint64_t>> problemSpace;
         // 32 - 256 elements (2^5 - 2^8)
         for(int i = 5; i <= 8; i++)
-            problemSpace.push_back(pow(2, i));
+        {
+            auto experiment_size = std::make_pair<int64_t, uint64_t>(pow(2, i), 0);
+            problemSpace.push_back(experiment_size);
+        }
 
         return problemSpace;
 

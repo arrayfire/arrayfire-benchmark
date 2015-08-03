@@ -23,15 +23,19 @@ public:
 
 	AF_JIT_Fixture() { this->data_type = af_dtype::f32; }
 
-    virtual std::vector<int64_t> getExperimentValues() const
+    virtual std::vector<std::pair<int64_t, uint64_t>> getExperimentValues() const
 	{
-		std::vector<int64_t> problemSpace;
+		std::vector<std::pair<int64_t, uint64_t>> problemSpace;
 		// 256 - 1048576 elements (2^8 - 2^20)
 		// 256 - 33554432 elements (2^8 - 2^25)
 		for(int i = 8; i <= 25; i++)
-			problemSpace.push_back(pow(2, i));
+        {
+            auto experiment_size = std::make_pair<int64_t, uint64_t>(pow(2, i), 0);
+            problemSpace.push_back(experiment_size);
 
-		return problemSpace;
+        }
+
+        return problemSpace;
 
 	}
 

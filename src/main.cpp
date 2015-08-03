@@ -154,14 +154,13 @@ int main(int argc, char** argv)
 	}
 
 	// Initial output
-	print::GreenBar("");
 	cout << fixed;
 	celero::console::SetConsoleColor(celero::console::ConsoleColor_Green_Bold);
 	cout << "[  CELERO  ]" << endl;
 	celero::console::SetConsoleColor(celero::console::ConsoleColor_Default);
 
-	celero::print::GreenBar("");
-	celero::timer::CachePerformanceFrequency();
+	celero::DisableDynamicCPUScaling();
+    celero::timer::CachePerformanceFrequency();
 
     // Get information about ArrayFire
     string af_version(AF_VERSION);
@@ -283,10 +282,6 @@ int main(int argc, char** argv)
 		string experiment = benchmark.second;
 		executor::Run(group, experiment);
 	}
-
-	// Final output.
-	string finalOutput;
-	print::StageBanner(finalOutput);
 
 	return 0;
 }

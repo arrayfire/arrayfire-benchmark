@@ -32,13 +32,16 @@ public:
 	AF_Fixture_1D(){ this->data_type = af_dtype::f32; }
 	AF_Fixture_1D(af_dtype data_type){ this->data_type = data_type; }
 
-	virtual std::vector<int64_t> getExperimentValues() const
+	virtual std::vector<std::pair<int64_t, uint64_t>> getExperimentValues() const
 	{
-		std::vector<int64_t> problemSpace;
+		std::vector<std::pair<int64_t, uint64_t>> problemSpace;
 		// 256 - 1048576 elements (2^8 - 2^20)
 		// 256 - 33554432 elements (2^8 - 2^25)
 		for(int i = 8; i <= 25; i++)
-			problemSpace.push_back(pow(2, i));
+        {
+            auto experiment_size = std::make_pair<int64_t, int64_t>(pow(2, i), 0);
+			problemSpace.push_back(experiment_size);
+        }
 
 		return problemSpace;
 
@@ -85,9 +88,9 @@ public:
 	AF_Fixture_2D(){ this->data_type = af_dtype::f32; }
 	AF_Fixture_2D(af_dtype data_type){ this->data_type = data_type; }
 
-	virtual std::vector<int64_t> getExperimentValues() const
+	virtual std::vector<std::pair<int64_t, uint64_t>> getExperimentValues() const
 	{
-		std::vector<int64_t> problemSpace;
+		std::vector<std::pair<int64_t, uint64_t>> problemSpace;
 		// 32 x 32 - 32768 x 32768 (2^5 - 2^15)
 		// 32 x 32 - 8196 x 8196 (2^5 - 2^13)
 		for(int i = 5; i < 12; i++)
@@ -96,7 +99,8 @@ public:
 			// memory allocation.
 			unsigned int width = pow(2, i);
 			unsigned int problem_size = pow(width, 2);
-			problemSpace.push_back(problem_size);
+            auto experiment_size = std::make_pair<int64_t, int64_t>(problem_size, 0);
+			problemSpace.push_back(experiment_size);
 		}
 
 		return problemSpace;
