@@ -22,7 +22,6 @@ ENDIF()
 
 FIND_PACKAGE(OpenCL)
 if(${ArrayFire_OpenCL_FOUND} AND ${OPENCL_FOUND})
-    FIND_PACKAGE(OpenCL REQUIRED)
     MESSAGE(STATUS "ArrayFire OpenCL backend found. Enabling OpenCL benchmark")
     ADD_EXECUTABLE(benchmark_opencl $<TARGET_OBJECTS:BENCHMARKS>)
     TARGET_LINK_LIBRARIES(benchmark_opencl celero ${ArrayFire_OpenCL_LIBRARIES}
@@ -31,7 +30,6 @@ ENDIF()
 
 FIND_PACKAGE(CUDA)
 if(${ArrayFire_CUDA_FOUND} AND ${CUDA_FOUND})
-    FIND_PACKAGE(CUDA REQUIRED)
     FIND_PACKAGE(NVVM REQUIRED)
     MESSAGE(STATUS ${CUDA_TOOLKIT_ROOT_DIR})
     MESSAGE(STATUS "ArrayFire CUDA found. Enabling CUDA benchmark")
