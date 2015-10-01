@@ -14,7 +14,7 @@ The benchmarking program requires the following system-level libraries:
 
 On Ubuntu, you may install these packages using the following command:
 
-    sudo apt-get install libncurses-dev python-matplotlib
+    sudo apt-get install libncurses5-dev python-matplotlib
 
 ### ArrayFire library
 
