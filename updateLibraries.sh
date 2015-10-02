@@ -4,7 +4,7 @@
 # non-system libraries, and test data.
 
 ROOT_DIR=/tmp/benchmarking
-AF_DIR=arrayfire-3
+AF_DIR=${ROOT_DIR}/arrayfire-3
 
 build_arrayfire()
 {
@@ -13,7 +13,7 @@ build_arrayfire()
     echo "Downloading/updating ArrayFire Source"
     echo ""
     pushd ${ROOT_DIR}
-    if [ ! -d ${ROOT_DIR}/${AF_DIR} ] ; then
+    if [ ! -d ${AF_DIR} ] ; then
         git clone --recursive https://github.com/arrayfire/arrayfire.git arrayfire_source
     fi
     cd ${ROOT_DIR}/arrayfire_source
@@ -24,7 +24,7 @@ build_arrayfire()
     mkdir -p ${ROOT_DIR}/arrayfire_source/build
     cd ${ROOT_DIR}/arrayfire_source/build
     # configure ArrayFire to build as quickly as possible
-    #cmake -DCMAKE_INSTALL_PREFIX=${ROOT_DIR}/${AF_DIR} \
+    #cmake -DCMAKE_INSTALL_PREFIX=${AF_DIR} \
     #    -DBUILD_EXAMPLES=OFF -DBUILD_DOCS=OFF -DBUILD_TEST=OFF \
     #    -DBUILD_GRAPHICS=OFF ..
     #make -j8
@@ -39,7 +39,7 @@ install_arrayfire()
     echo ""
     VER=$1
     pushd ${ROOT_DIR}
-    if [ ! -d ${ROOT_DIR}/${AF_DIR} ] ; then
+    if [ ! -d ${AF_DIR} ] ; then
         wget http://arrayfire.com/installer_archive/${VER}/ArrayFire-v${VER}_Linux_x86_64.sh
         ## Verify MD5SUM
         #MD5_GOLD=3c781b43a34d2bea9727223e99106e51
@@ -73,6 +73,7 @@ release=""
 for a in "$@"; do
     if echo $a | grep "^--prefix=" > /dev/null 2> /dev/null; then
         ROOT_DIR=`echo $a | sed "s/^--prefix=//"`
+        AF_DIR=${ROOT_DIR}/arrayfire-3
     fi
     if echo $a | grep "^--help" > /dev/null 2> /dev/null; then
         help_func
@@ -94,7 +95,7 @@ done
 mkdir -p ${ROOT_DIR}
 
 # By default install arrayfire
-if [ ! -d ${ROOT_DIR}/${AF_DIR} ] ; then
+if [ ! -d ${AF_DIR} ] ; then
     if [ "x${build_source}x" == "xtruex" ]; then
         if [ -z "${release}" ]; then
             build_arrayfire "master"
@@ -124,6 +125,7 @@ cd ${ROOT_DIR}/arrayfire-benchmark
 cd build
 rm -rf ./*
 
-cmake -DArrayFire_DIR=${ROOT_DIR}/${AF_DIR}/share/ArrayFire/cmake ..
+echo cmake -DArrayFire_DIR=${AF_DIR}/share/ArrayFire/cmake ..
+cmake -DArrayFire_DIR=${AF_DIR}/share/ArrayFire/cmake ..
 make -j8
 popd
