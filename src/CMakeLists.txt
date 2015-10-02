@@ -21,7 +21,7 @@ IF(${ArrayFire_CPU_FOUND})
 ENDIF()
 
 FIND_PACKAGE(OpenCL)
-IF(${ArrayFire_OpenCL_FOUND} AND ${OPENCL_FOUND})
+IF(${ArrayFire_OpenCL_FOUND} AND ${OpenCL_FOUND})
     MESSAGE(STATUS "ArrayFire OpenCL backend found. Enabling OpenCL benchmark")
     ADD_EXECUTABLE(benchmark_opencl $<TARGET_OBJECTS:BENCHMARKS>)
     TARGET_LINK_LIBRARIES(benchmark_opencl celero ${ArrayFire_OpenCL_LIBRARIES}
