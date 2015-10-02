@@ -39,7 +39,7 @@ public:
 		// 256 - 33554432 elements (2^8 - 2^25)
 		for(int i = 8; i <= 25; i++)
         {
-            auto experiment_size = std::make_pair<int64_t, int64_t>(pow(2, i), 0);
+            auto experiment_size = std::make_pair<int64_t, int64_t>((int64_t)pow(2, i), (int64_t)0);
 			problemSpace.push_back(experiment_size);
         }
 
@@ -99,7 +99,7 @@ public:
 			// memory allocation.
 			unsigned int width = pow(2, i);
 			unsigned int problem_size = pow(width, 2);
-            auto experiment_size = std::make_pair<int64_t, int64_t>(problem_size, 0);
+            auto experiment_size = std::make_pair<int64_t, int64_t>((int64_t)problem_size, (int64_t)0);
 			problemSpace.push_back(experiment_size);
 		}
 

@@ -21,8 +21,6 @@
 #include <ctime>
 #include <string>
 
-#include <unistd.h>
-
 #include "arrayfire.h"
 #include "af/version.h"
 #include "AFResultTable.h"
@@ -53,9 +51,14 @@ void getAFDeviceInfo(string & device_name, string & device_platform, string & de
 /// Returns this computer's hostname
 string getHostName()
 {
+#ifndef WIN32
     char hostname[1024] = "";
     gethostname(hostname, sizeof(hostname));
-
+#else
+    TCHAR hostname[MAX_COMPUTERNAME_LENGTH + 1];
+    DWORD size = sizeof(hostname) / sizeof(hostname[0]);
+    GetComputerName(hostname, &size);
+#endif
     return string(hostname);
 }
 
