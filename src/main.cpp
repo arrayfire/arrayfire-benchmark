@@ -100,7 +100,9 @@ int main(int argc, char** argv)
 	cmdline::parser args;
 	args.add("list-benchmarks", '\0', "Prints a list of all available benchmarks.");
 	args.add<string>("benchmark", 'b', "Runs a specific benchmark.", false, "");
+	args.add<string>("exclude-benchmark", 'c', "Excludes a specific benchmark.", false, "");
 	args.add<string>("group", 'g', "Runs a specific group of benchmarks.", false, "");
+	args.add<string>("exclude-group", 'e', "Excludes a specific group of benchmarks.", false, "");
 	args.add("list-devices", '\0', "Prints a list of all available devices on this backend.");
 	args.add<uint64_t>("device", 'd',
         "Sets the device on which the benchmark will be executed", false);
@@ -236,6 +238,22 @@ int main(int argc, char** argv)
 		benchmarks.push_back((*it));
 	}
 
+	// exclude specific benchmark
+	if(args.exist("exclude-benchmark"))
+	{
+		if(benchmarks.size() == 0)
+			benchmarks = all_benchmarks;
+
+		string benchmarkName = args.get<string>("exclude-benchmark");
+
+		while(1) {
+		    auto it = std::find_if(benchmarks.begin(), benchmarks.end(),
+				[&benchmarkName](const pair<string, string> & p) { return p.second == benchmarkName; });
+			if(it == benchmarks.end()) break;
+			benchmarks.erase(it);
+		}
+	}
+
 	// find a sepecific group
 	if(args.exist("group"))
 	{
@@ -259,6 +277,26 @@ int main(int argc, char** argv)
 		{
 			cout << "The group named '" << groupName << "' could not be found.";
 			return 0;
+		}
+	}
+
+	// exclude a sepecific group
+	if(args.exist("exclude-group"))
+	{
+		if(benchmarks.size() == 0)
+			benchmarks = all_benchmarks;
+
+		string groupName = args.get<string>("exclude-group");
+
+		for(int i = 0; i < int(benchmarks.size()); i++)
+		{
+			auto benchmark = benchmarks[i];
+			if(benchmark.first == groupName)
+			{
+				auto loctemp = benchmarks.begin() + i;
+				benchmarks.erase(loctemp);
+				i--;
+			}
 		}
 	}
 
