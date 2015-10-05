@@ -34,7 +34,7 @@ unsigned int operations = 10;
 string image_directory = "";
 
 // Wraps af::deviceprop with C++ data types. Handles allocation/deallocation of char*
-void getAFDeviceInfo(string & device_name, string & device_platform, string & device_toolkit, string & device_compute)
+bool getAFDeviceInfo(string & device_name, string & device_platform, string & device_toolkit, string & device_compute)
 {
 	char t_device_name[64] = {0};
 	char t_device_platform[64] = {0};
@@ -46,6 +46,8 @@ void getAFDeviceInfo(string & device_name, string & device_platform, string & de
 	device_platform = string(t_device_platform);
 	device_toolkit = string(t_device_toolkit);
 	device_compute = string(t_device_compute);
+
+	return af::isDoubleAvailable(af::getDevice());
 }
 
 /// Returns this computer's hostname
@@ -108,6 +110,7 @@ int main(int argc, char** argv)
         "Sets the device on which the benchmark will be executed", false);
 	args.add<string>("replace-device-name", '\0',
         "Replace the device name returned by ArrayFire with this value.", false, "");
+	args.add("disable-double", 's', "Manually disable all f64 tests.");
 	args.parse_check(argc, argv);
 
 
@@ -139,14 +142,16 @@ int main(int argc, char** argv)
 		for(int device = 0; device < nDevices; device++)
 		{
 			af::setDevice(device);
-			getAFDeviceInfo(device_name, device_platform, device_toolkit, device_compute);
+			const bool doubleAvailable = getAFDeviceInfo(device_name, device_platform, device_toolkit, device_compute);
 
 			device_name.resize(20, ' ');
 			device_platform.resize(10, ' ');
 			device_toolkit.resize(20, ' ');
 			device_compute.resize(20, ' ');
 
-			cout << " " << left << setw(5) << device << " " << device_name << " " << device_platform << " " << device_toolkit << " " << device_compute << endl;
+			cout << " " << left << setw(5) << device << " " << device_name << " " << device_platform << " " << device_toolkit << " " << device_compute
+			     << (doubleAvailable ? "" : "(Double precision not supported)")
+			     << endl;
 		}
 
 		return 0;
@@ -172,7 +177,7 @@ int main(int argc, char** argv)
     string af_revision(AF_REVISION);
 
     // Get information about the device on which we are running
-    getAFDeviceInfo(device_name, device_platform, device_toolkit, device_compute);
+    const bool doubleAvailable = getAFDeviceInfo(device_name, device_platform, device_toolkit, device_compute);
     // Permit the user to override poorly named devices
     if(args.exist("replace-device-name"))
         device_name = args.get<string>("replace-device-name");
@@ -313,6 +318,20 @@ int main(int argc, char** argv)
 		{
 			if(benchmarks[i].first == "Image")
 				benchmarks.erase(benchmarks.begin() + i);
+		}
+	}
+
+    // Disable double tests based on user or device condition
+	if(args.exist("disable-double") || !doubleAvailable)
+	{
+		for(int i = benchmarks.size() - 1; i > -1; i--)
+		{
+			auto benchmark = benchmarks[i];
+			if( benchmark.first .find("f64") != std::string::npos ||
+				benchmark.second.find("f64") != std::string::npos)
+			{
+				benchmarks.erase(benchmarks.begin() + i);
+			}
 		}
 	}
 
