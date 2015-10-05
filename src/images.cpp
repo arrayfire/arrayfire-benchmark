@@ -16,8 +16,8 @@ using namespace af;
 #include <boost/filesystem.hpp>
 namespace fs = boost::filesystem;
 
-unsigned int image_samples = 2;
-unsigned int image_operations = 1000;
+unsigned int image_samples = 10;
+unsigned int image_operations = 10;
 extern std::string image_directory;
 
 // Base class for directories of images
@@ -52,6 +52,7 @@ public:
             try {
                 image = af::loadImage(filename.str().c_str(), true);
                 image = af::rgb2gray(image, 0.2126, 0.7152, 0.0722);
+                image.eval();
             }
             catch (af::exception & e)
             {
@@ -77,12 +78,12 @@ public:
         // kernel sizes
         FixtureImage::setUp(experimentSize);
         K_5x5   = randu(5, 5, f32);
-	K_5x5.eval();
+        K_5x5.eval();
         K_9x9   = randu(9, 9, f32);
-	K_9x9.eval();
+        K_9x9.eval();
         K_11x11 = randu(11, 11, f32);
-	K_11x11.eval();
-	af::sync();
+        K_11x11.eval();
+        af::sync();
     }
 };
 
@@ -98,6 +99,7 @@ public:
         // grayscale
         FixtureImage::setUp(experimentSize);
         image = af::rgb2gray(image, 0.2126, 0.7152, 0.0722);
+        image.eval();
     }
 
 };
