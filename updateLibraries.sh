@@ -40,16 +40,28 @@ install_arrayfire()
     VER=$1
     pushd ${ROOT_DIR}
     if [ ! -d ${AF_DIR} ] ; then
-        wget http://arrayfire.com/installer_archive/${VER}/ArrayFire-v${VER}_Linux_x86_64.sh
-        ## Verify MD5SUM
-        #MD5_GOLD=3c781b43a34d2bea9727223e99106e51
-        #MD5_CHEK=`md5sum ArrayFire-3.1.2_Linux_x86_64.sh`
-        #if [ "${MD5_GOLD}" != ${MD5_CHEK}]; then
-        #    echo "MD5 Sums do not match. Exiting..."
-        #    exit 1
-        #fi
-        # Install to ${ROOT_DIR}/arrayfire-3
-        sh ArrayFire-v${VER}_Linux_x86_64.sh --include-subdir --skip-licence
+        OS=`uname`
+        ARCH=`uname -m`
+        if [[ "${OS}" == "Darwin" ]]; then
+            #wget http://arrayfire.com/installer_archive/${VER}/ArrayFire-v${VER}_OSX.pkg
+            echo "Cannot download and install OSX Installer from command line"
+            exit 1
+        elif [[ "${OS}" == "Linux" ]]; then
+            if [[ "${ARCH}" == "x86_64" ]]; then
+                wget http://arrayfire.com/installer_archive/${VER}/ArrayFire-v${VER}_Linux_x86_64.sh
+            else
+                wget http://arrayfire.com/installer_archive/${VER}/ArrayFire-v${VER}_Linux_armv7l.sh
+            fi
+            ## Verify MD5SUM
+            #MD5_GOLD=3c781b43a34d2bea9727223e99106e51
+            #MD5_CHEK=`md5sum ArrayFire-3.1.2_Linux_x86_64.sh`
+            #if [ "${MD5_GOLD}" != ${MD5_CHEK}]; then
+            #    echo "MD5 Sums do not match. Exiting..."
+            #    exit 1
+            #fi
+            # Install to ${ROOT_DIR}/arrayfire-3
+            sh ArrayFire-v${VER}_Linux_${ARCH}.sh --include-subdir --skip-licence
+        fi
     fi
     popd
 }
