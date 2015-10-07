@@ -132,7 +132,7 @@ JIT_BENCHMARK(MULTIPY_CONSTANT, 2 * A, AF_JIT_Fixture)
 JIT_BENCHMARK(DIVIDE_CONSTANT, A / 2, AF_JIT_Fixture)
 
 // A few functions that combine results
-JIT_BENCHMARK(MAD,      A * B + C, AF_JIT_Fixture)
+JIT_BENCHMARK(AXPY,      A * B + C, AF_JIT_Fixture)
 JIT_BENCHMARK(TRIGADD,  af::sin(A) + af::cos(B), AF_JIT_Fixture)
 JIT_BENCHMARK(TRIGMULT, B * af::cos(A), AF_JIT_Fixture)
 JIT_BENCHMARK(TRIGDIV,  af::cos(A) / B, AF_JIT_Fixture)
