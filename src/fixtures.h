@@ -68,6 +68,7 @@ public:
 	{
 		try
 		{
+			deviceGC();
 			A = randu(experimentSize, this->data_type);
 			A.eval();
 	        af::sync();
@@ -146,6 +147,7 @@ public:
 
 		try
 		{
+			deviceGC();
 			A = randu(width, width, this->data_type);
 			A.eval();
 	        af::sync();

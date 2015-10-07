@@ -44,6 +44,7 @@ public:
 	{
 		try
 		{
+			deviceGC();
 			A = randu(experimentSize, this->data_type);
 			B = randu(experimentSize, this->data_type);
 			C = randu(experimentSize, this->data_type);

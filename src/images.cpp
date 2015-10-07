@@ -50,6 +50,7 @@ public:
             std::stringstream filename;
             filename << image_directory << "/" << experimentSize << "p-img-0009999.jpeg";
             try {
+                deviceGC();
                 image = af::loadImage(filename.str().c_str(), true);
                 image = af::rgb2gray(image, 0.2126, 0.7152, 0.0722);
                 image.eval();

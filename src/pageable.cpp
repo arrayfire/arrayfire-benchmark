@@ -16,43 +16,45 @@ extern unsigned int operations;
 class PageFixture_2D_f32 : public Fixture_2D_f32
 {
 public:
-	float * A_host;
+    float * A_host;
 
-	PageFixture_2D_f32() 
+    PageFixture_2D_f32()
     {
         A_host = NULL;
     }
 
-	virtual void setUp(int64_t experimentSize)
-	{
+    virtual void setUp(int64_t experimentSize)
+    {
+        deviceGC();
         A_host = A.host<float>();
-	}
+    }
 
-	virtual void tearDown()
-	{
+    virtual void tearDown()
+    {
         if(A_host) delete[] A_host;
-	}
+    }
 };
 
 class PageFixture_2D_f64 : public Fixture_2D_f64
 {
 public:
-	double * A_host;
+    double * A_host;
 
-	PageFixture_2D_f64() 
+    PageFixture_2D_f64()
     {
         A_host = NULL;
     }
 
-	virtual void setUp(int64_t experimentSize)
-	{
-		A_host = A.host<double>();
-	}
+    virtual void setUp(int64_t experimentSize)
+    {
+        deviceGC();
+        A_host = A.host<double>();
+    }
 
-	virtual void tearDown()
-	{
+    virtual void tearDown()
+    {
         if(A_host) delete[] A_host;
-	}
+    }
 };
 
 //BASELINE_F(Pageable_f32, Baseline, PageFixture_2D_f32, samples, operations) { }

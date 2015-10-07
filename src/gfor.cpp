@@ -41,6 +41,7 @@ public:
     {
         try
         {
+            deviceGC();
             int depth = 100;
             input_cube = constant(1.0, experimentSize, experimentSize, depth, this->data_type);
             input_cube.eval();
