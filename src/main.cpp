@@ -25,8 +25,12 @@
 #include "af/version.h"
 #include "AFResultTable.h"
 
+#include "boost/program_options.hpp"
+
 using namespace celero;
 using namespace std;
+namespace po = boost::program_options;
+
 
 unsigned int samples = 10;
 unsigned int operations = 10;
@@ -36,18 +40,18 @@ string image_directory = "";
 // Wraps af::deviceprop with C++ data types. Handles allocation/deallocation of char*
 bool getAFDeviceInfo(string & device_name, string & device_platform, string & device_toolkit, string & device_compute)
 {
-	char t_device_name[64] = {0};
-	char t_device_platform[64] = {0};
-	char t_device_toolkit[64] = {0};
-	char t_device_compute[64] = {0};
-	af::deviceInfo(t_device_name, t_device_platform, t_device_toolkit, t_device_compute);
+    char t_device_name[64] = {0};
+    char t_device_platform[64] = {0};
+    char t_device_toolkit[64] = {0};
+    char t_device_compute[64] = {0};
+    af::deviceInfo(t_device_name, t_device_platform, t_device_toolkit, t_device_compute);
 
-	device_name = string(t_device_name);
-	device_platform = string(t_device_platform);
-	device_toolkit = string(t_device_toolkit);
-	device_compute = string(t_device_compute);
+    device_name = string(t_device_name);
+    device_platform = string(t_device_platform);
+    device_toolkit = string(t_device_toolkit);
+    device_compute = string(t_device_compute);
 
-	return af::isDoubleAvailable(af::getDevice());
+    return af::isDoubleAvailable(af::getDevice());
 }
 
 /// Returns this computer's hostname
@@ -67,284 +71,360 @@ string getHostName()
 /// Get a vector containing all pairs of (group, benchmark) registered with Celero
 vector<pair<string,string>> getExperimentNames()
 {
-	vector<pair<string,string>> names;
+    vector<pair<string,string>> names;
 
-	TestVector& tests = celero::TestVector::Instance();
-	for(::size_t i = 0; i < tests.size(); i++)
-	{
-		auto bm = celero::TestVector::Instance()[i];
-		string parent_name = bm->getName();
-		for(::size_t j = 0; j < bm->getExperimentSize(); j++)
-		{
-			auto experiment = bm->getExperiment(j);
-			string experiment_name = experiment->getName();
-			auto temp = make_pair(parent_name, experiment_name);
-			names.push_back(temp);
-		}
-	}
+    TestVector& tests = celero::TestVector::Instance();
+    for(::size_t i = 0; i < tests.size(); i++)
+    {
+        auto bm = celero::TestVector::Instance()[i];
+        string parent_name = bm->getName();
+        for(::size_t j = 0; j < bm->getExperimentSize(); j++)
+        {
+            auto experiment = bm->getExperiment(j);
+            string experiment_name = experiment->getName();
+            auto temp = make_pair(parent_name, experiment_name);
+            names.push_back(temp);
+        }
+    }
 
-	return names;
+    return names;
 }
 
 int main(int argc, char** argv)
 {
-	string device_name, device_platform, device_toolkit, device_compute;
+    string device_name, device_platform, device_toolkit, device_compute;
     string hostname = getHostName();
 
-
-	bool enableImageBenchmarks = true;
+    bool enableImageBenchmarks = true;
 #ifdef BENCHMARK_DATA_DIRECTORY
     image_directory = string(BENCHMARK_DATA_DIRECTORY);
 #else
-	enableImageBenchmarks = false;
+    enableImageBenchmarks = false;
 #endif
 
-	cmdline::parser args;
-	args.add("list-benchmarks", '\0', "Prints a list of all available benchmarks.");
-	args.add<string>("benchmark", 'b', "Runs a specific benchmark.", false, "");
-	args.add<string>("exclude-benchmark", 'c', "Excludes a specific benchmark.", false, "");
-	args.add<string>("group", 'g', "Runs a specific group of benchmarks.", false, "");
-	args.add<string>("exclude-group", 'e', "Excludes a specific group of benchmarks.", false, "");
-	args.add("list-devices", '\0', "Prints a list of all available devices on this backend.");
-	args.add<uint64_t>("device", 'd',
-        "Sets the device on which the benchmark will be executed", false);
-	args.add<string>("replace-device-name", '\0',
-        "Replace the device name returned by ArrayFire with this value.", false, "");
-	args.add("disable-double", 's', "Manually disable all f64 tests.");
-	args.parse_check(argc, argv);
+    try {
+        po::options_description desc("Options");
+        desc.add_options()
+            ("help,h"                   , "Print help messages")
+            ("list-benchmarks,l"        , "Prints a list of all available benchmarks.")
+            ("benchmark,b"              , po::value<vector<string>>(), "Runs a specific benchmark.")
+            ("exclude-benchmark,e"      , po::value<vector<string>>(), "Excludes a specific benchmark.")
+            ("group,g"                  , po::value<vector<string>>(), "Runs a specific group of benchmarks.")
+            ("exclude-group,x"          , po::value<vector<string>>(), "Excludes a specific group of benchmarks.")
+            ("list-devices,i"           , "Prints a list of all available devices on this backend.")
+            ("device,d"                 , po::value<uint64_t>()->default_value(0), "Sets the device on which the benchmark will be executed")
+            ("replace-device-name,r"    , po::value<string>(), "Replace the device name returned by ArrayFire with this value.")
+            ("disable-double,s"         , "Manually disable all f64 tests.")
+            ("print,p"                  , "Print list of tests selected before running")
+        ;
 
+        po::variables_map vm;
+        try {
+            po::store(po::parse_command_line(argc, argv, desc),
+                      vm);
 
-	if(args.exist("list-benchmarks"))
-	{
-		int fieldWidth = 21;
-		cout << endl;
-		cout << "To run a specific group of benchmarks, run with -g group_name." << endl;
-		cout << "To run a specific experiment, run with -b benchmark_name." << endl;
-		cout << endl;
-		cout << "List of benchmarks:" << endl;
-		cout << " " << setw(fieldWidth + 1) << left << "Group" << "Benchmark" << endl;
-		cout << " " << setw(fieldWidth + 1) << left << "---------" << "----------" << endl;
-		vector<pair<string,string>> experiment_names = getExperimentNames();
+            ////////////////////////////////////////////////////////////////////////
+            // Help
+            ////////////////////////////////////////////////////////////////////////
+            if (vm.count("help")) {
+                cout << "ArrayFire Benchmarking Options" << endl << desc << endl;
+                return 0;
+            }
+            po::notify(vm);
+        } catch(po::error& e) {
+            cout << endl << e.what() << desc << endl;
+            return 2;
+        }
 
-		sort(experiment_names.begin(), experiment_names.end());
-		for(auto experment_name: experiment_names)
-			cout << " " << setw(fieldWidth) << left << experment_name.first << " " << experment_name.second << endl;
+        ////////////////////////////////////////////////////////////////////////////
+        // List all benchmarks
+        ////////////////////////////////////////////////////////////////////////////
+        if(vm.count("list-benchmarks"))
+        {
+            int fieldWidth = 24;
+            cout << endl;
+            cout << "To run a specific group of benchmarks, run with -g group_name." << endl;
+            cout << "To run a specific experiment, run with -b benchmark_name." << endl;
+            cout << "To exclude a specific group of benchmarks, run with -x group_name." << endl;
+            cout << "To exclude a specific experiment, run with -e benchmark_name." << endl;
+            cout << endl;
+            cout << "List of benchmarks:" << endl;
+            cout << " " << setw(fieldWidth + 1) << left << "Group" << "Benchmark" << endl;
+            cout << " " << setw(fieldWidth + 1) << left << "---------" << "----------" << endl;
+            vector<pair<string,string>> experiment_names = getExperimentNames();
 
-		return 0;
-	}
+            sort(experiment_names.begin(), experiment_names.end());
+            for(auto experment_name: experiment_names)
+                cout << " " << setw(fieldWidth) << left << experment_name.first << " " << experment_name.second << endl;
 
-	if(args.exist("list-devices"))
-	{
-		cout << "Available devices:" << endl;
+            return 0;
+        }
 
-		int nDevices = af::getDeviceCount();
-		cout << " ID    Device               Platform   Toolkit              Compute" << endl;
-		for(int device = 0; device < nDevices; device++)
-		{
-			af::setDevice(device);
-			const bool doubleAvailable = getAFDeviceInfo(device_name, device_platform, device_toolkit, device_compute);
+        ////////////////////////////////////////////////////////////////////////////
+        // List available devices
+        ////////////////////////////////////////////////////////////////////////////
+        if(vm.count("list-devices"))
+        {
+            cout << "Available devices:" << endl;
 
-			device_name.resize(20, ' ');
-			device_platform.resize(10, ' ');
-			device_toolkit.resize(20, ' ');
-			device_compute.resize(20, ' ');
+            int nDevices = af::getDeviceCount();
+            cout << " ID    Device               Platform   Toolkit              Compute" << endl;
+            for(int device = 0; device < nDevices; device++)
+            {
+                af::setDevice(device);
+                const bool doubleAvailable = getAFDeviceInfo(device_name, device_platform, device_toolkit, device_compute);
 
-			cout << " " << left << setw(5) << device << " " << device_name << " " << device_platform << " " << device_toolkit << " " << device_compute
-			     << (doubleAvailable ? "" : "(Double precision not supported)")
-			     << endl;
-		}
+                device_name.resize(20, ' ');
+                device_platform.resize(10, ' ');
+                device_toolkit.resize(20, ' ');
+                device_compute.resize(20, ' ');
 
-		return 0;
-	}
+                cout << " " << left << setw(5) << device << " " << device_name << " " << device_platform << " " << device_toolkit << " " << device_compute
+                     << (doubleAvailable ? "" : "(Double precision not supported)")
+                     << endl;
+            }
 
-	auto intBackend = args.get<uint64_t>("device");
-	if(intBackend > 0)
-	{
-		af::setDevice(intBackend);
-	}
+            return 0;
+        }
 
-	// Initial output
-	cout << fixed;
-	celero::console::SetConsoleColor(celero::console::ConsoleColor_Green_Bold);
-	cout << "[  CELERO  ]" << endl;
-	celero::console::SetConsoleColor(celero::console::ConsoleColor_Default);
+        ////////////////////////////////////////////////////////////////////////////
+        // Set device - Will always enter since default options is specified
+        ////////////////////////////////////////////////////////////////////////////
+        if(vm.count("device"))
+        {
+            uint64_t deviceID = vm["device"].as<uint64_t>();
+            af::setDevice(deviceID);
+        }
 
-	celero::DisableDynamicCPUScaling();
-    celero::timer::CachePerformanceFrequency();
+        ////////////////////////////////////////////////////////////////////////////
+        // Print table headers & initalize celero
+        ////////////////////////////////////////////////////////////////////////////
+        cout << fixed;
+        celero::console::SetConsoleColor(celero::console::ConsoleColor_Green_Bold);
+        cout << "[  CELERO  ]" << endl;
+        celero::console::SetConsoleColor(celero::console::ConsoleColor_Default);
 
-    // Get information about ArrayFire
-    string af_version(AF_VERSION);
-    string af_revision(AF_REVISION);
+        celero::DisableDynamicCPUScaling();
+        celero::timer::CachePerformanceFrequency();
 
-    // Get information about the device on which we are running
-    const bool doubleAvailable = getAFDeviceInfo(device_name, device_platform, device_toolkit, device_compute);
-    // Permit the user to override poorly named devices
-    if(args.exist("replace-device-name"))
-        device_name = args.get<string>("replace-device-name");
+        ////////////////////////////////////////////////////////////////////////////
+        // Get information about ArrayFire
+        ////////////////////////////////////////////////////////////////////////////
+        string af_version(AF_VERSION);
+        string af_revision(AF_REVISION);
 
-    if(device_name.size() == 0)
-        device_name = "UNKNOWN";
-    if(device_platform.size() == 0)
-        device_platform = "UNKNOWN";
-    if(device_toolkit.size() == 0)
-        device_toolkit = "UNKNOWN";
-    if(device_compute.size() == 0)
-        device_compute = "UNKNOWN";
+        ////////////////////////////////////////////////////////////////////////////
+        // Get information about the device on which we are running
+        ////////////////////////////////////////////////////////////////////////////
+        const bool doubleAvailable = getAFDeviceInfo(device_name, device_platform, device_toolkit, device_compute);
 
-    // Get the current time. Strip the newline from asctime(...)
-    time_t current_time = time(nullptr);
-    struct tm * timeinfo = gmtime(&current_time);
-    string local_time = asctime(localtime(&current_time));
-    local_time.erase(remove(local_time.begin(), local_time.end(), '\n'), local_time.end());
-    char timestamp[1024];
-    strftime(timestamp, sizeof(timestamp), "%Y-%m-%d_%H_%M_%S", timeinfo);
+        ////////////////////////////////////////////////////////////////////////////
+        // User assigned name replacement
+        ////////////////////////////////////////////////////////////////////////////
+        if(vm.count("replace-device-name")) {
+            string device_name_t = vm["replace-device-name"].as<string>();
+            if(device_name_t.size() != 0) device_name = device_name_t;
+        }
 
-    stringstream filename;
-    filename << timestamp << "_" << hostname << "_" << device_platform << "_"
-        << device_name << ".csv";
+        if(device_name.size() == 0)
+            device_name = "UNKNOWN";
+        if(device_platform.size() == 0)
+            device_platform = "UNKNOWN";
+        if(device_toolkit.size() == 0)
+            device_toolkit = "UNKNOWN";
+        if(device_compute.size() == 0)
+            device_compute = "UNKNOWN";
 
-    AFResultsTable::Instance().setFileName(filename.str());
-    AFResultsTable::Instance().addStaticColumn("AF_VERSION", af_version);
-    AFResultsTable::Instance().addStaticColumn("AF_REVISION", af_revision);
-    AFResultsTable::Instance().addStaticColumn("AF_DEVICE", device_name);
-    AFResultsTable::Instance().addStaticColumn("AF_PLATFORM", device_platform);
-    AFResultsTable::Instance().addStaticColumn("AF_TOOLKIT", device_toolkit);
-    AFResultsTable::Instance().addStaticColumn("AF_COMPUTE", device_compute);
-    AFResultsTable::Instance().addStaticColumn("LOCAL_TIME", local_time);
-    AFResultsTable::Instance().addStaticColumn("POSIX_TIME", to_string(current_time));
+        ////////////////////////////////////////////////////////////////////////////
+        // Get the current time. Strip the newline from asctime(...)
+        ////////////////////////////////////////////////////////////////////////////
+        time_t current_time = time(nullptr);
+        struct tm * timeinfo = gmtime(&current_time);
+        string local_time = asctime(localtime(&current_time));
+        local_time.erase(remove(local_time.begin(), local_time.end(), '\n'), local_time.end());
+        char timestamp[1024];
+        strftime(timestamp, sizeof(timestamp), "%Y-%m-%d_%H_%M_%S", timeinfo);
 
-    celero::AddExperimentResultCompleteFunction(
-    [](shared_ptr<celero::Result> p)
-    {
-        AFResultsTable::Instance().add(p);
-    });
+        ////////////////////////////////////////////////////////////////////////////
+        // Set filename
+        ////////////////////////////////////////////////////////////////////////////
+        stringstream filename;
+        filename << timestamp << "_" << hostname << "_" << device_platform << "_"
+                 << device_name << ".csv";
 
-	// get a list of all experiments
-	vector<pair<string,string>> all_benchmarks = getExperimentNames();
-	// select which tests we will execute
-	vector<pair<string,string>> benchmarks;
+        ////////////////////////////////////////////////////////////////////////////
+        // Setup table
+        ////////////////////////////////////////////////////////////////////////////
+        AFResultsTable::Instance().setFileName(filename.str());
+        AFResultsTable::Instance().addStaticColumn("AF_VERSION", af_version);
+        AFResultsTable::Instance().addStaticColumn("AF_REVISION", af_revision);
+        AFResultsTable::Instance().addStaticColumn("AF_DEVICE", device_name);
+        AFResultsTable::Instance().addStaticColumn("AF_PLATFORM", device_platform);
+        AFResultsTable::Instance().addStaticColumn("AF_TOOLKIT", device_toolkit);
+        AFResultsTable::Instance().addStaticColumn("AF_COMPUTE", device_compute);
+        AFResultsTable::Instance().addStaticColumn("LOCAL_TIME", local_time);
+        AFResultsTable::Instance().addStaticColumn("POSIX_TIME", to_string(current_time));
 
-	// find a specific experiment
-	if(args.exist("benchmark"))
-	{
-		string benchmarkName = args.get<string>("benchmark");
+        celero::AddExperimentResultCompleteFunction(
+        [](shared_ptr<celero::Result> p)
+        {
+            AFResultsTable::Instance().add(p);
+        });
 
-		auto it = std::find_if(all_benchmarks.begin(), all_benchmarks.end(),
-				[&benchmarkName](const pair<string, string> & p) { return p.second == benchmarkName; });
+        ////////////////////////////////////////////////////////////////////////////
+        // Get a list of all experiments and create vector for benchmarks to run
+        ////////////////////////////////////////////////////////////////////////////
+        vector<pair<string,string>> all_benchmarks = getExperimentNames();
+        vector<pair<string,string>> benchmarks;
 
-		// If the experiment was not found, exit the program
-		if(it == all_benchmarks.end())
-		{
-			cout << "The benchmark named '" << benchmarkName << "' could not be found.";
-			return 0;
-		}
+        ////////////////////////////////////////////////////////////////////////////
+        // Run specific benchmark. Requires only partial match
+        ////////////////////////////////////////////////////////////////////////////
+        if(vm.count("benchmark"))
+        {
+            vector<string> findBenchmarkNames = vm["benchmark"].as<vector<string>>();
+            for(int i = 0; i < (int)findBenchmarkNames.size(); i++) {
+                string exprName = findBenchmarkNames[i];
+                for(int j = 0; j < (int)all_benchmarks.size(); j++) {
+                    if(all_benchmarks[j].second.find(exprName) != string::npos)
+                        benchmarks.push_back(*(all_benchmarks.begin() + j));
+                }
+            }
 
-		// append the benchmark name to the list
-		benchmarks.push_back((*it));
-	}
+            // If no experiments match, exit
+            if(benchmarks.empty())
+            {
+                cout << "No specified benchmarks or experiments found. Exiting." << endl;
+                return 0;
+            }
+        }
 
-	// exclude specific benchmark
-	if(args.exist("exclude-benchmark"))
-	{
-		if(benchmarks.size() == 0)
-			benchmarks = all_benchmarks;
+        ////////////////////////////////////////////////////////////////////////////
+        // Exclude specific benchmark. Requires only partial match
+        ////////////////////////////////////////////////////////////////////////////
+        if(vm.count("exclude-benchmark"))
+        {
+            if(benchmarks.size() == 0)
+                benchmarks = all_benchmarks;
 
-		string benchmarkName = args.get<string>("exclude-benchmark");
+            vector<string> findBenchmarkNames = vm["exclude-benchmark"].as<vector<string>>();
+            for(int i = 0; i < (int)findBenchmarkNames.size(); i++) {
+                string exprName = findBenchmarkNames[i];
+                for(int j = benchmarks.size() - 1; j > -1; j--) {
+                    if(benchmarks[j].second.find(exprName) != string::npos) {
+                        benchmarks.erase(benchmarks.begin() + j);
+                    }
+                }
+            }
+        }
 
-		while(1) {
-		    auto it = std::find_if(benchmarks.begin(), benchmarks.end(),
-				[&benchmarkName](const pair<string, string> & p) { return p.second == benchmarkName; });
-			if(it == benchmarks.end()) break;
-			benchmarks.erase(it);
-		}
-	}
+        ////////////////////////////////////////////////////////////////////////////
+        // Run specific group. Requires only partial match
+        ////////////////////////////////////////////////////////////////////////////
+        if(vm.count("group"))
+        {
+            vector<string> findBenchmarkNames = vm["group"].as<vector<string>>();
+            for(int i = 0; i < (int)findBenchmarkNames.size(); i++) {
+                string exprName = findBenchmarkNames[i];
+                for(int j = 0; j < (int)all_benchmarks.size(); j++) {
+                    if(all_benchmarks[j].first.find(exprName) != string::npos)
+                        benchmarks.push_back(*(all_benchmarks.begin() + j));
+                }
+            }
 
-	// find a sepecific group
-	if(args.exist("group"))
-	{
-		bool foundGroup = false;
+            // If no experiments match, exit
+            if(benchmarks.empty())
+            {
+                cout << "No specified benchmarks or experiments found. Exiting." << endl;
+                return 0;
+            }
+        }
 
-		string groupName = args.get<string>("group");
+        ////////////////////////////////////////////////////////////////////////////
+        // Exclude specific group. Requires only partial match
+        ////////////////////////////////////////////////////////////////////////////
+        if(vm.count("exclude-group"))
+        {
+            if(benchmarks.size() == 0)
+                benchmarks = all_benchmarks;
 
-		for(int i = 0; i < int(all_benchmarks.size()); i++)
-		{
-			auto benchmark = all_benchmarks[i];
-			if(benchmark.first == groupName)
-			{
-				benchmarks.push_back(benchmark);
-				foundGroup = true;
-			}
+            vector<string> findBenchmarkNames = vm["exclude-group"].as<vector<string>>();
+            for(int i = 0; i < (int)findBenchmarkNames.size(); i++) {
+                string exprName = findBenchmarkNames[i];
+                for(int j = benchmarks.size() - 1; j > -1; j--) {
+                    if(benchmarks[j].second.find(exprName) != string::npos) {
+                        benchmarks.erase(benchmarks.begin() + j);
+                    }
+                }
+            }
+        }
 
-		}
+        ////////////////////////////////////////////////////////////////////////////
+        // At this point run all benchmarks if still empty
+        ////////////////////////////////////////////////////////////////////////////
+        if(benchmarks.size() == 0)
+            benchmarks = all_benchmarks;
 
-		// If the experiment was not found, exit the program
-		if(!foundGroup)
-		{
-			cout << "The group named '" << groupName << "' could not be found.";
-			return 0;
-		}
-	}
+        ////////////////////////////////////////////////////////////////////////////
+        // Disable image benchmarks if the image directory was not specified.
+        ////////////////////////////////////////////////////////////////////////////
+        if(!enableImageBenchmarks)
+        {
+            cout << "No image directory was specified, disabling image benchmarks." << endl;
 
-	// exclude a sepecific group
-	if(args.exist("exclude-group"))
-	{
-		if(benchmarks.size() == 0)
-			benchmarks = all_benchmarks;
+            for(int i = benchmarks.size() - 1; i > -1; i--)
+            {
+                if(benchmarks[i].first == "Image")
+                    benchmarks.erase(benchmarks.begin() + i);
+            }
+        }
 
-		string groupName = args.get<string>("exclude-group");
+        ////////////////////////////////////////////////////////////////////////////
+        // Disable double tests based on user or device condition
+        ////////////////////////////////////////////////////////////////////////////
+        if(vm.count("disable-double") || !doubleAvailable)
+        {
+            for(int i = benchmarks.size() - 1; i > -1; i--)
+            {
+                auto benchmark = benchmarks[i];
+                if( benchmark.first .find("f64") != std::string::npos ||
+                    benchmark.second.find("f64") != std::string::npos)
+                {
+                    benchmarks.erase(benchmarks.begin() + i);
+                }
+            }
+        }
 
-		for(int i = 0; i < int(benchmarks.size()); i++)
-		{
-			auto benchmark = benchmarks[i];
-			if(benchmark.first == groupName)
-			{
-				auto loctemp = benchmarks.begin() + i;
-				benchmarks.erase(loctemp);
-				i--;
-			}
-		}
-	}
+        if(vm.count("print"))
+        {
+            int fieldWidth = 24;
+            cout << endl;
+            cout << "List of benchmarks selected:" << endl;
+            cout << " " << setw(fieldWidth + 1) << left << "Group" << "Benchmark" << endl;
+            cout << " " << setw(fieldWidth + 1) << left << "---------" << "----------" << endl;
 
-	// If no test or group was specified, run all benchmarks.
-	if(benchmarks.size() == 0)
-		benchmarks = all_benchmarks;
+            sort(benchmarks.begin(), benchmarks.end());
+            for(auto experment_name: benchmarks)
+                cout << " " << setw(fieldWidth) << left << experment_name.first << " " << experment_name.second << endl;
+        }
 
-	// Disable image benchmarks if the image directory was not specified.
-	if(!enableImageBenchmarks)
-	{
-        cout << "No image directory was specified, disabling image benchmarks." << endl;
+        print::TableBanner();
 
-		for(int i = benchmarks.size() - 1; i > -1; i--)
-		{
-			if(benchmarks[i].first == "Image")
-				benchmarks.erase(benchmarks.begin() + i);
-		}
-	}
+        ////////////////////////////////////////////////////////////////////////////
+        // Run the tests
+        ////////////////////////////////////////////////////////////////////////////
+        for(auto benchmark: benchmarks)
+        {
+            string group = benchmark.first;
+            string experiment = benchmark.second;
+            executor::Run(group, experiment);
+        }
 
-    // Disable double tests based on user or device condition
-	if(args.exist("disable-double") || !doubleAvailable)
-	{
-		for(int i = benchmarks.size() - 1; i > -1; i--)
-		{
-			auto benchmark = benchmarks[i];
-			if( benchmark.first .find("f64") != std::string::npos ||
-				benchmark.second.find("f64") != std::string::npos)
-			{
-				benchmarks.erase(benchmarks.begin() + i);
-			}
-		}
-	}
+    } catch(std::exception &e) {
+        cout << endl << e.what() << endl;
+        return 1;
+    }
 
-    print::TableBanner();
-
-	// run the tests
-	for(auto benchmark: benchmarks)
-	{
-		string group = benchmark.first;
-		string experiment = benchmark.second;
-		executor::Run(group, experiment);
-	}
-
-	return 0;
+    return 0;
 }
 
