@@ -395,6 +395,14 @@ int main(int argc, char** argv)
             }
         }
 
+        ////////////////////////////////////////////////////////////////////////////
+        // Sort the benchmarks so that they are in alphabetical order
+        ////////////////////////////////////////////////////////////////////////////
+        sort(benchmarks.begin(), benchmarks.end());
+
+        ////////////////////////////////////////////////////////////////////////////
+        // Print selected tests
+        ////////////////////////////////////////////////////////////////////////////
         if(vm.count("print"))
         {
             int fieldWidth = 24;
@@ -403,7 +411,6 @@ int main(int argc, char** argv)
             cout << " " << setw(fieldWidth + 1) << left << "Group" << "Benchmark" << endl;
             cout << " " << setw(fieldWidth + 1) << left << "---------" << "----------" << endl;
 
-            sort(benchmarks.begin(), benchmarks.end());
             for(auto experment_name: benchmarks)
                 cout << " " << setw(fieldWidth) << left << experment_name.first << " " << experment_name.second << endl;
         }
