@@ -1,5 +1,5 @@
 ///
-/// \author	John Farrier
+/// \author John Farrier
 /// \author Brian Kloppenborg
 ///
 /// \copyright Copyright 2014 John Farrier, Brian Kloppenborg
@@ -7,9 +7,9 @@
 /// Licensed under the Apache License, Version 2.0 (the "License");
 /// you may not use this file except in compliance with the License.
 /// You may obtain a copy of the License at
-/// 
+///
 /// http://www.apache.org/licenses/LICENSE-2.0
-/// 
+///
 /// Unless required by applicable law or agreed to in writing, software
 /// distributed under the License is distributed on an "AS IS" BASIS,
 /// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -37,17 +37,17 @@ using namespace celero;
 class AFResultsTable::Impl
 {
 public:
-	std::vector<std::string> staticColumnHeaders;
-	std::vector<std::string> staticColumnValues;
-	std::string fileName;
-	std::map<std::string, std::map<std::string, std::vector<std::pair<int64_t, double>>>> results;
+    std::vector<std::string> staticColumnHeaders;
+    std::vector<std::string> staticColumnValues;
+    std::string fileName;
+    std::map<std::string, std::map<std::string, std::vector<std::pair<int64_t, double>>>> results;
 
 public:
-		Impl() :
-			fileName(),
-			results()
-		{
-		}
+        Impl() :
+            fileName(),
+            results()
+        {
+        }
 };
 
 AFResultsTable::AFResultsTable() : pimpl()
@@ -60,87 +60,87 @@ AFResultsTable::~AFResultsTable()
 
 AFResultsTable& AFResultsTable::Instance()
 {
-	static AFResultsTable singleton;
-	return singleton;
+    static AFResultsTable singleton;
+    return singleton;
 }
 
 void AFResultsTable::setFileName(const std::string& x)
 {
-	assert(x.empty() == false);
-	this->pimpl->fileName = x;
+    assert(x.empty() == false);
+    this->pimpl->fileName = x;
 }
 
 void AFResultsTable::addStaticColumn(const std::string& header, const std::string& value)
 {
-	assert(header.empty() == false);
-	assert(value.empty() == false);
-	this->pimpl->staticColumnHeaders.push_back(header);
-	this->pimpl->staticColumnValues.push_back(value);
+    assert(header.empty() == false);
+    assert(value.empty() == false);
+    this->pimpl->staticColumnHeaders.push_back(header);
+    this->pimpl->staticColumnValues.push_back(value);
 }
 
 void AFResultsTable::add(std::shared_ptr<Result> x)
 {
-	const auto measurements = std::make_pair(x->getProblemSpaceValue(), x->getUsPerCall());
-	this->pimpl->results[x->getExperiment()->getBenchmark()->getName()][x->getExperiment()->getName()].push_back(measurements);
-	this->save();
+    const auto measurements = std::make_pair(x->getProblemSpaceValue(), x->getUsPerCall());
+    this->pimpl->results[x->getExperiment()->getBenchmark()->getName()][x->getExperiment()->getName()].push_back(measurements);
+    this->save();
 }
 
 void AFResultsTable::save()
 {
-	std::ofstream ofs;
-	ofs.open(this->pimpl->fileName);
+    std::ofstream ofs;
+    ofs.open(this->pimpl->fileName);
 
-	const std::vector<std::string> staticHeaders = this->pimpl->staticColumnHeaders;
-	const std::vector<std::string> staticValues = this->pimpl->staticColumnValues;
+    const std::vector<std::string> staticHeaders = this->pimpl->staticColumnHeaders;
+    const std::vector<std::string> staticValues = this->pimpl->staticColumnValues;
 
-	if(ofs.is_open() == true)
-	{
-		const auto os = &ofs;
+    if(ofs.is_open() == true)
+    {
+        const auto os = &ofs;
 
-		std::for_each(std::begin(this->pimpl->results), std::end(this->pimpl->results),
-			[&os, &staticHeaders, &staticValues](decltype(*std::begin(this->pimpl->results))& group)
-			{
-				*os << group.first << "\n";
-			
-				const auto run = group.second;
+        std::for_each(std::begin(this->pimpl->results), std::end(this->pimpl->results),
+            [&os, &staticHeaders, &staticValues](decltype(*std::begin(this->pimpl->results))& group)
+            {
+                *os << group.first << "\n";
 
-				std::for_each(std::begin(run), std::end(run),
-					[run, os, staticHeaders, staticValues](decltype(*std::begin(run))& result)
-					{
-						auto vec = result.second;
+                const auto run = group.second;
 
-						// Write the header row
-						if(result.first == std::begin(run)->first)
-						{
-							*os << ",";
-							for(auto header: staticHeaders)
-								*os << header << ",";
+                std::for_each(std::begin(run), std::end(run),
+                    [run, os, staticHeaders, staticValues](decltype(*std::begin(run))& result)
+                    {
+                        auto vec = result.second;
 
-							std::for_each(std::begin(vec), std::end(vec), 
-								[os](decltype(*std::begin(vec))& element)
-								{
-									*os << element.first << ",";
-								});
-							*os << "\n";
-						}
+                        // Write the header row
+                        if(result.first == std::begin(run)->first)
+                        {
+                            *os << ",";
+                            for(auto header: staticHeaders)
+                                *os << header << ",";
 
-						// Write the data row
-						*os << result.first << ",";
-						for(auto value: staticValues)
-							*os << value << ",";
+                            std::for_each(std::begin(vec), std::end(vec),
+                                [os](decltype(*std::begin(vec))& element)
+                                {
+                                    *os << element.first << ",";
+                                });
+                            *os << "\n";
+                        }
 
-						std::for_each(std::begin(vec), std::end(vec), 
-							[os](decltype(*std::begin(vec))& element)
-							{
-								*os << element.second << ",";
-							});
-						*os << "\n";
-					});
-				
-				*os << "\n";
-			});
+                        // Write the data row
+                        *os << result.first << ",";
+                        for(auto value: staticValues)
+                            *os << value << ",";
 
-		ofs.close();
-	}
+                        std::for_each(std::begin(vec), std::end(vec),
+                            [os](decltype(*std::begin(vec))& element)
+                            {
+                                *os << element.second << ",";
+                            });
+                        *os << "\n";
+                    });
+
+                *os << "\n";
+            });
+
+        ofs.close();
+    }
 }
 

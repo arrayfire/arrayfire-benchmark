@@ -13,25 +13,24 @@ using namespace af;
 extern unsigned int samples;
 extern unsigned int operations;
 
-#define CONVOLVE_BASELINE(dataType, kernelWidth, kernelHeight) \
-BASELINE_F( Convolve_##dataType##_##kernelWidth##x##kernelHeight , \
-	Baseline , \
-    Fixture_2D_##dataType , samples, operations) \
-{                                                           \
-    array K = randu( kernelWidth, kernelHeight , dataType); \
-    K.eval();                                               \
-}                                                           \
+#define CONVOLVE_BASELINE(dataType, kernelWidth, kernelHeight)      \
+BASELINE_F( Convolve_##dataType##_##kernelWidth##x##kernelHeight ,  \
+            Baseline , Fixture_2D_##dataType , samples, operations) \
+{                                                                   \
+    array K = randu( kernelWidth, kernelHeight , dataType);         \
+    K.eval();                                                       \
+}                                                                   \
 
-#define CONVOLVE_BENCHMARK(dataType, kernelWidth, kernelHeight) \
+#define CONVOLVE_BENCHMARK(dataType, kernelWidth, kernelHeight)     \
 BENCHMARK_F( Convolve_##dataType##_##kernelWidth##x##kernelHeight , \
-	Convolve_##dataType##_##kernelWidth##x##kernelHeight , \
-    Fixture_2D_##dataType , samples, operations) \
-{                                                         \
-    array K = randu(kernelWidth, kernelHeight, dataType); \
-    K.eval();                                             \
-    array B = convolve(this->A, K);                       \
-    B.eval();                                             \
-}                                                         \
+  Convolve_##dataType##_##kernelWidth##x##kernelHeight ,            \
+    Fixture_2D_##dataType , samples, operations)                    \
+{                                                                   \
+    array K = randu(kernelWidth, kernelHeight, dataType);           \
+    K.eval();                                                       \
+    array B = convolve(this->A, K);                                 \
+    B.eval();                                                       \
+}                                                                   \
 
 CONVOLVE_BASELINE (f32, 5, 5)
 CONVOLVE_BENCHMARK(f32, 5, 5)
