@@ -144,8 +144,8 @@ def plot_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type):
             ("(x,y)", "(@x,@y)")
         ])
 
-    # configure the plot title and axis labels
-    bplt.output_file(savefile + ".html", title=title)
+    # configure the plot title and axis labels, use CDN for the data source
+    bplt.output_file(savefile + ".html", title=title, mode='cdn')
     plot = bplt.figure(title=title, tools=[hover,'save,box_zoom,resize,reset'])
     xlabel = ""
     ylabel = ""
@@ -230,7 +230,7 @@ def main():
 #        help="Automatically save plots",  action="store_true", default=False)
 #    parser.add_argument("--save-format",
 #        help="Sets the format for saved files. [html, jpeg, svg]", default="html")
-    parser.add_argument("--custom-title",
+    parser.add_argument("--custom-title", default="",
         help="Set a custom title for the plot")
 
     # TODO: enforce the axis_options options
