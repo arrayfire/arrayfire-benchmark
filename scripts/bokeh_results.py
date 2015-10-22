@@ -19,6 +19,37 @@ from bokeh.io import output_file, save, vform
 axis_options = ['time', 'size', 'log2size', 'log10size',
     'throughput', 'log2throughput', 'log10throughput']
 
+def format_data(benchmark, axis_type):
+
+    times = benchmark['times'] * 1E-6
+    sizes = benchmark['data_sizes']
+
+    data = list()
+    label = axis_type
+
+    # Valid axis types as found in `axis_options`
+    if axis_type == 'time':
+        data = times
+        label = "Time (ms)"
+    if axis_type == 'size':
+        data = sizes
+        label = "Size"
+    if axis_type == 'log2size':
+        data = np.log2(sizes)
+    if axis_type == 'log10size':
+        data = np.log10(sizes)
+    if axis_type == 'throughput':
+        data = 1.0 / times
+        label = "Throughput (1 / sec)"
+    if axis_type == 'log2throughput':
+        data = np.log2(1.0 / times)
+        label = "Throughput (log2(1/sec))"
+    if axis_type == 'log10throughput':
+        data = np.log10(1.0 / times)
+        label = "Throughput (log10(1/sec))"
+
+    return data, label
+
 def unique_colors():
     # colors to use
     # From "A Colour Alphabet and the Limits of Colour Coding"
@@ -100,7 +131,7 @@ def import_directory(directory):
 
     return benchmarks
 
-def plot_benchmark(benchmarks, title, xaxis_type, yaxis_type):
+def plot_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type):
 
     # configure the colors
     colors = unique_colors()
@@ -114,10 +145,10 @@ def plot_benchmark(benchmarks, title, xaxis_type, yaxis_type):
         ])
 
     # configure the plot title and axis labels
-    bplt.output_file(title + ".html", title=title)
+    bplt.output_file(savefile + ".html", title=title)
     plot = bplt.figure(title=title, tools=[hover,'save,box_zoom,resize,reset'])
-#    plot.xaxis.axis_label = xlabel
-#    plot.yaxis.axis_label = ylabel
+    xlabel = ""
+    ylabel = ""
 
     # plot images/second vs. data size
     for benchmark in benchmarks:
@@ -125,8 +156,8 @@ def plot_benchmark(benchmarks, title, xaxis_type, yaxis_type):
         color = colors.next()
 
         # extract benchmarks
-        x = benchmark['data_sizes']
-        y = 1.0 / (benchmark['times'] * 1E-6)
+        x,xlabel = format_data(benchmark, xaxis_type)
+        y,ylabel = format_data(benchmark, yaxis_type)
         platform = benchmark['extra_data']['AF_PLATFORM']
         # get the device name, override if necessary
         device = benchmark['extra_data']['AF_DEVICE']
@@ -143,6 +174,9 @@ def plot_benchmark(benchmarks, title, xaxis_type, yaxis_type):
         plot.line(x,y, legend=device, color=color, line_width=2)
         plot.scatter('x', 'y', source=source, legend=device, color=color,
             fill_color="white", size=8)
+
+    plot.xaxis.axis_label = xlabel
+    plot.yaxis.axis_label = ylabel
 
     # save the plot
     bplt.save(plot)
@@ -192,16 +226,19 @@ def main():
     parser.add_argument("-r", "--revision", action='append',
         help="Generate plots for this revision", default=[])
 
-    parser.add_argument("--autosave",
-        help="Automatically save plots",  action="store_true", default=False)
-    parser.add_argument("--save-format",
-        help="Sets the format for saved files. [html, jpeg, svg]", default="html")
+#    parser.add_argument("--autosave",
+#        help="Automatically save plots",  action="store_true", default=False)
+#    parser.add_argument("--save-format",
+#        help="Sets the format for saved files. [html, jpeg, svg]", default="html")
+    parser.add_argument("--custom-title",
+        help="Set a custom title for the plot")
 
     # TODO: enforce the axis_options options
+    axis_options_str = ' '.join(axis_options)
     parser.add_argument("--xaxis", default=['size'],
-        help="Set the x-axis data type [" + ' '.join(axis_options) + ']')
+        help="Set the x-axis data type [" + axis_options_str + ']')
     parser.add_argument("--yaxis", default=['throughput'],
-        help="Set the x-axis data type [" + ' '.join(axis_options) + ']')
+        help="Set the x-axis data type [" + axis_options_str + ']')
 
     args = parser.parse_args()
 
@@ -259,8 +296,11 @@ def main():
         # Get the benchmarks we will plot
         filtered_benchmarks = filter(lambda x: x['benchmark_name'] == benchmark, benchmarks)
 
+        title = benchmark
+        if len(args.custom_title) > 0:
+            title = args.custom_title
 
-        plot_benchmark(filtered_benchmarks, benchmark, args.xaxis, args.yaxis)
+        plot_benchmark(benchmark, filtered_benchmarks, title, args.xaxis, args.yaxis)
 
 
 
