@@ -108,6 +108,7 @@ def read_celero_recordTable(filename):
 
         # strip off newline, split the line, remove empty fields
         line = line.strip("\n")
+        line = line.strip("\r")
         line = line.split(',')
         line = filter(lambda x: x != "", line)
 
@@ -134,7 +135,14 @@ def read_celero_recordTable(filename):
 
             other_data = line[1:split_start]
             t_times = line[split_start:split_end]
-            t_times = map(float, t_times)
+            try:
+                t_times = map(float, t_times)
+            except:
+                print "Failed to parse line in " + filename + "\n"
+                print line
+                print t_times
+                exit()
+
             t_times = np.array(t_times)
 
             extra_data = dict(zip(other_fields, other_data))
