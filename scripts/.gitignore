@@ -1,5 +1,8 @@
-# Ignore all images
+# Python intermediate files
+*.pyc
 
+# All plot script output
+*.html
 *.svg
 *.jpg
 *.png
