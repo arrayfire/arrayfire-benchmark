@@ -133,6 +133,17 @@ def import_directory(directory):
 
 def plot_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type):
 
+    show_backends = False
+
+    # Determine the number of backends
+    backends = list_recordTable_attribute(benchmarks, 'AF_PLATFORM')
+    if len(backends) > 1:
+        show_backends = True
+
+    # Sort the benchmarks by device name
+    bmarks_sorted = sorted(benchmarks, key=lambda k: k['extra_data']['AF_DEVICE'])
+    benchmarks = unique_device_platform(bmarks_sorted)
+
     # configure the colors
     colors = unique_colors()
 
@@ -170,9 +181,14 @@ def plot_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type):
                 platform=[platform]*len(x),
             ))
 
+        # Generate the legend, automatically add the platform if needed
+        legend = device
+        if show_backends:
+            legend += " (" + platform + ")"
+
         # generate the plot
-        plot.line(x,y, legend=device, color=color, line_width=2)
-        plot.scatter('x', 'y', source=source, legend=device, color=color,
+        plot.line(x,y, legend=legend, color=color, line_width=2)
+        plot.scatter('x', 'y', source=source, legend=legend, color=color,
             fill_color="white", size=8)
 
     plot.xaxis.axis_label = xlabel
@@ -235,9 +251,9 @@ def main():
 
     # TODO: enforce the axis_options options
     axis_options_str = ' '.join(axis_options)
-    parser.add_argument("--xaxis", default=['size'],
+    parser.add_argument("--xaxis", default='size',
         help="Set the x-axis data type [" + axis_options_str + ']')
-    parser.add_argument("--yaxis", default=['throughput'],
+    parser.add_argument("--yaxis", default='throughput',
         help="Set the x-axis data type [" + axis_options_str + ']')
 
     args = parser.parse_args()
@@ -263,19 +279,22 @@ def main():
     # list backends found in the data, then exit
     if args.list_backends:
         backends = list_recordTable_attribute(benchmarks, 'AF_PLATFORM')
-        print backends
+        for entry in backends:
+            print(entry)
         quit()
 
     # list all devices found in the data, then exit
     if args.list_devices:
         devices = list_recordTable_attribute(benchmarks, 'AF_DEVICE')
-        print devices
+        for entry in devices:
+            print(entry)
         quit()
 
     # list all devices found in the data, then exit
     if args.list_revisions:
         revisions = list_recordTable_attribute(benchmarks, 'AF_REVISION')
-        print revisions
+        for entry in revisions:
+            print(entry)
         quit()
 
     # Apply any command-line argument filters
@@ -286,8 +305,8 @@ def main():
 
     # Let the user see the filtered results
     if args.print_benchmarks:
-        print benchmarks
-        quit()
+        for entry in benchmarks:
+            print(entry["benchmark_name"])
 
     # Now get ready to plot. Each benchmark will generate one output
     plot_benchmarks = list_recordTable_benchmarks(benchmarks)
@@ -303,6 +322,20 @@ def main():
         plot_benchmark(benchmark, filtered_benchmarks, title, args.xaxis, args.yaxis)
 
 
+def unique_device_platform(benchmark_list):
+    """Creates a unique list of [device, platform] given an input list of
+    ArrayFire RecordTable benchmarks
+    """
+
+    seen = set()
+    new_l = []
+    for d in benchmark_list:
+        t = tuple(d['extra_data']['AF_DEVICE'] + d['extra_data']['AF_PLATFORM'])
+        if t not in seen:
+            seen.add(t)
+            new_l.append(d)
+
+    return new_l
 
 # Run the main function if this is a top-level script:
 if __name__ == "__main__":
