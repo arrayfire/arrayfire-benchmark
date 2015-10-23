@@ -21,16 +21,18 @@ axis_options = ['time', 'size', 'log2size', 'log10size',
 
 def format_data(benchmark, axis_type):
 
-    times = benchmark['times'] * 1E-6
+    times = benchmark['times'] * 1E-6 # all times from Celero are in microseconds
     sizes = benchmark['data_sizes']
 
     data = list()
     label = axis_type
+    legend_location = "top_right"
 
     # Valid axis types as found in `axis_options`
     if axis_type == 'time':
-        data = times
+        data = times * 1E3
         label = "Time (ms)"
+        legend_location = "top_left"
     if axis_type == 'size':
         data = sizes
         label = "Size"
@@ -48,7 +50,7 @@ def format_data(benchmark, axis_type):
         data = np.log10(1.0 / times)
         label = "Throughput (log10(1/sec))"
 
-    return data, label
+    return data, label, legend_location
 
 def unique_colors():
     # colors to use
@@ -131,7 +133,8 @@ def import_directory(directory):
 
     return benchmarks
 
-def plot_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type):
+def plot_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type,
+    save_prefix=""):
 
     show_backends = False
 
@@ -156,10 +159,11 @@ def plot_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type):
         ])
 
     # configure the plot title and axis labels, use CDN for the data source
-    bplt.output_file(savefile + ".html", title=title, mode='cdn')
+    bplt.output_file(save_prefix + savefile + ".html", title=title, mode='cdn')
     plot = bplt.figure(title=title, tools=[hover,'save,box_zoom,resize,reset'])
     xlabel = ""
     ylabel = ""
+    legend_location = "top_right"
 
     # plot images/second vs. data size
     for benchmark in benchmarks:
@@ -167,8 +171,8 @@ def plot_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type):
         color = colors.next()
 
         # extract benchmarks
-        x,xlabel = format_data(benchmark, xaxis_type)
-        y,ylabel = format_data(benchmark, yaxis_type)
+        x,xlabel,legend_location = format_data(benchmark, xaxis_type)
+        y,ylabel,legend_location = format_data(benchmark, yaxis_type)
         platform = benchmark['extra_data']['AF_PLATFORM']
         # get the device name, override if necessary
         device = benchmark['extra_data']['AF_DEVICE']
@@ -193,6 +197,7 @@ def plot_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type):
 
     plot.xaxis.axis_label = xlabel
     plot.yaxis.axis_label = ylabel
+    plot.legend.orientation = legend_location
 
     # save the plot
     bplt.save(plot)
@@ -248,6 +253,8 @@ def main():
 #        help="Sets the format for saved files. [html, jpeg, svg]", default="html")
     parser.add_argument("--custom-title", default="",
         help="Set a custom title for the plot")
+    parser.add_argument("--save-prefix", default="",
+        help="Set a custom prefix for the save file.")
 
     # TODO: enforce the axis_options options
     axis_options_str = ' '.join(axis_options)
@@ -319,7 +326,8 @@ def main():
         if len(args.custom_title) > 0:
             title = args.custom_title
 
-        plot_benchmark(benchmark, filtered_benchmarks, title, args.xaxis, args.yaxis)
+        plot_benchmark(benchmark, filtered_benchmarks, title, args.xaxis, args.yaxis,
+            save_prefix=args.save_prefix)
 
 
 def unique_device_platform(benchmark_list):
