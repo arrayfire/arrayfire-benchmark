@@ -18,7 +18,8 @@ from bokeh.io import output_file, save, vform
 # valid types for the axes
 axis_options = ['time', 'size', 'log2size', 'log10size',
     'throughput', 'log2throughput', 'log10throughput',
-    'matmul-flops']
+    'matmul-flops',
+    'bandwidth-r1-w0-32f', 'bandwidth-r1-w0-64f', 'bandwidth-r2-w0-32f', 'bandwidth-r2-w0-64f']
 
 def format_data(benchmark, axis_type):
 
@@ -34,27 +35,50 @@ def format_data(benchmark, axis_type):
         data = times * 1E3
         label = "Time (ms)"
         legend_location = "top_left"
-    if axis_type == 'size':
+    elif axis_type == 'size':
         data = sizes
         label = "Size"
-    if axis_type == 'log2size':
+    elif axis_type == 'log2size':
         data = np.log2(sizes)
-    if axis_type == 'log10size':
+    elif axis_type == 'log10size':
         data = np.log10(sizes)
-    if axis_type == 'throughput':
+    elif axis_type == 'throughput':
         data = 1.0 / times
         label = "Throughput (1 / sec)"
-    if axis_type == 'log2throughput':
+    elif axis_type == 'log2throughput':
         data = np.log2(1.0 / times)
         label = "Throughput (log2(1/sec))"
-    if axis_type == 'log10throughput':
+    elif axis_type == 'log10throughput':
         data = np.log10(1.0 / times)
         label = "Throughput (log10(1/sec))"
-    if axis_type == 'matmul-flops':
+
+    # Problems that produce FLOPS
+    elif axis_type == 'matmul-flops':
         # Use 8/3 n^3 to calculate FLOPs according to Intel's documentation
         # https://software.intel.com/en-us/articles/significant-performance-improvment-of-symmetric-eigensolvers-and-svd-in-intel-mkl-11
-        data = 8/3 * np.power(sizes, 3) / times
-        label = "FLOPS"
+        sizes = np.sqrt(sizes)
+        data = 8/3 * np.power(sizes, 3) / times * 1E-9
+        label = "GFLOPS"
+        legend_location = "bottom_right"
+
+    # Problems that produce bandwidth
+    # These problems expressions are 'rN-wM-dt'
+    # where N values are read, M values are written of datatype dt
+    elif axis_type == 'bandwidth-r1-w0-f32':
+        data = sizes / times * 32/8 * 1E-9
+        label = "Bandwidth (GB/sec)"
+    elif axis_type == 'bandwidth-r1-w0-f64':
+        data = sizes / times * 64 / 8 * 1E-9
+        label = "Bandwidth (GB/sec)"
+    elif axis_type == 'bandwidth-r2-w0-f32':
+        data = 2 * sizes / times * 32/8 * 1E-9
+        label = "Bandwidth (GB/sec)"
+    elif axis_type == 'bandwidth-r2-w0-f64':
+        data = 2 * sizes / times * 64 / 8 * 1E-9
+        label = "Bandwidth (GB/sec)"
+
+    else:
+        raise ValueError("The axis type '" + axis_type + "' is not defined.")
 
     return data, label, legend_location
 
