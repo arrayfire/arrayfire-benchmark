@@ -67,15 +67,19 @@ def format_data(benchmark, axis_type):
     elif axis_type == 'bandwidth-r1-w0-f32':
         data = sizes / times * 32/8 * 1E-9
         label = "Bandwidth (GB/sec)"
+        legend_location = "bottom_right"
     elif axis_type == 'bandwidth-r1-w0-f64':
         data = sizes / times * 64 / 8 * 1E-9
         label = "Bandwidth (GB/sec)"
+        legend_location = "bottom_right"
     elif axis_type == 'bandwidth-r2-w0-f32':
         data = 2 * sizes / times * 32/8 * 1E-9
         label = "Bandwidth (GB/sec)"
+        legend_location = "bottom_right"
     elif axis_type == 'bandwidth-r2-w0-f64':
         data = 2 * sizes / times * 64 / 8 * 1E-9
         label = "Bandwidth (GB/sec)"
+        legend_location = "bottom_right"
 
     else:
         raise ValueError("The axis type '" + axis_type + "' is not defined.")
@@ -190,6 +194,7 @@ def plot_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type,
         tooltips = [
             ("Device", "@device"),
             ("Backend", "@platform"),
+            ("OS", "@os"),
             ("(x,y)", "(@x,@y)")
         ])
 
@@ -212,13 +217,16 @@ def plot_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type,
         platform = benchmark['extra_data']['AF_PLATFORM']
         # get the device name, override if necessary
         device = benchmark['extra_data']['AF_DEVICE']
+        operating_system = benchmark['extra_data']['AF_OS']
         if 'AF_LABEL' in benchmark['extra_data'].keys():
             device = benchmark['extra_data']['AF_LABEL']
+
 
         source = bplt.ColumnDataSource(
             data = dict(x=x,y=y,
                 device=[device]*len(x),
                 platform=[platform]*len(x),
+                os=[operating_system]*len(x),
             ))
 
         # Generate the legend, automatically add the platform if needed
@@ -226,7 +234,7 @@ def plot_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type,
         if show_os or show_backends:
             legend += "( "
         if show_os:
-            legend += benchmark['extra_data']['AF_OS'] + " "
+            legend += operating_system + " "
         if show_backends:
             legend += platform + " "
         if show_os or show_backends:
