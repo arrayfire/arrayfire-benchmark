@@ -144,11 +144,14 @@ def read_celero_recordTable(filename):
                 exit()
 
             t_times = np.array(t_times)
+            t_data_sizes = data_sizes
+            if len(t_data_sizes) > len(t_times):
+                t_data_sizes = t_data_sizes[0: len(t_times)]
 
             extra_data = dict(zip(other_fields, other_data))
 
             result = {'group': group_name, 'benchmark_name': benchmark_name,
-                'data_sizes': data_sizes, 'times': t_times,
+                'data_sizes': t_data_sizes, 'times': t_times,
                 'extra_data': extra_data}
 
             output.append(result)
