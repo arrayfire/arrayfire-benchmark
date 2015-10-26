@@ -17,7 +17,8 @@ from bokeh.io import output_file, save, vform
 
 # valid types for the axes
 axis_options = ['time', 'size', 'log2size', 'log10size',
-    'throughput', 'log2throughput', 'log10throughput']
+    'throughput', 'log2throughput', 'log10throughput',
+    'matmul-flops']
 
 def format_data(benchmark, axis_type):
 
@@ -49,6 +50,11 @@ def format_data(benchmark, axis_type):
     if axis_type == 'log10throughput':
         data = np.log10(1.0 / times)
         label = "Throughput (log10(1/sec))"
+    if axis_type == 'matmul-flops':
+        # Use 8/3 n^3 to calculate FLOPs according to Intel's documentation
+        # https://software.intel.com/en-us/articles/significant-performance-improvment-of-symmetric-eigensolvers-and-svd-in-intel-mkl-11
+        data = 8/3 * np.power(sizes, 3) / times
+        label = "FLOPS"
 
     return data, label, legend_location
 
@@ -137,15 +143,20 @@ def plot_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type,
     save_prefix=""):
 
     show_backends = False
+    show_os = False
 
     # Determine the number of backends
     backends = list_recordTable_attribute(benchmarks, 'AF_PLATFORM')
     if len(backends) > 1:
         show_backends = True
 
+    operating_sys = list_recordTable_attribute(benchmarks, 'AF_OS')
+    if len(operating_sys) > 1:
+        show_os = True
+
     # Sort the benchmarks by device name
     bmarks_sorted = sorted(benchmarks, key=lambda k: k['extra_data']['AF_DEVICE'])
-    benchmarks = unique_device_platform(bmarks_sorted)
+    benchmarks = unique_benchmark(bmarks_sorted)
 
     # configure the colors
     colors = unique_colors()
@@ -166,6 +177,7 @@ def plot_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type,
     legend_location = "top_right"
 
     # plot images/second vs. data size
+    scatter_renderers = list()
     for benchmark in benchmarks:
         # get the color we will use for this plot
         color = colors.next()
@@ -187,13 +199,23 @@ def plot_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type,
 
         # Generate the legend, automatically add the platform if needed
         legend = device
+        if show_os or show_backends:
+            legend += "( "
+        if show_os:
+            legend += benchmark['extra_data']['AF_OS'] + " "
         if show_backends:
-            legend += " (" + platform + ")"
+            legend += platform + " "
+        if show_os or show_backends:
+            legend += ")"
 
         # generate the plot
         plot.line(x,y, legend=legend, color=color, line_width=2)
-        plot.scatter('x', 'y', source=source, legend=legend, color=color,
+        sr = plot.scatter('x', 'y', source=source, legend=legend, color=color,
             fill_color="white", size=8)
+        scatter_renderers.append(sr)
+
+    hover = plot.select(HoverTool)
+    hover.renderers = scatter_renderers
 
     plot.xaxis.axis_label = xlabel
     plot.yaxis.axis_label = ylabel
@@ -330,15 +352,30 @@ def main():
             save_prefix=args.save_prefix)
 
 
-def unique_device_platform(benchmark_list):
-    """Creates a unique list of [device, platform] given an input list of
+def unique_benchmark(benchmark_list):
+    """Creates a unique list of [device, platform, os] given an input list of
     ArrayFire RecordTable benchmarks
     """
 
     seen = set()
     new_l = []
     for d in benchmark_list:
-        t = tuple(d['extra_data']['AF_DEVICE'] + d['extra_data']['AF_PLATFORM'])
+        try:
+            device = d['extra_data']['AF_DEVICE']
+        except:
+            device = ""
+
+        try:
+            platform = d['extra_data']['AF_PLATFORM']
+        except:
+            platform = ""
+
+        try:
+            OS = d['extra_data']['AF_OS']
+        except:
+            OS = ""
+
+        t = tuple(device + platform + OS)
         if t not in seen:
             seen.add(t)
             new_l.append(d)
