@@ -160,7 +160,7 @@ af::array nojit_subtract(af::array A, af::array B)
 #define NOJIT_BENCHMARK(type)                                                                       \
 BENCHMARK_F( NOJIT_##type , NOJIT_##type##_AXPY , AF_JIT_Fixture_##type , samples, operations)      \
 {                                                                                                   \
-    af::array temp1 = A + B;                                                                        \
+    af::array temp1 = A * B;                                                                        \
     temp1.eval();                                                                                   \
     af::array temp2 = temp1 + C;                                                                    \
     temp2.eval();                                                                                   \
