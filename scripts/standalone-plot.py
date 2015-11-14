@@ -16,10 +16,10 @@ from bokeh.models.widgets import Select
 from bokeh.io import output_file, save, vform
 
 # valid types for the axes
-axis_options = ['time', 'size', 'log2size', 'log10size',
+axis_options = ['time', 'size', 'sqrt-size', 'log2size', 'log10size',
     'throughput', 'log2throughput', 'log10throughput',
     'matmul-flops',
-    'bandwidth-r1-w0-32f', 'bandwidth-r1-w0-64f', 'bandwidth-r2-w0-32f', 'bandwidth-r2-w0-64f']
+    'bandwidth-r1-w0-f32', 'bandwidth-r1-w0-f64', 'bandwidth-r2-w0-f32', 'bandwidth-r2-w0-f64']
 
 def format_data(benchmark, axis_type):
 
@@ -38,6 +38,9 @@ def format_data(benchmark, axis_type):
     elif axis_type == 'size':
         data = sizes
         label = "Size"
+    elif axis_type == 'sqrt-size':
+        data = np.sqrt(sizes)
+        label = "Square Root (size)"
     elif axis_type == 'log2size':
         data = np.log2(sizes)
     elif axis_type == 'log10size':
@@ -55,11 +58,10 @@ def format_data(benchmark, axis_type):
     # Problems that produce FLOPS
     elif axis_type == 'matmul-flops':
         # Use 8/3 n^3 to calculate FLOPs according to Intel's documentation
-        # https://software.intel.com/en-us/articles/significant-performance-improvment-of-symmetric-eigensolvers-and-svd-in-intel-mkl-11
+        # https://software.intel.com/en-us/articles/significant-performance-improvment-of-symmetric-eigensolvers-and-svd-in-intel-mkl-112
         sizes = np.sqrt(sizes)
         data = 8/3 * np.power(sizes, 3) / times * 1E-9
         label = "GFLOPS"
-        legend_location = "bottom_right"
 
     # Problems that produce bandwidth
     # These problems expressions are 'rN-wM-dt'
@@ -73,7 +75,7 @@ def format_data(benchmark, axis_type):
         label = "Bandwidth (GB/sec)"
         legend_location = "bottom_right"
     elif axis_type == 'bandwidth-r2-w0-f32':
-        data = 2 * sizes / times * 32/8 * 1E-9
+        data = 2 * sizes / times * 32 / 8 * 1E-9
         label = "Bandwidth (GB/sec)"
         legend_location = "bottom_right"
     elif axis_type == 'bandwidth-r2-w0-f64':
@@ -101,7 +103,8 @@ def unique_colors():
 
 def filter_benchmarks(all_benchmarks, include_benchmarks, exclude_benchmarks,
     include_groups, exclude_groups,
-    include_devices, include_backends, include_revisions, include_data_types):
+    include_devices, include_backends, include_revisions, include_data_types,
+    include_operating_systems):
 
     filtered_benchmarks = list()
     # Generate a few booleans to speed up comps in the loop below
@@ -113,6 +116,7 @@ def filter_benchmarks(all_benchmarks, include_benchmarks, exclude_benchmarks,
     filter_ibe = len(include_backends) > 0
     filter_ir = len(include_revisions) > 0
     filter_idt = len(include_data_types) > 0
+    filter_os = len(include_operating_systems) > 0
 
     for benchmark in all_benchmarks:
         # benchmarks are Python dicts with the following fileds
@@ -142,6 +146,9 @@ def filter_benchmarks(all_benchmarks, include_benchmarks, exclude_benchmarks,
             continue
 
         if filter_ir and benchmark['extra_data']['AF_REVISION'] not in include_revisions:
+            continue
+
+        if filter_os and benchmark['extra_data']['AF_OS'] not in include_operating_systems:
             continue
 
         # All Benchmark functions are prefixed by 3-character data types
@@ -184,7 +191,7 @@ def plot_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type,
 
     # Sort the benchmarks by device name
     bmarks_sorted = sorted(benchmarks, key=lambda k: k['extra_data']['AF_DEVICE'])
-    benchmarks = unique_benchmark(bmarks_sorted)
+    benchmarks = bmarks_sorted
 
     # configure the colors
     colors = unique_colors()
@@ -199,7 +206,8 @@ def plot_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type,
         ])
 
     # configure the plot title and axis labels, use CDN for the data source
-    bplt.output_file(save_prefix + savefile + ".html", title=title, mode='cdn')
+    #bplt.output_file(save_prefix + savefile + ".html", title=title, mode='cdn')
+    bplt.output_file(save_prefix + savefile + ".html", title=title)
     plot = bplt.figure(title=title, tools=[hover,'save,box_zoom,resize,reset'])
     xlabel = ""
     ylabel = ""
@@ -221,7 +229,6 @@ def plot_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type,
         if 'AF_LABEL' in benchmark['extra_data'].keys():
             device = benchmark['extra_data']['AF_LABEL']
 
-
         source = bplt.ColumnDataSource(
             data = dict(x=x,y=y,
                 device=[device]*len(x),
@@ -239,6 +246,84 @@ def plot_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type,
             legend += platform + " "
         if show_os or show_backends:
             legend += ")"
+
+        # generate the plot
+        plot.line(x,y, legend=legend, color=color, line_width=2)
+        sr = plot.scatter('x', 'y', source=source, legend=legend, color=color,
+            fill_color="white", size=8)
+        scatter_renderers.append(sr)
+
+    hover = plot.select(HoverTool)
+    hover.renderers = scatter_renderers
+
+    plot.xaxis.axis_label = xlabel
+    plot.yaxis.axis_label = ylabel
+    plot.legend.orientation = legend_location
+
+    # save the plot
+    bplt.save(plot)
+
+def plot_merged_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type,
+    save_prefix=""):
+
+    # Sort the benchmarks by device name
+    bmarks_sorted = sorted(benchmarks, key=lambda k: k['extra_data']['AF_DEVICE'])
+    benchmarks = bmarks_sorted
+
+    # configure the colors
+    colors = unique_colors()
+    assigned_colors = dict()
+
+    # configure the hover box
+    hover = HoverTool(
+        tooltips = [
+            ("Device", "@device"),
+            ("Benchmark", "@benchmark"),
+            ("Backend", "@platform"),
+            ("OS", "@os"),
+            ("(x,y)", "(@x,@y)")
+        ])
+
+    # configure the plot title and axis labels, use CDN for the data source
+    #bplt.output_file(save_prefix + savefile + ".html", title=title, mode='cdn')
+    bplt.output_file(save_prefix + savefile + ".html", title=title)
+    plot = bplt.figure(title=title, tools=[hover,'save,box_zoom,resize,reset'])
+    xlabel = ""
+    ylabel = ""
+    legend_location = "top_right"
+
+    # plot images/second vs. data size
+    scatter_renderers = list()
+    for benchmark in benchmarks:
+        bmark_name = benchmark['benchmark_name']
+
+        # Look up the color
+        device = benchmark['extra_data']['AF_DEVICE']
+        if device in assigned_colors:
+            color = assigned_colors[device]
+        else:
+            color = colors.next()
+            assigned_colors[device] = color
+
+        # extract benchmarks
+        x,xlabel,legend_location = format_data(benchmark, xaxis_type)
+        y,ylabel,legend_location = format_data(benchmark, yaxis_type)
+        platform = benchmark['extra_data']['AF_PLATFORM']
+        # get the device name, override if necessary
+        operating_system = benchmark['extra_data']['AF_OS']
+        if 'AF_LABEL' in benchmark['extra_data'].keys():
+            device = benchmark['extra_data']['AF_LABEL']
+
+        source = bplt.ColumnDataSource(
+            data = dict(x=x,y=y,
+                device=[device]*len(x),
+                benchmark=[bmark_name]*len(x),
+                platform=[platform]*len(x),
+                os=[operating_system]*len(x),
+            ))
+
+        # Generate the legend, automatically add the platform if needed
+        legend = device
 
         # generate the plot
         plot.line(x,y, legend=legend, color=color, line_width=2)
@@ -301,6 +386,11 @@ def main():
     parser.add_argument("-r", "--revision", action='append',
         help="Generate plots for this revision", default=[])
 
+    parser.add_argument("-lo", "--list-os", action="store_true",
+        help="Lists the operating systems found in the tests")
+    parser.add_argument("-o", "--os", action='append',
+        help="Generate plots for this operating system", default=[])
+
 #    parser.add_argument("--autosave",
 #        help="Automatically save plots",  action="store_true", default=False)
 #    parser.add_argument("--save-format",
@@ -316,6 +406,9 @@ def main():
         help="Set the x-axis data type [" + axis_options_str + ']')
     parser.add_argument("--yaxis", default='throughput',
         help="Set the x-axis data type [" + axis_options_str + ']')
+
+    parser.add_argument("--merge-plots", action="store_true", default=False,
+        help="Merge all benchmark results specified onto one plot [default: False]")
 
     args = parser.parse_args()
 
@@ -362,7 +455,7 @@ def main():
     benchmarks = filter_benchmarks(benchmarks,
         args.benchmark, args.exclude_benchmark,
         args.group, args.exclude_group,
-        args.device, args.backend, args.revision, args.data_type)
+        args.device, args.backend, args.revision, args.data_type, args.os)
 
     # Let the user see the filtered results
     if args.print_benchmarks:
@@ -372,16 +465,28 @@ def main():
     # Now get ready to plot. Each benchmark will generate one output
     plot_benchmarks = list_recordTable_benchmarks(benchmarks)
 
-    for benchmark in plot_benchmarks:
-        # Get the benchmarks we will plot
-        filtered_benchmarks = filter(lambda x: x['benchmark_name'] == benchmark, benchmarks)
+    if args.merge_plots and len(plot_benchmarks) > 0:
+        # Custom plotting for merged plots
+        filtered_benchmarks = filter(lambda x: x['benchmark_name'] in plot_benchmarks, benchmarks)
 
-        title = benchmark
+        title = plot_benchmarks[0]
         if len(args.custom_title) > 0:
             title = args.custom_title
 
-        plot_benchmark(benchmark, filtered_benchmarks, title, args.xaxis, args.yaxis,
-            save_prefix=args.save_prefix)
+        plot_merged_benchmark(plot_benchmarks[0], filtered_benchmarks, title,
+            args.xaxis, args.yaxis, save_prefix=args.save_prefix)
+    else:
+        # standard plotting, 1 benchmark -> 1 plot
+        for benchmark in plot_benchmarks:
+            # Get the benchmarks we will plot
+            filtered_benchmarks = filter(lambda x: x['benchmark_name'] == benchmark, benchmarks)
+
+            title = benchmark
+            if len(args.custom_title) > 0:
+                title = args.custom_title
+
+            plot_benchmark(benchmark, filtered_benchmarks, title, args.xaxis, args.yaxis,
+                save_prefix=args.save_prefix)
 
 
 def unique_benchmark(benchmark_list):
