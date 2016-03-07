@@ -258,7 +258,7 @@ def plot_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type,
 
     plot.xaxis.axis_label = xlabel
     plot.yaxis.axis_label = ylabel
-    plot.legend.orientation = legend_location
+    plot.legend.location = legend_location
 
     # save the plot
     bplt.save(plot)
@@ -339,7 +339,7 @@ def plot_merged_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type,
 
     plot.xaxis.axis_label = xlabel
     plot.yaxis.axis_label = ylabel
-    plot.legend.orientation = legend_location
+    plot.legend.location = legend_location
 
     # save the plot
     bplt.save(plot)
