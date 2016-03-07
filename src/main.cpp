@@ -224,6 +224,21 @@ int main(int argc, char** argv)
         ////////////////////////////////////////////////////////////////////////////
         const bool doubleAvailable = getAFDeviceInfo(device_name, device_platform, device_toolkit, device_compute);
 
+    // Roughly detect the host operating system.
+#ifdef _WIN32
+    string host_operating_system("Windows");
+#elif __APPLE__
+    string host_operating_system("OSX");
+#elif __linux__
+    string host_operating_system("Linux");
+#elif __unix__
+    string host_operating_system("Unix");
+#elif defined(_POSIX_VERSION)
+    string host_operating_system("POSIX");
+#else
+    string host_operating_system("Unknown");
+#endif
+
         ////////////////////////////////////////////////////////////////////////////
         // User assigned name replacement
         ////////////////////////////////////////////////////////////////////////////
@@ -268,6 +283,7 @@ int main(int argc, char** argv)
         AFResultsTable::Instance().addStaticColumn("AF_PLATFORM", device_platform);
         AFResultsTable::Instance().addStaticColumn("AF_TOOLKIT", device_toolkit);
         AFResultsTable::Instance().addStaticColumn("AF_COMPUTE", device_compute);
+        AFResultsTable::Instance().addStaticColumn("AF_OS", host_operating_system);
         AFResultsTable::Instance().addStaticColumn("LOCAL_TIME", local_time);
         AFResultsTable::Instance().addStaticColumn("POSIX_TIME", to_string(current_time));
 
