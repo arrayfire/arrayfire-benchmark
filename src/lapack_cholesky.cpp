@@ -96,10 +96,12 @@ BENCHMARK_F(LAPACK_Cholesky, Cholesky_f32, Fixture_2D_f32, samples, operations)
 {
     array out;
     cholesky(out, A);
+    out.eval();
 }
 
 BENCHMARK_F(LAPACK_Cholesky, Cholesky_f64, Fixture_2D_f64, samples, operations)
 {
     array out;
     cholesky(out, A);
+    out.eval();
 }
