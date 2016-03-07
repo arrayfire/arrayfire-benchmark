@@ -54,7 +54,7 @@ install_arrayfire()
             fi
             ## Verify MD5SUM
             #MD5_GOLD=3c781b43a34d2bea9727223e99106e51
-            #MD5_CHEK=`md5sum ArrayFire-3.1.2_Linux_x86_64.sh`
+            #MD5_CHEK=`md5sum ArrayFire-3.3.0_Linux_x86_64.sh`
             #if [ "${MD5_GOLD}" != ${MD5_CHEK}]; then
             #    echo "MD5 Sums do not match. Exiting..."
             #    exit 1
@@ -74,7 +74,7 @@ help_func()
     echo "--install: Path to working directory (default)"
     echo "--release=<commit hash/branch/tag/installer version>: Version of ArrayFire to build or install.
     Hash/Branch/Tag will work for --build (default is master).
-    3 Decimal release ID (eg. 3.1.0) will work for --install. (default is 3.1.2)"
+    3 Decimal release ID (eg. 3.1.0) will work for --install. (default is 3.3.0)"
     echo "--af-dir=<dir>: Where ArrayFire is installed/built. Contents of this directory must be include, lib, share/ArrayFire/cmake"
     exit 0
 }
@@ -116,7 +116,7 @@ if [ ! -d ${AF_DIR} ] ; then
         fi
     else
         if [ -z "${release}" ]; then
-            install_arrayfire "3.1.2"
+            install_arrayfire "3.3.0"
         else
             install_arrayfire ${release}
         fi
