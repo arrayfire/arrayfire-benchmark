@@ -10,11 +10,20 @@ The benchmarking program requires the following system-level libraries:
 
 * ncurses
 * python
-* matplotlib
+* bokeh
 
-On Ubuntu, you may install these packages using the following command:
+On Ubuntu these dependencies are most easily installed via. the package manager
+an Anaconda Python. First install `ncurses` via. the package manager:
 
-    sudo apt-get install libncurses5-dev python-matplotlib
+    sudo apt-get install libncurses5-dev
+
+Next, download and install
+[Anaconda from Continuum Analytics](https://www.continuum.io/downloads).
+Once this is complete, run
+
+    conda install bokeh
+
+which will automatically download and install all required packages.
 
 ### ArrayFire library
 
@@ -77,6 +86,8 @@ First generate a series of benchmark results by running one of
 `-r output_file.csv` option. These three programs have the same set of options
 which may be seen using the `-h` option.
 
-After this, use the `scripts/plot_results.py` to visualize the results of
-the benchmark suite. Please use `python scripts/plot_results.py -h` to see
-a full list of options for this tool.
+After this, use the `scripts/standalone-plot.py` to visualize individual
+results from the benchmark suite (specify the `-h` option to see possibilities).
+
+If you need to plot a lot of results, modify the `scripts/make-plot.py`
+script accordingly.

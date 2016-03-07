@@ -3,7 +3,7 @@
 from subprocess import call
 from os import system
 
-plotter = '/home/bkloppenborg/anaconda/bin/python /home/bkloppenborg/workspace/arrayfire-benchmark/scripts/standalone-plot.py'
+plotter = '/home/bkloppenborg/local/anaconda2/bin/python /home/bkloppenborg/workspace/arrayfire-benchmark/scripts/standalone-plot.py'
 data_dir = '/home/bkloppenborg/workspace/arrayfire-benchmark-results/2015-10-09/all/'
 
 class bmg:
