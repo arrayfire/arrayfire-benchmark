@@ -211,7 +211,13 @@ int main(int argc, char** argv)
         // Get information about ArrayFire
         ////////////////////////////////////////////////////////////////////////////
         string af_version(AF_VERSION);
+#if AF_VERSION_MAJOR >= 3 && AF_VERSION_MINOR >= 3
+        string af_revision(af_get_revision());
+#elif defined(AF_REVISION)
         string af_revision(AF_REVISION);
+#else
+        string af_revision("default");
+#endif
 
         ////////////////////////////////////////////////////////////////////////////
         // Get information about the device on which we are running
