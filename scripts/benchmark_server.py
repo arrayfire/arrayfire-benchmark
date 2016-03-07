@@ -217,14 +217,19 @@ class BenchmarkApp(HBox):
         # TODO: Remove the baseline measurement from the timing results
         if axis_filter == 'size':
             return celero_result['data_sizes']
-        if axis_filter == 'log10(size)':
-            return np.log10(celero_result['data_sizes'])
-        if axis_filter == 'log2(size)':
+        elif axis_filter == 'log2(size)':
             return np.log2(celero_result['data_sizes'])
+        elif axis_filter == 'log10(size)':
+            return np.log10(celero_result['data_sizes'])
         elif axis_filter == 'time [ms]':
             return celero_result['times'] * 1E-3
         elif axis_filter == 'throughput [1/sec]':
             return 1.0 / (celero_result['times'] * 1E-6)
+        elif axis_filter == 'throughput [log2(1/sec)]':
+            return np.log2(1.0 / (celero_result['times'] * 1E-6))
+        elif axis_filter == 'throughput [log10(1/sec)]':
+            return np.log10(1.0 / (celero_result['times'] * 1E-6))
+
 
     @classmethod
     def make_field_ids(self, id_number):
@@ -331,13 +336,15 @@ def import_directory(directory):
     return results
 
 # maximum number of plots, currently limited by source[0,1,2,3] variables
-MAX_PLOTS = 4
+# defined in BenchmarkApp
+MAX_PLOTS = 10
 # define x/y axis possibilities
 # NOTE: If you change an option here, change it in getXY above too
-axis_options = ['size', 'log10(size)', 'log2(size)', 'time [ms]', 'throughput [1/sec]']
+axis_options = ['size', 'log2(size)', 'log10(size)', 'time [ms]',
+    'throughput [1/sec]', 'throughput [log2(1/sec)]', 'throughput [log10(1/sec)]']
 
-# Parse the data directory
-data_dir = "/home/bkloppenborg/workspace/arrayfire_benchmark/results"
+# Parse the results
+data_dir = "/home/bkloppenborg/workspace/arrayfire-benchmark/results/"
 celero_results = import_directory(data_dir)
 
 # Get a list of all of the benchmarks
@@ -347,7 +354,7 @@ benchmark_names = filter(lambda x: x != "Baseline", benchmark_names)
 platform_names = list_recordTable_attribute(celero_results, 'AF_PLATFORM')
 device_names = list_recordTable_attribute(celero_results, 'AF_DEVICE')
 
-#ma
+# standard bokeh app setup
 @bokeh_app.route("/bokeh/benchmarks/")
 @object_page("benchmark")
 def make_benchmarks():

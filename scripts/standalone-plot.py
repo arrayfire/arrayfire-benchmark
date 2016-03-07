@@ -299,18 +299,20 @@ def plot_merged_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type,
 
         # Look up the color
         device = benchmark['extra_data']['AF_DEVICE']
-        if device in assigned_colors:
-            color = assigned_colors[device]
+        platform = benchmark['extra_data']['AF_PLATFORM']
+        operating_system = benchmark['extra_data']['AF_OS']
+#        key = device
+        key = bmark_name + device + platform
+        if key in assigned_colors:
+            color = assigned_colors[key]
         else:
             color = colors.next()
-            assigned_colors[device] = color
+            assigned_colors[key] = color
 
         # extract benchmarks
         x,xlabel,legend_location = format_data(benchmark, xaxis_type)
         y,ylabel,legend_location = format_data(benchmark, yaxis_type)
-        platform = benchmark['extra_data']['AF_PLATFORM']
         # get the device name, override if necessary
-        operating_system = benchmark['extra_data']['AF_OS']
         if 'AF_LABEL' in benchmark['extra_data'].keys():
             device = benchmark['extra_data']['AF_LABEL']
 
@@ -323,7 +325,8 @@ def plot_merged_benchmark(savefile, benchmarks, title, xaxis_type, yaxis_type,
             ))
 
         # Generate the legend, automatically add the platform if needed
-        legend = device
+#        legend = device
+        legend = device + " (" + platform + ") " + bmark_name
 
         # generate the plot
         plot.line(x,y, legend=legend, color=color, line_width=2)
