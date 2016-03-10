@@ -43,17 +43,17 @@ install_arrayfire()
         OS=`uname`
         ARCH=`uname -m`
         if [[ "${OS}" == "Darwin" ]]; then
-            #wget http://arrayfire.com/installer_archive/${VER}/ArrayFire-v${VER}_OSX.pkg
+            #wget http://arrayfire.com/installer_archive/${VER}/ArrayFire-no-gl-v${VER}_OSX.pkg
             echo "Cannot download and install OSX Installer from command line"
             exit 1
         elif [[ "${OS}" == "Linux" ]]; then
             if [[ "${ARCH}" == "x86_64" ]]; then
-                wget http://arrayfire.com/installer_archive/${VER}/ArrayFire-v${VER}_Linux_x86_64.sh
+                wget http://arrayfire.com/installer_archive/${VER}/ArrayFire-no-gl-v${VER}_Linux_x86_64.sh
             else
                 if [[ "${ARCH}" == "aarch64" ]]; then
-                    wget http://arrayfire.com/installer_archive/${VER}/ArrayFire-v${VER}_Linux_aarch64.sh
+                    wget http://arrayfire.com/installer_archive/${VER}/ArrayFire-no-gl-v${VER}_Linux_aarch64.sh
                 else
-                    wget http://arrayfire.com/installer_archive/${VER}/ArrayFire-v${VER}_Linux_armv7l.sh
+                    wget http://arrayfire.com/installer_archive/${VER}/ArrayFire-no-gl-v${VER}_Linux_armv7l.sh
                 fi
             fi
             ## Verify MD5SUM
@@ -64,7 +64,7 @@ install_arrayfire()
             #    exit 1
             #fi
             # Install to ${ROOT_DIR}/arrayfire-3
-            sh ArrayFire-v${VER}_Linux_${ARCH}.sh --include-subdir --skip-licence
+            sh ArrayFire-no-gl-v${VER}_Linux_${ARCH}.sh --include-subdir --skip-licence
         fi
     fi
     popd
