@@ -111,6 +111,7 @@ int main(int argc, char** argv)
             ("exclude-benchmark,e"      , po::value<vector<string>>(), "Excludes a specific benchmark.")
             ("group,g"                  , po::value<vector<string>>(), "Runs a specific group of benchmarks.")
             ("exclude-group,x"          , po::value<vector<string>>(), "Excludes a specific group of benchmarks.")
+            ("start-from-group,c"       , po::value<vector<string>>(), "Run benchmarks starting from specified group.")
             ("list-devices,i"           , "Prints a list of all available devices on this backend.")
             ("device,d"                 , po::value<uint64_t>()->default_value(0), "Sets the device on which the benchmark will be executed")
             ("replace-device-name,r"    , po::value<string>(), "Replace the device name returned by ArrayFire with this value.")
@@ -146,6 +147,7 @@ int main(int argc, char** argv)
             cout << "To run a specific group of benchmarks, run with -g group_name." << endl;
             cout << "To run a specific experiment, run with -b benchmark_name." << endl;
             cout << "To exclude a specific group of benchmarks, run with -x group_name." << endl;
+            cout << "To start from a specific group, run with -c group_name." << endl;
             cout << "To exclude a specific experiment, run with -e benchmark_name." << endl;
             cout << endl;
             cout << "List of benchmarks:" << endl;
@@ -378,6 +380,40 @@ int main(int argc, char** argv)
                         benchmarks.erase(benchmarks.begin() + j);
                     }
                 }
+            }
+        }
+
+        ////////////////////////////////////////////////////////////////////////////
+        // Start from specific group. Requires only partial match
+        ////////////////////////////////////////////////////////////////////////////
+        if(vm.count("start-from-group"))
+        {
+            vector<string> findBenchmarkNames = vm["start-from-group"].as<vector<string>>();
+            for(int i = 0; i < (int)findBenchmarkNames.size(); i++) {
+                string exprName = findBenchmarkNames[i];
+                int pos = -1;
+                for(int j = 0; j < (int)all_benchmarks.size(); j++) {
+                    if(all_benchmarks[j].first.find(exprName) != string::npos) {
+                        pos = j;
+                        break;
+                    }
+                }
+                // If no experiments match, exit
+                if(pos == -1)
+                {
+                    cout << "No specified benchmarks or experiments found. Exiting." << endl;
+                    return 0;
+                }
+                for(int j = pos; j < (int)all_benchmarks.size(); j++) {
+                    benchmarks.push_back(*(all_benchmarks.begin() + j));
+                }
+            }
+
+            // If no experiments match, exit
+            if(benchmarks.empty())
+            {
+                cout << "No specified benchmarks or experiments found. Exiting." << endl;
+                return 0;
             }
         }
 
