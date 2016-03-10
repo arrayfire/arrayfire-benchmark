@@ -50,7 +50,11 @@ install_arrayfire()
             if [[ "${ARCH}" == "x86_64" ]]; then
                 wget http://arrayfire.com/installer_archive/${VER}/ArrayFire-v${VER}_Linux_x86_64.sh
             else
-                wget http://arrayfire.com/installer_archive/${VER}/ArrayFire-v${VER}_Linux_armv7l.sh
+                if [[ "${ARCH}" == "aarch64" ]]; then
+                    wget http://arrayfire.com/installer_archive/${VER}/ArrayFire-v${VER}_Linux_aarch64.sh
+                else
+                    wget http://arrayfire.com/installer_archive/${VER}/ArrayFire-v${VER}_Linux_armv7l.sh
+                fi
             fi
             ## Verify MD5SUM
             #MD5_GOLD=3c781b43a34d2bea9727223e99106e51
