@@ -300,6 +300,7 @@ int main(int argc, char** argv)
         ////////////////////////////////////////////////////////////////////////////
         vector<pair<string,string>> all_benchmarks = getExperimentNames();
         vector<pair<string,string>> benchmarks;
+        sort(all_benchmarks.begin(), all_benchmarks.end());
 
         ////////////////////////////////////////////////////////////////////////////
         // Run specific benchmark. Requires only partial match
