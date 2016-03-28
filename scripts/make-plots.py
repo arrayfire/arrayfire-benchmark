@@ -65,6 +65,8 @@ integrated = [
 mobile = [
     'Tegra_K1',
     'Tegra_K1_HighPerf',
+    'Tegra_X1',
+    'Tegra_X1_HighPerf',
     'Jetson-TX1'
 ]
 device_groups.append(devg(mobile, 'mobile_'))
