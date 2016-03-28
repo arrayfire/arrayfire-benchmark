@@ -105,7 +105,11 @@ signal_proc = [
     'FFT_1D_f32',
     'FFT_1D_f64',
     'FFT_2D_f32',
-    'FFT_2D_f64',
+    'FFT_2D_f64'
+]
+benchmark_groups.append(bmg(signal_proc, "size", "fft2d-flops"))
+
+convolve_proc = [
     'Convolve_f32_11x11',
     'Convolve_f32_5x5',
     'Convolve_f32_9x9',
@@ -113,7 +117,7 @@ signal_proc = [
     'Convolve_f64_5x5',
     'Convolve_f64_9x9'
 ]
-benchmark_groups.append(bmg(signal_proc, "size", "time"))
+benchmark_groups.append(bmg(convolve_proc, "size", "time"))
 
 # Image processing
 # Should appear in terms of throughput
