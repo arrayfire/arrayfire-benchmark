@@ -26,3 +26,17 @@ BENCHMARK_F(FFT_2D, FFT_2D_f64, Fixture_2D_f64, samples, operations)
     array B = fft2(A);
     B.eval();
 }
+
+BASELINE_F(FFT_1D, Baseline, Fixture_1D_f32, samples, operations){ }
+
+BENCHMARK_F(FFT_1D, FFT_1D_f32, Fixture_1D_f32, samples, operations)
+{
+    array B = fft(A);
+    B.eval();
+}
+
+BENCHMARK_F(FFT_1D, FFT_1D_f64, Fixture_1D_f64, samples, operations)
+{
+    array B = fft(A);
+    B.eval();
+}

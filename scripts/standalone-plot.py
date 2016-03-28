@@ -18,7 +18,7 @@ from bokeh.io import output_file, save, vform
 # valid types for the axes
 axis_options = ['time', 'size', 'sqrt-size', 'log2size', 'log10size',
     'throughput', 'log2throughput', 'log10throughput',
-    'matmul-flops', 'fft2d-flops',
+    'matmul-flops', 'fft1d-flops', 'fft2d-flops',
     'bandwidth-r1-w0-f32', 'bandwidth-r1-w0-f64', 'bandwidth-r2-w0-f32', 'bandwidth-r2-w0-f64']
 
 def format_data(benchmark, axis_type):
@@ -67,6 +67,11 @@ def format_data(benchmark, axis_type):
     elif axis_type == 'fft2d-flops':
         sizes = np.sqrt(sizes)
         data = 10 * np.power(sizes, 2) * np.log2(sizes) / times * 1E-9
+        label = "GFLOPS"
+
+    # Problems that produce FFT1D FLOPS
+    elif axis_type == 'fft1d-flops':
+        data = 5 * sizes * np.log2(sizes) / times * 1E-9
         label = "GFLOPS"
 
     # Problems that produce bandwidth

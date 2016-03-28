@@ -101,13 +101,17 @@ benchmark_groups.append(bmg(['Accumulate_1D_f64'], 'size', 'bandwidth-r1-w0-f64'
 
 # Signal processing
 # should appear using absolute times
-signal_proc = [
-    'FFT_1D_f32',
-    'FFT_1D_f64',
+fft2d_proc = [
     'FFT_2D_f32',
     'FFT_2D_f64'
 ]
-benchmark_groups.append(bmg(signal_proc, "size", "fft2d-flops"))
+benchmark_groups.append(bmg(fft2d_proc, "size", "fft2d-flops"))
+
+fft1d_proc = [
+    'FFT_1D_f32',
+    'FFT_1D_f64'
+]
+benchmark_groups.append(bmg(fft1d_proc, "size", "fft1d-flops"))
 
 convolve_proc = [
     'Convolve_f32_11x11',
