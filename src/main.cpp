@@ -207,7 +207,7 @@ int main(int argc, char** argv)
         celero::console::SetConsoleColor(celero::console::ConsoleColor_Default);
 
         celero::DisableDynamicCPUScaling();
-        celero::timer::CachePerformanceFrequency();
+        celero::timer::CachePerformanceFrequency(true);
 
         ////////////////////////////////////////////////////////////////////////////
         // Get information about ArrayFire
