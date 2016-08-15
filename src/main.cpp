@@ -24,8 +24,10 @@
 #include "arrayfire.h"
 #include "af/version.h"
 #include "AFResultTable.h"
+#include "fixtures.h"
 
 #include "boost/program_options.hpp"
+#include "boost/algorithm/string.hpp"
 
 using namespace celero;
 using namespace std;
@@ -34,6 +36,7 @@ namespace po = boost::program_options;
 
 unsigned int samples = 10;
 unsigned int operations = 10;
+std::vector<std::pair<int64_t, uint64_t>> AF_Fixture::overrideProblemSpace;
 
 string image_directory = "";
 
@@ -90,6 +93,31 @@ vector<pair<string,string>> getExperimentNames()
     return names;
 }
 
+template<typename T>
+struct csv_option
+{
+    std::vector<T> values;
+};
+
+template<typename T>
+void validate(boost::any& v, const std::vector<std::string>& values, csv_option<T>* target_type, int)
+{
+    namespace alg = boost::algorithm;
+    std::vector<T> result;
+    typedef std::vector<std::string> strings;
+    for(strings::const_iterator iter = values.begin(); iter != values.end(); ++iter )
+    {
+        strings tks;
+        alg::split(tks, *iter, alg::is_any_of(","));
+        for(strings::const_iterator tk = tks.begin(); tk != tks.end(); ++tk)
+        {
+            result.push_back(boost::lexical_cast<T>(*tk));
+        }
+    }
+    v = csv_option<T>();
+    boost::any_cast<csv_option<T>&>(v).values.swap(result);
+}
+
 int main(int argc, char** argv)
 {
     string device_name, device_platform, device_toolkit, device_compute;
@@ -108,6 +136,7 @@ int main(int argc, char** argv)
             ("help,h"                   , "Print help messages")
             ("list-benchmarks,l"        , "Prints a list of all available benchmarks.")
             ("benchmark,b"              , po::value<vector<string>>(), "Runs a specific benchmark.")
+            ("problem-space"            , po::value<csv_option<uint64_t>>()->multitoken(), "override test problemspace defaults")
             ("exclude-benchmark,e"      , po::value<vector<string>>(), "Excludes a specific benchmark.")
             ("group,g"                  , po::value<vector<string>>(), "Runs a specific group of benchmarks.")
             ("exclude-group,x"          , po::value<vector<string>>(), "Excludes a specific group of benchmarks.")
@@ -320,6 +349,23 @@ int main(int argc, char** argv)
             if(benchmarks.empty())
             {
                 cout << "No specified benchmarks or experiments found. Exiting." << endl;
+                return 0;
+            }
+        }
+
+        ////////////////////////////////////////////////////////////////////////////
+        // Override default problem-space
+        ////////////////////////////////////////////////////////////////////////////
+        if(vm.count("problem-space"))
+        {
+            auto overrideProblemSpace = vm["problem-space"].as<csv_option<uint64_t>>().values;
+            for(uint64_t x : overrideProblemSpace){
+                AF_Fixture::overrideProblemSpace.push_back(std::make_pair(x, (uint64_t) 0));
+            }
+            // If no experiments match, exit
+            if(AF_Fixture::overrideProblemSpace.empty())
+            {
+                cout << "Empty problem-space specified. Exiting." << endl;
                 return 0;
             }
         }
