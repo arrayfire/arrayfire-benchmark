@@ -39,6 +39,9 @@ public:
             sizes.push_back(std::make_pair<int64_t, uint64_t>(1080, 0));
             sizes.push_back(std::make_pair<int64_t, uint64_t>(3840, 0));
         }
+        if(this->use_max_problemspace && sizes.size() > 1){
+            sizes.erase(sizes.begin(), sizes.end() - 1);
+        }
         return sizes;
     }
 

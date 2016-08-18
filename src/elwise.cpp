@@ -51,6 +51,9 @@ public:
             problemSpace.push_back(experiment_size);
 
         }
+        if(this->use_max_problemspace && problemSpace.size() > 1){
+            problemSpace.erase(problemSpace.begin(), problemSpace.end() - 1);
+        }
 
         return problemSpace;
 
