@@ -37,6 +37,7 @@ namespace po = boost::program_options;
 unsigned int samples = 10;
 unsigned int operations = 10;
 std::vector<std::pair<int64_t, uint64_t>> AF_Fixture::overrideProblemSpace;
+bool AF_Fixture::use_max_problemspace = false;
 
 string image_directory = "";
 
@@ -145,6 +146,7 @@ int main(int argc, char** argv)
             ("device,d"                 , po::value<uint64_t>()->default_value(0), "Sets the device on which the benchmark will be executed")
             ("replace-device-name,r"    , po::value<string>(), "Replace the device name returned by ArrayFire with this value.")
             ("disable-double,s"         , "Manually disable all f64 tests.")
+            ("use-max-problemspace"     , po::value<bool>(&AF_Fixture::use_max_problemspace)->implicit_value(true), "Use max problem-space value every benchmarks default values")
             ("print,p"                  , "Print list of tests selected before running")
         ;
 

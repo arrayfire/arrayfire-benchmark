@@ -26,11 +26,13 @@ class FixtureImage : public AF_Fixture
 public:
     af::array image;
 
-    FixtureImage(){}
+    FixtureImage(){
+        setDefaultExperimentValues();
+    }
 
-    virtual std::vector<std::pair<int64_t, uint64_t>> getExperimentValues() const
+    void setDefaultExperimentValues()
     {
-        std::vector<std::pair<int64_t, uint64_t>> sizes;
+        std::vector<std::pair<int64_t, uint64_t>> &sizes = this->problemSpace;
         if(image_directory.size() > 0)
         {
             sizes.push_back(std::make_pair<int64_t, uint64_t>(240, 0));
@@ -39,7 +41,9 @@ public:
             sizes.push_back(std::make_pair<int64_t, uint64_t>(1080, 0));
             sizes.push_back(std::make_pair<int64_t, uint64_t>(3840, 0));
         }
-        return sizes;
+        if(this->use_max_problemspace && sizes.size() > 1){
+            sizes.erase(sizes.begin(), sizes.end() - 1);
+        }
     }
 
     /// Before each run, build a vector of random integers.
