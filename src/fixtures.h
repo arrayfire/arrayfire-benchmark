@@ -78,6 +78,7 @@ public:
     /// Before each run, build a vector of random integers.
     virtual void setUp(int64_t experimentSize)
     {
+        experimentSize = experimentSize <= 0 ? 1 : experimentSize;
         try
         {
             deviceGC();
@@ -157,6 +158,7 @@ public:
     /// Before each run, build a vector of random integers.
     virtual void setUp(int64_t experimentSize)
     {
+        experimentSize = experimentSize <= 0 ? 1 : experimentSize;
         // We allocate square arrays with width = sqrt(experimentSize)
         unsigned int width = sqrt(experimentSize);
 
