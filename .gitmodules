@@ -1,3 +1,3 @@
 [submodule "lib/celero"]
 	path = lib/celero
-	url = https://github.com/bkloppenborg/Celero.git
+	url = https://github.com/nevion/Celero.git
