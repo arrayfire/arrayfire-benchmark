@@ -17,7 +17,7 @@ using namespace af;
 namespace fs = boost::filesystem;
 
 unsigned int image_samples = 10;
-unsigned int image_operations = 10;
+unsigned int image_iterations = 10;
 extern std::string image_directory;
 
 // Base class for directories of images
@@ -110,7 +110,7 @@ public:
 };
 
 // Benchmarks for image tests
-BASELINE_F(Image, Baseline, FixtureImage,  image_samples, image_operations) {}
+BASELINE_F(Image, Baseline, FixtureImage,  image_samples, image_iterations) {}
 
 // Macro to simplify the creation of benchmarks.
 // Here benchmarkFunction will be an ArrayFire function name. The variadic
@@ -118,7 +118,7 @@ BASELINE_F(Image, Baseline, FixtureImage,  image_samples, image_operations) {}
 // image, use the variable "image" (from the FixtureImage class)
 #define IMAGE_BENCHMARK(benchmarkName, benchmarkFunction, ...)    \
 BENCHMARK_F(Image, Image_##benchmarkName , FixtureImage, \
-    image_samples, image_operations)                \
+    image_samples, image_iterations)                \
 {                                                   \
     array B = benchmarkFunction ( __VA_ARGS__ );    \
 }                                                   \
@@ -134,7 +134,7 @@ IMAGE_BENCHMARK(Resize_Expand_2x,   af::resize,     2.0, image, AF_INTERP_NEARES
 // image, use the variable "image" (from the FixtureImage class)
 #define IMAGE_KERNEL_BENCHMARK(benchmarkName, benchmarkFunction, ...)    \
 BENCHMARK_F(Image, Image_##benchmarkName , FixtureImageWithKernel, \
-    image_samples, image_operations)                \
+    image_samples, image_iterations)                \
 {                                                   \
     array B = benchmarkFunction ( __VA_ARGS__ );    \
 }
@@ -153,12 +153,12 @@ IMAGE_KERNEL_BENCHMARK(Bilateral_9x9,    af::bilateral,  image, 2.5f, 50.0f)
 IMAGE_KERNEL_BENCHMARK(Bilateral_11x11,  af::bilateral,  image, 2.5f, 50.0f)
 
 // Other remaining benchmarks
-BENCHMARK_F(Image, Image_FAST, FixtureImage,  image_samples, image_operations)
+BENCHMARK_F(Image, Image_FAST, FixtureImage,  image_samples, image_iterations)
 {
     af::features features = af::fast(image, 20, 9, 0, 0.05f);
 }
 
-BENCHMARK_F(Image, Image_ORB, FixtureImage,  image_samples, image_operations)
+BENCHMARK_F(Image, Image_ORB, FixtureImage,  image_samples, image_iterations)
 {
     af::features features;
     af::array descriptions;

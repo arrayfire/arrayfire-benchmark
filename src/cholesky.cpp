@@ -11,7 +11,7 @@
 using namespace af;
 
 extern unsigned int samples;
-extern unsigned int operations;
+extern unsigned int iterations;
 
 class AF_Cholesky_Fixture : public AF_Fixture_2D
 {
@@ -59,17 +59,17 @@ public:
     AF_Cholesky_Fixture_f64() : AF_Cholesky_Fixture(af_dtype::f64) {}
 };
 
-BASELINE_F(LAPACK_Cholesky_f32, Baseline, AF_Cholesky_Fixture_f32, samples, operations) { }
-BASELINE_F(LAPACK_Cholesky_f64, Baseline, AF_Cholesky_Fixture_f64, samples, operations) { }
+BASELINE_F(LAPACK_Cholesky_f32, Baseline, AF_Cholesky_Fixture_f32, samples, iterations) { }
+BASELINE_F(LAPACK_Cholesky_f64, Baseline, AF_Cholesky_Fixture_f64, samples, iterations) { }
 
-BENCHMARK_F(LAPACK_Cholesky_f32, Cholesky_f32, AF_Cholesky_Fixture_f32, samples, operations)
+BENCHMARK_F(LAPACK_Cholesky_f32, Cholesky_f32, AF_Cholesky_Fixture_f32, samples, iterations)
 {
     array out;
     cholesky(out, A);
     out.eval();
 }
 
-BENCHMARK_F(LAPACK_Cholesky_f64, Cholesky_f64, AF_Cholesky_Fixture_f64, samples, operations)
+BENCHMARK_F(LAPACK_Cholesky_f64, Cholesky_f64, AF_Cholesky_Fixture_f64, samples, iterations)
 {
     array out;
     cholesky(out, A);

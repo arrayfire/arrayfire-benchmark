@@ -11,7 +11,7 @@
 using namespace af;
 
 extern unsigned int samples;
-extern unsigned int operations;
+extern unsigned int iterations;
 
 class AF_ELWISE_Fixture : public AF_Fixture
 {
@@ -95,18 +95,18 @@ public:
 };
 
 // do-nothing baseline measurement
-BASELINE_F( ELWISE_f32, Baseline, AF_ELWISE_Fixture_f32, samples,  operations) {}
-BASELINE_F( ELWISE_f64, Baseline, AF_ELWISE_Fixture_f64, samples,  operations) {}
+BASELINE_F( ELWISE_f32, Baseline, AF_ELWISE_Fixture_f32, samples,  iterations) {}
+BASELINE_F( ELWISE_f64, Baseline, AF_ELWISE_Fixture_f64, samples,  iterations) {}
 
 #define ELWISE_BENCHMARK(functionName, operation)                               \
 BENCHMARK_F( ELWISE_f32, ELWISE_f32_##functionName, AF_ELWISE_Fixture_f32,      \
-        samples, operations)                                                    \
+        samples, iterations)                                                    \
 {                                                                               \
     af::array result = operation ;                                              \
     result.eval();                                                              \
 }                                                                               \
 BENCHMARK_F( ELWISE_f64, ELWISE_f64_##functionName, AF_ELWISE_Fixture_f64,      \
-        samples, operations)                                                    \
+        samples, iterations)                                                    \
 {                                                                               \
     af::array result = operation ;                                              \
     result.eval();                                                              \

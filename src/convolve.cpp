@@ -11,11 +11,11 @@
 using namespace af;
 
 extern unsigned int samples;
-extern unsigned int operations;
+extern unsigned int iterations;
 
 #define CONVOLVE_BASELINE(dataType, kernelWidth, kernelHeight)      \
 BASELINE_F( Convolve_##dataType##_##kernelWidth##x##kernelHeight ,  \
-            Baseline , Fixture_2D_##dataType , samples, operations) \
+            Baseline , Fixture_2D_##dataType , samples, iterations) \
 {                                                                   \
     array K = randu( kernelWidth, kernelHeight , dataType);         \
     K.eval();                                                       \
@@ -24,7 +24,7 @@ BASELINE_F( Convolve_##dataType##_##kernelWidth##x##kernelHeight ,  \
 #define CONVOLVE_BENCHMARK(dataType, kernelWidth, kernelHeight)     \
 BENCHMARK_F( Convolve_##dataType##_##kernelWidth##x##kernelHeight , \
   Convolve_##dataType##_##kernelWidth##x##kernelHeight ,            \
-    Fixture_2D_##dataType , samples, operations)                    \
+    Fixture_2D_##dataType , samples, iterations)                    \
 {                                                                   \
     array K = randu(kernelWidth, kernelHeight, dataType);           \
     K.eval();                                                       \

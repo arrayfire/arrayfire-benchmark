@@ -11,7 +11,7 @@
 using namespace af;
 
 extern unsigned int samples;
-extern unsigned int operations;
+extern unsigned int iterations;
 
 class PageFixture_2D_f32 : public Fixture_2D_f32
 {
@@ -57,9 +57,9 @@ public:
     }
 };
 
-//BASELINE_F(Pageable_f32, Baseline, PageFixture_2D_f32, samples, operations) { }
+//BASELINE_F(Pageable_f32, Baseline, PageFixture_2D_f32, samples, iterations) { }
 //
-//BENCHMARK_F(Pageable_f32, Benchmark, PageFixture_2D_f32, samples, operations)
+//BENCHMARK_F(Pageable_f32, Benchmark, PageFixture_2D_f32, samples, iterations)
 //{
 //    dim4 A_size = A.dims();
 //    array B = array(A_size.dims[0], A_size.dims[1], A_host, af::afHost);
@@ -67,9 +67,9 @@ public:
 //    af::sync();
 //}
 //
-//BASELINE_F(Pageable_f64, Baseline, PageFixture_2D_f64, samples, operations) { }
+//BASELINE_F(Pageable_f64, Baseline, PageFixture_2D_f64, samples, iterations) { }
 //
-//BENCHMARK_F(Pageable_f64, Benchmark, PageFixture_2D_f64, samples, operations)
+//BENCHMARK_F(Pageable_f64, Benchmark, PageFixture_2D_f64, samples, iterations)
 //{
 //    dim4 A_size = A.dims();
 //    array B = array(A_size.dims[0], A_size.dims[1], A_host, af::afHost);

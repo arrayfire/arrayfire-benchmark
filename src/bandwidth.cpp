@@ -11,18 +11,18 @@
 using namespace af;
 
 extern unsigned int samples;
-extern unsigned int operations;
+extern unsigned int iterations;
 
 // 32-bit functions
-BASELINE_F(Bandwidth, Baseline, Fixture_2D_f32, samples, operations){}
+BASELINE_F(Bandwidth, Baseline, Fixture_2D_f32, samples, iterations){}
 
-BENCHMARK_F(Bandwidth, Bandwidth_f32, Fixture_2D_f32, samples, operations)
+BENCHMARK_F(Bandwidth, Bandwidth_f32, Fixture_2D_f32, samples, iterations)
 {
     array B = this->A.copy();
     B.eval();
 }
 
-BENCHMARK_F(Bandwidth, Bandwidth_f64, Fixture_2D_f64, samples, operations)
+BENCHMARK_F(Bandwidth, Bandwidth_f64, Fixture_2D_f64, samples, iterations)
 {
     array B = this->A.copy();
     B.eval();

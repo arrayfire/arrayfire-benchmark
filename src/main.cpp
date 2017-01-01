@@ -35,7 +35,7 @@ namespace po = boost::program_options;
 
 
 unsigned int samples = 10;
-unsigned int operations = 10;
+unsigned int iterations = 10;
 std::vector<std::pair<int64_t, uint64_t>> AF_Fixture::overrideProblemSpace;
 bool AF_Fixture::use_max_problemspace = false;
 

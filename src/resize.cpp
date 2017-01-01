@@ -11,15 +11,15 @@
 using namespace af;
 
 extern unsigned int samples;
-extern unsigned int operations;
+extern unsigned int iterations;
 
 // Resize baseline, it does nothing non-standard
-BASELINE_F(Resize, Baseline, Fixture_1D_f32, samples, operations) {}
+BASELINE_F(Resize, Baseline, Fixture_1D_f32, samples, iterations) {}
 
 // Macro to simplify the creation of 2D resize tests
 #define RESIZE_BENCHMARK_2D(benchmarkName, resizeMethod, dataType, scale)   \
 BENCHMARK_F( Resize , benchmarkName##_2D_##dataType##_##resizeMethod ,      \
-    Fixture_2D_##dataType, samples, operations)                             \
+    Fixture_2D_##dataType, samples, iterations)                             \
 {                                                                           \
     array B = af::resize(scale, A, resizeMethod );                          \
     B.eval();                                                               \

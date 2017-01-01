@@ -11,7 +11,7 @@
 using namespace af;
 
 extern unsigned int samples;
-extern unsigned int operations;
+extern unsigned int iterations;
 
 class AF_Data_Fixture : public AF_Fixture
 {
@@ -91,18 +91,18 @@ public:
 };
 
 // do-nothing baseline measurement
-BASELINE_F( Data_f32, Baseline, AF_Data_Fixture_f32, samples,  operations) {}
-BASELINE_F( Data_f64, Baseline, AF_Data_Fixture_f64, samples,  operations) {}
+BASELINE_F( Data_f32, Baseline, AF_Data_Fixture_f32, samples,  iterations) {}
+BASELINE_F( Data_f64, Baseline, AF_Data_Fixture_f64, samples,  iterations) {}
 
 #define DATA_BENCHMARK(functionName, operation)                           \
 BENCHMARK_F( Data_f32, Data_f32_##functionName, AF_Data_Fixture_f32,      \
-        samples, operations)                                              \
+        samples, iterations)                                              \
 {                                                                         \
     af::array result = operation(A.dims(), this->data_type) ;       \
     result.eval();                                                        \
 }                                                                         \
 BENCHMARK_F( Data_f64, Data_f64_##functionName, AF_Data_Fixture_f64,      \
-        samples, operations)                                              \
+        samples, iterations)                                              \
 {                                                                         \
     af::array result = operation(A.dims(), this->data_type) ;       \
     result.eval();                                                        \
@@ -113,12 +113,12 @@ DATA_BENCHMARK(RANDN    , af::randn)
 DATA_BENCHMARK(IDENTITY , af::identity)
 DATA_BENCHMARK(RANGE    , af::range)
 
-BENCHMARK_F( Data_f32, Data_f32_CONSTANT, AF_Data_Fixture_f32, samples, operations)
+BENCHMARK_F( Data_f32, Data_f32_CONSTANT, AF_Data_Fixture_f32, samples, iterations)
 {
     af::array result = af::constant(1, A.dims(), this->data_type);
     result.eval();
 }
-BENCHMARK_F( Data_f64, Data_f64_CONSTANT, AF_Data_Fixture_f64, samples, operations)
+BENCHMARK_F( Data_f64, Data_f64_CONSTANT, AF_Data_Fixture_f64, samples, iterations)
 {
     af::array result = af::constant(1, A.dims(), this->data_type);
     result.eval();

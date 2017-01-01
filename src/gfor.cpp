@@ -11,7 +11,7 @@
 using namespace af;
 
 extern unsigned int samples;
-extern unsigned int operations;
+extern unsigned int iterations;
 
 class AF_GFOR_Fixture : public AF_Fixture
 {
@@ -66,11 +66,11 @@ public:
 };
 
 // do-nothing baseline measurement
-BASELINE_F( GFOR, Baseline, AF_GFOR_Fixture, samples,  operations) {}
+BASELINE_F( GFOR, Baseline, AF_GFOR_Fixture, samples,  iterations) {}
 
 
 // Benchmark without using gfor:
-BENCHMARK_F( GFOR , GFOR_NO_LOOP_SUM , AF_GFOR_Fixture , 1, 1) //samples, operations)
+BENCHMARK_F( GFOR , GFOR_NO_LOOP_SUM , AF_GFOR_Fixture , 1, 1) //samples, iterations)
 {
     output = sum(sum(input_cube));
 
@@ -78,7 +78,7 @@ BENCHMARK_F( GFOR , GFOR_NO_LOOP_SUM , AF_GFOR_Fixture , 1, 1) //samples, operat
 }
 
 // Benchmark without using gfor:
-BENCHMARK_F( GFOR , GFOR_FOR_LOOP_SUM , AF_GFOR_Fixture , 1, 1) //samples, operations)
+BENCHMARK_F( GFOR , GFOR_FOR_LOOP_SUM , AF_GFOR_Fixture , 1, 1) //samples, iterations)
 {
     for(int i = 0; i < input_cube.dims(2); i++)
     {
@@ -90,7 +90,7 @@ BENCHMARK_F( GFOR , GFOR_FOR_LOOP_SUM , AF_GFOR_Fixture , 1, 1) //samples, opera
 
 
 // Benchmark using gfor:
-BENCHMARK_F( GFOR , GFOR_SUM , AF_GFOR_Fixture , 1, 1) //samples, operations)
+BENCHMARK_F( GFOR , GFOR_SUM , AF_GFOR_Fixture , 1, 1) //samples, iterations)
 {
     gfor(seq ii, input_cube.dims(2))
     {
