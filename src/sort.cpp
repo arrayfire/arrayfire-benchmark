@@ -17,29 +17,25 @@ extern unsigned int iterations;
 
 // Benchmarks for 32-bit floating point tests
 BASELINE_F(Sort, Baseline, Fixture_1D_f32, samples, iterations) { }
-BENCHMARK_F(Sort, Sort_f32_ASCENDING, Fixture_1D_f32, samples, iterations)
-{
-    array B = sort(A);
-    B.eval();
-}
 
-// Benchmarks for 32-bit floating point tests
-BENCHMARK_F(Sort, Sort_f32_DESCENDING, Fixture_1D_f32, samples, iterations)
-{
-    array B = sort(A, false);
-    B.eval();
-}
+#define SORT_BENCHMARK(dataType)                                                           \
+BENCHMARK_F(Sort, Sort_##dataType##_ACENDING , Fixture_1D_##dataType, samples, iterations) \
+{                                                                                          \
+    array B = sort(A);                                                                     \
+    B.eval();                                                                              \
+}                                                                                          \
+BENCHMARK_F(Sort, Sort_##dataType##_DECENDING , Fixture_1D_##dataType, samples, iterations)\
+{                                                                                          \
+    array B = sort(A, false);                                                              \
+    B.eval();                                                                              \
+}                                                                                          \
 
-// Benchmarks for 64-bit floating point tests
-BENCHMARK_F(Sort, Sort_f64_ASCENDING, Fixture_1D_f64, samples, iterations)
-{
-    array B = sort(A);
-    B.eval();
-}
-
-// Benchmarks for 64-bit floating point tests
-BENCHMARK_F(Sort, Sort_f64_DESCENDING, Fixture_1D_f64, samples, iterations)
-{
-    array B = sort(A, false);
-    B.eval();
-}
+SORT_BENCHMARK(u8)
+SORT_BENCHMARK(u16)
+SORT_BENCHMARK(s16)
+SORT_BENCHMARK(u32)
+SORT_BENCHMARK(s32)
+SORT_BENCHMARK(u64)
+SORT_BENCHMARK(s64)
+SORT_BENCHMARK(f32)
+SORT_BENCHMARK(f64)

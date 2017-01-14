@@ -96,16 +96,12 @@ public:
 };
 
 // 32 and 64-bit 1D fixtures
-class Fixture_1D_f32 : public AF_Fixture_1D
-{
-public:
-    Fixture_1D_f32() : AF_Fixture_1D(af_dtype::f32) {}
-};
 
-class Fixture_1D_f64 : public AF_Fixture_1D
+template<typename T>
+class Fixture_1D : public AF_Fixture_1D
 {
 public:
-    Fixture_1D_f64() : AF_Fixture_1D(af_dtype::f64) {}
+    Fixture_1D() : AF_Fixture_1D(af_dtype(dtype_traits<T>::af_type)) {}
 };
 
 // Base class for all ArrayFire 2D fixtures
@@ -179,18 +175,32 @@ public:
     }
 };
 
-class Fixture_2D_f32 : public AF_Fixture_2D
+template<typename T>
+class Fixture_2D : public AF_Fixture_2D
 {
 public:
-    Fixture_2D_f32() : AF_Fixture_2D(af_dtype::f32) {}
+    Fixture_2D() : AF_Fixture_2D(af_dtype(dtype_traits<T>::af_type)) {}
 };
 
-class Fixture_2D_f64 : public AF_Fixture_2D
-{
-public:
-    Fixture_2D_f64() : AF_Fixture_2D(af_dtype::f64) {}
-};
+typedef Fixture_1D<uint8_t> Fixture_1D_u8;
+typedef Fixture_1D<int16_t> Fixture_1D_s16;
+typedef Fixture_1D<uint16_t> Fixture_1D_u16;
+typedef Fixture_1D<int32_t> Fixture_1D_s32;
+typedef Fixture_1D<uint32_t> Fixture_1D_u32;
+typedef Fixture_1D<long long> Fixture_1D_s64;
+typedef Fixture_1D<unsigned long long> Fixture_1D_u64;
+typedef Fixture_1D<float> Fixture_1D_f32;
+typedef Fixture_1D<double> Fixture_1D_f64;
 
+typedef Fixture_2D<uint8_t> Fixture_2D_u8;
+typedef Fixture_2D<int16_t> Fixture_2D_s16;
+typedef Fixture_2D<uint16_t> Fixture_2D_u16;
+typedef Fixture_2D<int32_t> Fixture_2D_s32;
+typedef Fixture_2D<uint32_t> Fixture_2D_u32;
+typedef Fixture_2D<long long> Fixture_2D_s64;
+typedef Fixture_2D<unsigned long long> Fixture_2D_u64;
+typedef Fixture_2D<float> Fixture_2D_f32;
+typedef Fixture_2D<double> Fixture_2D_f64;
 
 
 #endif /* SRC_FIXTURES_H_ */

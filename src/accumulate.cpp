@@ -14,29 +14,23 @@ using namespace af;
 extern unsigned int samples;
 extern unsigned int iterations;
 
-// Benchmarks for 32-bit floating point tests
-BASELINE_F(Accumulate, Baseline, Fixture_1D_f32, samples, iterations) { }
-BENCHMARK_F(Accumulate, Accumulate_1D_f32, Fixture_1D_f32, samples, iterations)
-{
-    array B = accum(A);
-    B.eval();
-}
+BASELINE_F(Accumulate, Baseline, AF_Fixture, samples, iterations) { }
 
-BENCHMARK_F(Accumulate, Accumulate_2D_f32, Fixture_2D_f32, samples, iterations)
-{
-    array B = accum(A);
-    B.eval();
-}
+#define Accumulate_BENCHMARK(ctype, dataType)                                                     \
+BENCHMARK_F( Accumulate, Accumulate_1D_##dataType, Fixture_1D_##dataType, samples, iterations)    \
+{                                                                                                 \
+    array B = accum(A);                                                                           \
+    B.eval();                                                                                     \
+}                                                                                                 \
+BENCHMARK_F( Accumulate, Accumulate_2D_##dataType, Fixture_2D_##dataType, samples, iterations)    \
+{                                                                                                 \
+    array B = accum(A);                                                                           \
+    B.eval();                                                                                     \
+}                                                                                                 \
 
-// Benchmarks for 64-bit floating point tests
-BENCHMARK_F(Accumulate, Accumulate_1D_f64, Fixture_1D_f64, samples, iterations)
-{
-    array B = accum(A);
-    B.eval();
-}
-
-BENCHMARK_F(Accumulate, Accumulate_2D_f64, Fixture_2D_f64, samples, iterations)
-{
-    array B = accum(A);
-    B.eval();
-}
+Accumulate_BENCHMARK(uint8_t, u8)
+Accumulate_BENCHMARK(int16_t, s16)
+Accumulate_BENCHMARK(int32_t, s32)
+Accumulate_BENCHMARK(long long, s64)
+Accumulate_BENCHMARK(float, f32)
+Accumulate_BENCHMARK(double, f64)

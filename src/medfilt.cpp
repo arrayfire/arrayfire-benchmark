@@ -16,26 +16,26 @@ extern unsigned int iterations;
 BASELINE_F(MedianFilter, Baseline, Fixture_2D_f32, samples, iterations) { }
 
 
-BENCHMARK_F(MedianFilter, MedianFilter_f32_4x4_PAD_ZERO, Fixture_2D_f32, samples, iterations)
+BENCHMARK_F(MedianFilter, MedianFilter_f32_5x5_PAD_ZERO, Fixture_2D_f32, samples, iterations)
 {
-    array B = medfilt(A, 4, 4, AF_PAD_ZERO);
+    array B = medfilt(A, 5, 5, AF_PAD_ZERO);
     B.eval();
 }
 
-BENCHMARK_F(MedianFilter, MedianFilter_f32_4x4_PAD_SYM, Fixture_2D_f32, samples, iterations)
+BENCHMARK_F(MedianFilter, MedianFilter_f32_5x5_PAD_SYM, Fixture_2D_f32, samples, iterations)
 {
-    array B = medfilt(A, 4, 4, AF_PAD_SYM);
+    array B = medfilt(A, 5, 5, AF_PAD_SYM);
     B.eval();
 }
 
-BENCHMARK_F(MedianFilter, MedianFilter_f64_4x4_PAD_ZERO, Fixture_2D_f64, samples, iterations)
+BENCHMARK_F(MedianFilter, MedianFilter_f64_5x5_PAD_ZERO, Fixture_2D_f64, samples, iterations)
 {
-    array B = medfilt(A, 4, 4, AF_PAD_ZERO);
+    array B = medfilt(A, 5, 5, AF_PAD_ZERO);
     B.eval();
 }
 
-BENCHMARK_F(MedianFilter, MedianFilter_f64_4x4_PAD_SYM, Fixture_2D_f64, samples, iterations)
+BENCHMARK_F(MedianFilter, MedianFilter_f64_5x5_PAD_SYM, Fixture_2D_f64, samples, iterations)
 {
-    array B = medfilt(A, 4, 4, AF_PAD_SYM);
+    array B = medfilt(A, 5, 5, AF_PAD_SYM);
     B.eval();
 }

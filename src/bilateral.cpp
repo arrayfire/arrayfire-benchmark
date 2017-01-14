@@ -13,16 +13,18 @@ using namespace af;
 extern unsigned int samples;
 extern unsigned int iterations;
 
-BASELINE_F(BilateralFilter, Baseline, Fixture_2D_f32, samples, iterations){}
+BASELINE_F(BilateralFilter, Baseline, AF_Fixture_2D, samples, iterations) { }
 
-BENCHMARK_F(BilateralFilter, BilateralFilter_f32, Fixture_2D_f32, samples, iterations)
-{
-    array B = bilateral(this->A, 2.5f, 50.0f);
-    B.eval();
-}
+#define BilateralFilter_BENCHMARK(ctype, dataType)                                                     \
+BENCHMARK_F( BilateralFilter, BilateralFilter_##dataType, Fixture_2D_##dataType, samples, iterations)\
+{                                                                                                      \
+    array B = bilateral(A, 2.5f, 50.0f);                                                               \
+    B.eval();                                                                                          \
+}                                                                                                      \
 
-BENCHMARK_F(BilateralFilter, BilateralFilter_f64, Fixture_2D_f64, samples, iterations)
-{
-    array B = bilateral(this->A, 2.5f, 50.0f);
-    B.eval();
-}
+BilateralFilter_BENCHMARK(uint8_t, u8)
+BilateralFilter_BENCHMARK(int16_t, s16)
+BilateralFilter_BENCHMARK(int32_t, s32)
+BilateralFilter_BENCHMARK(long long, s64)
+BilateralFilter_BENCHMARK(float, f32)
+BilateralFilter_BENCHMARK(double, f64)

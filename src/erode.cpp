@@ -13,32 +13,39 @@ using namespace af;
 extern unsigned int samples;
 extern unsigned int iterations;
 
-BASELINE_F(Erode_f32, Baseline, Fixture_2D_f32, samples, iterations)
-{
-    // time the creation of the random 5x5 array
-    array K = constant(1, 3, 3, f32);
-    K.eval();
-}
+#define Erode_BASELINE(dataType, kernelWidth, kernelHeight)         \
+BASELINE_F( Erode_##dataType##_##kernelWidth##x##kernelHeight ,     \
+            Baseline , Fixture_2D_##dataType , samples, iterations) \
+{                                                                   \
+    array K = constant(1, kernelWidth, kernelHeight, dataType);     \
+    K.eval();                                                       \
+}                                                                   \
 
-BENCHMARK_F(Erode_f32, Erode_f32_5x5, Fixture_2D_f32, samples, iterations)
-{
-    array K = constant(1, 3, 3, f32);
-    K.eval();
-    array B = erode(this->A, K);
-    B.eval();
-}
+#define Erode_BENCHMARK(dataType, kernelWidth, kernelHeight)        \
+BENCHMARK_F( Erode_##dataType##_##kernelWidth##x##kernelHeight ,    \
+  Erode_##dataType##_##kernelWidth##x##kernelHeight ,               \
+    Fixture_2D_##dataType , samples, iterations)                    \
+{                                                                   \
+    array K = constant(1, kernelWidth, kernelHeight, dataType);     \
+    K.eval();                                                       \
+    array B = erode(this->A, K);                                    \
+    B.eval();                                                       \
+}                                                                   \
 
-BASELINE_F(Erode_f64, Baseline, Fixture_2D_f64, samples, iterations)
-{
-    // time the creation of the random 5x5 array
-    array K = constant(1, 3, 3, f64);
-    K.eval();
-}
+#define Erode_BENCHMARK_PAIR(dataType, kernelWidth, kernelHeight) \
+Erode_BASELINE (dataType, kernelWidth, kernelHeight)             \
+Erode_BENCHMARK(dataType, kernelWidth, kernelHeight)             \
 
-BENCHMARK_F(Erode_f64, Erode_f64_5x5, Fixture_2D_f64, samples, iterations)
-{
-    array K = constant(1, 3, 3, f64);
-    K.eval();
-    array B = erode(this->A, K);
-    B.eval();
-}
+#define Erode_BENCHMARK_SET(dataType)                            \
+Erode_BENCHMARK_PAIR(dataType, 3, 3)                             \
+Erode_BENCHMARK_PAIR(dataType, 5, 5)                             \
+Erode_BENCHMARK_PAIR(dataType, 9, 9)                             \
+Erode_BENCHMARK_PAIR(dataType, 11, 11)                           \
+
+
+Erode_BENCHMARK_SET(u8)
+Erode_BENCHMARK_SET(s16)
+Erode_BENCHMARK_SET(s32)
+Erode_BENCHMARK_SET(s64)
+Erode_BENCHMARK_SET(f32)
+Erode_BENCHMARK_SET(f64)

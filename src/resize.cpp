@@ -14,7 +14,7 @@ extern unsigned int samples;
 extern unsigned int iterations;
 
 // Resize baseline, it does nothing non-standard
-BASELINE_F(Resize, Baseline, Fixture_1D_f32, samples, iterations) {}
+BASELINE_F(Resize, Baseline, AF_Fixture_1D, samples, iterations) {}
 
 // Macro to simplify the creation of 2D resize tests
 #define RESIZE_BENCHMARK_2D(benchmarkName, resizeMethod, dataType, scale)   \
@@ -25,13 +25,15 @@ BENCHMARK_F( Resize , benchmarkName##_2D_##dataType##_##resizeMethod ,      \
     B.eval();                                                               \
 }
 
-// 32-bit benchmarks
-RESIZE_BENCHMARK_2D(Shrink, AF_INTERP_NEAREST,   f32, 0.5)
-RESIZE_BENCHMARK_2D(Expand, AF_INTERP_NEAREST,   f32, 2.0)
-RESIZE_BENCHMARK_2D(Shrink, AF_INTERP_BILINEAR,  f32, 0.5)
-RESIZE_BENCHMARK_2D(Expand, AF_INTERP_BILINEAR,  f32, 2.0)
-// 64-bit benchmarks
-RESIZE_BENCHMARK_2D(Shrink, AF_INTERP_NEAREST,   f64, 0.5)
-RESIZE_BENCHMARK_2D(Expand, AF_INTERP_NEAREST,   f64, 2.0)
-RESIZE_BENCHMARK_2D(Shrink, AF_INTERP_BILINEAR,  f64, 0.5)
-RESIZE_BENCHMARK_2D(Expand, AF_INTERP_BILINEAR,  f64, 2.0)
+#define RESIZE_BENCHMARK_2D_SET(dataType)                        \
+RESIZE_BENCHMARK_2D(Shrink, AF_INTERP_NEAREST,   dataType, 0.5)  \
+RESIZE_BENCHMARK_2D(Expand, AF_INTERP_NEAREST,   dataType, 2.0)  \
+RESIZE_BENCHMARK_2D(Shrink, AF_INTERP_BILINEAR,  dataType, 0.5)  \
+RESIZE_BENCHMARK_2D(Expand, AF_INTERP_BILINEAR,  dataType, 2.0)  \
+
+RESIZE_BENCHMARK_2D_SET(u8)
+RESIZE_BENCHMARK_2D_SET(s16)
+RESIZE_BENCHMARK_2D_SET(s32)
+RESIZE_BENCHMARK_2D_SET(s64)
+RESIZE_BENCHMARK_2D_SET(f32)
+RESIZE_BENCHMARK_2D_SET(f64)

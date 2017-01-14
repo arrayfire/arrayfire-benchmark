@@ -6,6 +6,7 @@
  */
 
 #include <math.h>
+#include <cstdint>
 #include <celero/Celero.h>
 #include <arrayfire.h>
 #include "fixtures.h" // defines most test figures
@@ -15,18 +16,18 @@ using namespace af;
 extern unsigned int samples;
 extern unsigned int iterations;
 
-// Benchmarks for 32-bit floating point tests
-BASELINE_F(Rotate, Baseline, Fixture_2D_f32, samples, iterations) { }
+BASELINE_F(Rotate, Baseline, AF_Fixture_2D, samples, iterations) { }
 
-BENCHMARK_F(Rotate, Rotate_f32_INTERP_NEAREST, Fixture_2D_f32, samples, iterations)
-{
-    array B = rotate(A, af::Pi / 4.0f);
-    B.eval();
-}
+#define Rotate_BENCHMARK(ctype, dataType)                                                           \
+BENCHMARK_F( Rotate, Rotate_##dataType##_INTERP_NEAREST, Fixture_2D_##dataType, samples, iterations)\
+{                                                                                                   \
+    array B = rotate(A, af::Pi / 4.0f);                                                             \
+    B.eval();                                                                                       \
+}                                                                                                   \
 
-// Benchmarks for 64-bit floating point tests
-BENCHMARK_F(Rotate, Rotate_f64_INTERP_NEAREST, Fixture_2D_f64, samples, iterations)
-{
-    array B = rotate(A, af::Pi / 4.0f);
-    B.eval();
-}
+Rotate_BENCHMARK(std::uint8_t, u8)
+Rotate_BENCHMARK(std::int16_t, s16)
+Rotate_BENCHMARK(std::int32_t, s32)
+Rotate_BENCHMARK(std::int64_t, s64)
+Rotate_BENCHMARK(float, f32)
+Rotate_BENCHMARK(double, f64)

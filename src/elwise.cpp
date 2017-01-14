@@ -82,80 +82,95 @@ public:
 
 };
 
-class AF_ELWISE_Fixture_f32 : public AF_ELWISE_Fixture
+template<typename T>
+class ELWISE_Fixture : public AF_ELWISE_Fixture
 {
 public:
-    AF_ELWISE_Fixture_f32() : AF_ELWISE_Fixture(af_dtype::f32) {}
+    ELWISE_Fixture() : AF_ELWISE_Fixture(af_dtype(dtype_traits<T>::af_type)) {}
 };
 
-class AF_ELWISE_Fixture_f64 : public AF_ELWISE_Fixture
-{
-public:
-    AF_ELWISE_Fixture_f64() : AF_ELWISE_Fixture(af_dtype::f64) {}
-};
+typedef ELWISE_Fixture<uint8_t> AF_ELWISE_Fixture_u8;
+typedef ELWISE_Fixture<int16_t> AF_ELWISE_Fixture_s16;
+typedef ELWISE_Fixture<uint16_t> AF_ELWISE_Fixture_u16;
+typedef ELWISE_Fixture<int32_t> AF_ELWISE_Fixture_s32;
+typedef ELWISE_Fixture<uint32_t> AF_ELWISE_Fixture_u32;
+typedef ELWISE_Fixture<long long> AF_ELWISE_Fixture_s64;
+typedef ELWISE_Fixture<unsigned long long> AF_ELWISE_Fixture_u64;
+typedef ELWISE_Fixture<float> AF_ELWISE_Fixture_f32;
+typedef ELWISE_Fixture<double> AF_ELWISE_Fixture_f64;
+
 
 // do-nothing baseline measurement
-BASELINE_F( ELWISE_f32, Baseline, AF_ELWISE_Fixture_f32, samples,  iterations) {}
-BASELINE_F( ELWISE_f64, Baseline, AF_ELWISE_Fixture_f64, samples,  iterations) {}
+BASELINE_F( ELWISE_u8 , Baseline, AF_ELWISE_Fixture, samples,  iterations) {}
+BASELINE_F( ELWISE_s16, Baseline, AF_ELWISE_Fixture, samples,  iterations) {}
+BASELINE_F( ELWISE_s32, Baseline, AF_ELWISE_Fixture, samples,  iterations) {}
+BASELINE_F( ELWISE_s64, Baseline, AF_ELWISE_Fixture, samples,  iterations) {}
+BASELINE_F( ELWISE_f32, Baseline, AF_ELWISE_Fixture, samples,  iterations) {}
+BASELINE_F( ELWISE_f64, Baseline, AF_ELWISE_Fixture, samples,  iterations) {}
 
-#define ELWISE_BENCHMARK(functionName, operation)                               \
-BENCHMARK_F( ELWISE_f32, ELWISE_f32_##functionName, AF_ELWISE_Fixture_f32,      \
-        samples, iterations)                                                    \
-{                                                                               \
-    af::array result = operation ;                                              \
-    result.eval();                                                              \
-}                                                                               \
-BENCHMARK_F( ELWISE_f64, ELWISE_f64_##functionName, AF_ELWISE_Fixture_f64,      \
-        samples, iterations)                                                    \
-{                                                                               \
-    af::array result = operation ;                                              \
-    result.eval();                                                              \
-}                                                                               \
+#define _ELWISE_BENCHMARK(functionName, operation, ctype, dataType)                                                  \
+BENCHMARK_F(ELWISE_##dataType, Elwise_##dataType##_##functionName, AF_ELWISE_Fixture_##dataType, samples, iterations)\
+{                                                                                                                    \
+    af::array result = operation ;                                                                                   \
+    result.eval();                                                                                                   \
+}                                                                                                                    \
 
-//
+#define ELWISE_BENCHMARK_REALS(functionName, operation)     \
+    _ELWISE_BENCHMARK(functionName, operation, float, f32)  \
+    _ELWISE_BENCHMARK(functionName, operation, double, f64) \
+
+#define ELWISE_BENCHMARK(functionName, operation)           \
+    _ELWISE_BENCHMARK(functionName, operation, uint8, u8)   \
+    _ELWISE_BENCHMARK(functionName, operation, int16, s16)  \
+    _ELWISE_BENCHMARK(functionName, operation, int32, s32)  \
+    _ELWISE_BENCHMARK(functionName, operation, int64, s64)  \
+    _ELWISE_BENCHMARK(functionName, operation, float, f32)  \
+    _ELWISE_BENCHMARK(functionName, operation, double, f64) \
+
+
 // Benchmark ArrayFire functions individually:
 //
 
 // built-in functions
 ELWISE_BENCHMARK(MIN        , af::min(A, B))
 ELWISE_BENCHMARK(MAX        , af::max(A, B))
-ELWISE_BENCHMARK(ATAN2      , af::atan2(A, B))
-ELWISE_BENCHMARK(HYPOT      , af::hypot(A, B))
-ELWISE_BENCHMARK(POW        , af::pow(A, B))
+ELWISE_BENCHMARK_REALS(ATAN2      , af::atan2(A, B))
+ELWISE_BENCHMARK_REALS(HYPOT      , af::hypot(A, B))
+ELWISE_BENCHMARK_REALS(POW        , af::pow(A, B))
 ELWISE_BENCHMARK(REMAINDER  , af::rem(A, B))
 ELWISE_BENCHMARK(MODULO     , af::mod(A, B))
 
 // trig functions
-ELWISE_BENCHMARK(SIN        , af::sin(A))
-ELWISE_BENCHMARK(COS        , af::cos(A))
-ELWISE_BENCHMARK(TAN        , af::tan(A))
-ELWISE_BENCHMARK(ARC_SIN    , af::asin(A))
-ELWISE_BENCHMARK(ARC_COS    , af::acos(A))
-ELWISE_BENCHMARK(ARC_TAN    , af::atan(A))
-ELWISE_BENCHMARK(HYP_SIN    , af::sinh(A))
-ELWISE_BENCHMARK(HYP_COS    , af::cosh(A))
-ELWISE_BENCHMARK(HYP_TAN    , af::tanh(A))
-ELWISE_BENCHMARK(HYP_ARC_SIN, af::asinh(A))
-ELWISE_BENCHMARK(HYP_ARC_COS, af::acosh(A))
-ELWISE_BENCHMARK(HYP_ARC_TAN, af::atanh(A))
+ELWISE_BENCHMARK_REALS(SIN        , af::sin(A))
+ELWISE_BENCHMARK_REALS(COS        , af::cos(A))
+ELWISE_BENCHMARK_REALS(TAN        , af::tan(A))
+ELWISE_BENCHMARK_REALS(ARC_SIN    , af::asin(A))
+ELWISE_BENCHMARK_REALS(ARC_COS    , af::acos(A))
+ELWISE_BENCHMARK_REALS(ARC_TAN    , af::atan(A))
+ELWISE_BENCHMARK_REALS(HYP_SIN    , af::sinh(A))
+ELWISE_BENCHMARK_REALS(HYP_COS    , af::cosh(A))
+ELWISE_BENCHMARK_REALS(HYP_TAN    , af::tanh(A))
+ELWISE_BENCHMARK_REALS(HYP_ARC_SIN, af::asinh(A))
+ELWISE_BENCHMARK_REALS(HYP_ARC_COS, af::acosh(A))
+ELWISE_BENCHMARK_REALS(HYP_ARC_TAN, af::atanh(A))
 
 // exponentals and logs
-ELWISE_BENCHMARK(EXP        , af::exp(A))
-ELWISE_BENCHMARK(EXP_M1     , af::expm1(A))
-ELWISE_BENCHMARK(ERF        , af::erf(A))
-ELWISE_BENCHMARK(ERFC       , af::erfc(A))
-ELWISE_BENCHMARK(LOG_E      , af::log(A))
-ELWISE_BENCHMARK(LOG_1P     , af::log1p(A))
-ELWISE_BENCHMARK(LOG10      , af::log10(A))
+ELWISE_BENCHMARK_REALS(EXP        , af::exp(A))
+ELWISE_BENCHMARK_REALS(EXP_M1     , af::expm1(A))
+ELWISE_BENCHMARK_REALS(ERF        , af::erf(A))
+ELWISE_BENCHMARK_REALS(ERFC       , af::erfc(A))
+ELWISE_BENCHMARK_REALS(LOG_E      , af::log(A))
+ELWISE_BENCHMARK_REALS(LOG_1P     , af::log1p(A))
+ELWISE_BENCHMARK_REALS(LOG10      , af::log10(A))
 
 // other functions
-ELWISE_BENCHMARK(SQRT       , af::sqrt(A))
-ELWISE_BENCHMARK(CBRT       , af::cbrt(A))
-ELWISE_BENCHMARK(IS_ZERO    , af::iszero(A))
-ELWISE_BENCHMARK(IS_INF     , af::isInf(A))
-ELWISE_BENCHMARK(IS_NAN     , af::isNaN(A))
-ELWISE_BENCHMARK(TGAMMA     , af::tgamma(A))
-ELWISE_BENCHMARK(LGAMMA     , af::lgamma(A))
+ELWISE_BENCHMARK_REALS(SQRT       , af::sqrt(A))
+ELWISE_BENCHMARK_REALS(CBRT       , af::cbrt(A))
+ELWISE_BENCHMARK_REALS(IS_ZERO    , af::iszero(A))
+ELWISE_BENCHMARK_REALS(IS_INF     , af::isInf(A))
+ELWISE_BENCHMARK_REALS(IS_NAN     , af::isNaN(A))
+ELWISE_BENCHMARK_REALS(TGAMMA     , af::tgamma(A))
+ELWISE_BENCHMARK_REALS(LGAMMA     , af::lgamma(A))
 
 // basic mathematical operators
 ELWISE_BENCHMARK(ADD        , A + B)
