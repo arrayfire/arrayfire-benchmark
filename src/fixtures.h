@@ -53,8 +53,8 @@ public:
         {
             case f32: max_pow = 24; break;  // 16M *  4B = 64MB
             case f64: max_pow = 24; break;  // 16M *  8B = 128MB
-            case c32: max_pow = 24; break;  // 16M *  8B = 128MB
-            case c64: max_pow = 24; break;  // 16M * 16B = 256MB
+            case c32: max_pow = 23; break;  // 16M *  8B = 128MB
+            case c64: max_pow = 23; break;  // 16M * 16B = 256MB
             default : max_pow = 24; break;  // 32M *  4B = 64MB
         }
         setDefaultExperimentValues();
@@ -129,8 +129,9 @@ public:
         {
             case f32: max_pow = 12; break;  // 4K * 4K *  4B =  64MB
             case f64: max_pow = 12; break;  // 4K * 4K *  8B = 128MB
-            case c32: max_pow = 12; break;  // 4K * 4K *  8B = 128MB
-            case c64: max_pow = 12; break;  // 4K * 4K * 16B = 256MB
+            case s64: max_pow = 12; break;  // 4K * 4K *  8B = 128MB
+            case c32: max_pow = 11; break;  // 4K * 4K *  8B = 128MB
+            case c64: max_pow = 11; break;  // 4K * 4K * 16B = 256MB
             default : max_pow = 12; break;  // 4K * 4K *  4B = 128MB
         }
         setDefaultExperimentValues();

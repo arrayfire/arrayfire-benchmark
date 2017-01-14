@@ -33,9 +33,9 @@ public:
         switch(this->data_type)
         {
             case f32: max_pow = 25; break;  // 32M *  4B = 128MB
-            case f64: max_pow = 24; break;  // 16M *  8B = 128MB
+            case f64: max_pow = 25; break;  // 32M *  8B = 256MB
             case c32: max_pow = 24; break;  // 16M *  8B = 128MB
-            case c64: max_pow = 23; break;  //  8M * 16B = 128MB
+            case c64: max_pow = 24; break;  // 16M * 16B = 256MB
             default : max_pow = 25; break;  // 32M *  4B = 128MB
         }
         setDefaultExperimentValues();
