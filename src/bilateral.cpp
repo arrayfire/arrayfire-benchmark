@@ -25,6 +25,5 @@ BENCHMARK_F( BilateralFilter, BilateralFilter_##dataType, Fixture_2D_##dataType,
 BilateralFilter_BENCHMARK(uint8_t, u8)
 BilateralFilter_BENCHMARK(int16_t, s16)
 BilateralFilter_BENCHMARK(int32_t, s32)
-BilateralFilter_BENCHMARK(long long, s64)
 BilateralFilter_BENCHMARK(float, f32)
 BilateralFilter_BENCHMARK(double, f64)

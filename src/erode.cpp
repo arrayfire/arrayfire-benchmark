@@ -46,6 +46,5 @@ Erode_BENCHMARK_PAIR(dataType, 11, 11)                           \
 Erode_BENCHMARK_SET(u8)
 Erode_BENCHMARK_SET(s16)
 Erode_BENCHMARK_SET(s32)
-Erode_BENCHMARK_SET(s64)
 Erode_BENCHMARK_SET(f32)
 Erode_BENCHMARK_SET(f64)
