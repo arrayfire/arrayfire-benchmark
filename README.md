@@ -37,8 +37,8 @@ Note, you may install ArrayFire to a non-system path if needed.
 
 Basic building instructions:
 
-    git clone --recursive https://github.com/bkloppenborg/arrayfire_benchmark.git
-    cd arrayfire_benchmark
+    git clone --recursive https://github.com/arrayfire/arrayfire-benchmark.git
+    cd arrayfire_benchmark
     cd build
     cmake ..
     make
