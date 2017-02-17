@@ -11,11 +11,11 @@
 using namespace af;
 
 extern unsigned int samples;
-extern unsigned int operations;
+extern unsigned int iterations;
 
 #define CONVOLVE_BASELINE(dataType, kernelWidth, kernelHeight)      \
 BASELINE_F( Convolve_##dataType##_##kernelWidth##x##kernelHeight ,  \
-            Baseline , Fixture_2D_##dataType , samples, operations) \
+            Baseline , Fixture_2D_##dataType , samples, iterations) \
 {                                                                   \
     array K = randu( kernelWidth, kernelHeight , dataType);         \
     K.eval();                                                       \
@@ -24,7 +24,7 @@ BASELINE_F( Convolve_##dataType##_##kernelWidth##x##kernelHeight ,  \
 #define CONVOLVE_BENCHMARK(dataType, kernelWidth, kernelHeight)     \
 BENCHMARK_F( Convolve_##dataType##_##kernelWidth##x##kernelHeight , \
   Convolve_##dataType##_##kernelWidth##x##kernelHeight ,            \
-    Fixture_2D_##dataType , samples, operations)                    \
+    Fixture_2D_##dataType , samples, iterations)                    \
 {                                                                   \
     array K = randu(kernelWidth, kernelHeight, dataType);           \
     K.eval();                                                       \
@@ -32,17 +32,19 @@ BENCHMARK_F( Convolve_##dataType##_##kernelWidth##x##kernelHeight , \
     B.eval();                                                       \
 }                                                                   \
 
-CONVOLVE_BASELINE (f32, 5, 5)
-CONVOLVE_BENCHMARK(f32, 5, 5)
-CONVOLVE_BASELINE (f32, 9, 9)
-CONVOLVE_BENCHMARK(f32, 9, 9)
-CONVOLVE_BASELINE (f32, 11, 11)
-CONVOLVE_BENCHMARK(f32, 11, 11)
+#define CONVOLVE_BENCHMARK_PAIR(dataType, kernelWidth, kernelHeight) \
+CONVOLVE_BASELINE (dataType, kernelWidth, kernelHeight)             \
+CONVOLVE_BENCHMARK(dataType, kernelWidth, kernelHeight)             \
 
-CONVOLVE_BASELINE (f64, 5, 5)
-CONVOLVE_BENCHMARK(f64, 5, 5)
-CONVOLVE_BASELINE (f64, 9, 9)
-CONVOLVE_BENCHMARK(f64, 9, 9)
-CONVOLVE_BASELINE (f64, 11, 11)
-CONVOLVE_BENCHMARK(f64, 11, 11)
+#define CONVOLVE_BENCHMARK_SET(dataType)                            \
+CONVOLVE_BENCHMARK_PAIR(dataType, 5, 5)                             \
+CONVOLVE_BENCHMARK_PAIR(dataType, 9, 9)                             \
+CONVOLVE_BENCHMARK_PAIR(dataType, 11, 11)                           \
 
+
+CONVOLVE_BENCHMARK_SET(u8)
+CONVOLVE_BENCHMARK_SET(s16)
+CONVOLVE_BENCHMARK_SET(s32)
+CONVOLVE_BENCHMARK_SET(s64)
+CONVOLVE_BENCHMARK_SET(f32)
+CONVOLVE_BENCHMARK_SET(f64)

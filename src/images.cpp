@@ -17,7 +17,7 @@ using namespace af;
 namespace fs = boost::filesystem;
 
 unsigned int image_samples = 10;
-unsigned int image_operations = 10;
+unsigned int image_iterations = 10;
 extern std::string image_directory;
 
 // Base class for directories of images
@@ -26,11 +26,13 @@ class FixtureImage : public AF_Fixture
 public:
     af::array image;
 
-    FixtureImage(){}
+    FixtureImage(){
+        setDefaultExperimentValues();
+    }
 
-    virtual std::vector<std::pair<int64_t, uint64_t>> getExperimentValues() const
+    void setDefaultExperimentValues()
     {
-        std::vector<std::pair<int64_t, uint64_t>> sizes;
+        std::vector<std::pair<int64_t, uint64_t>> &sizes = this->problemSpace;
         if(image_directory.size() > 0)
         {
             sizes.push_back(std::make_pair<int64_t, uint64_t>(240, 0));
@@ -39,7 +41,9 @@ public:
             sizes.push_back(std::make_pair<int64_t, uint64_t>(1080, 0));
             sizes.push_back(std::make_pair<int64_t, uint64_t>(3840, 0));
         }
-        return sizes;
+        if(this->use_max_problemspace && sizes.size() > 1){
+            sizes.erase(sizes.begin(), sizes.end() - 1);
+        }
     }
 
     /// Before each run, build a vector of random integers.
@@ -106,7 +110,7 @@ public:
 };
 
 // Benchmarks for image tests
-BASELINE_F(Image, Baseline, FixtureImage,  image_samples, image_operations) {}
+BASELINE_F(Image, Baseline, FixtureImage,  image_samples, image_iterations) {}
 
 // Macro to simplify the creation of benchmarks.
 // Here benchmarkFunction will be an ArrayFire function name. The variadic
@@ -114,7 +118,7 @@ BASELINE_F(Image, Baseline, FixtureImage,  image_samples, image_operations) {}
 // image, use the variable "image" (from the FixtureImage class)
 #define IMAGE_BENCHMARK(benchmarkName, benchmarkFunction, ...)    \
 BENCHMARK_F(Image, Image_##benchmarkName , FixtureImage, \
-    image_samples, image_operations)                \
+    image_samples, image_iterations)                \
 {                                                   \
     array B = benchmarkFunction ( __VA_ARGS__ );    \
 }                                                   \
@@ -130,7 +134,7 @@ IMAGE_BENCHMARK(Resize_Expand_2x,   af::resize,     2.0, image, AF_INTERP_NEARES
 // image, use the variable "image" (from the FixtureImage class)
 #define IMAGE_KERNEL_BENCHMARK(benchmarkName, benchmarkFunction, ...)    \
 BENCHMARK_F(Image, Image_##benchmarkName , FixtureImageWithKernel, \
-    image_samples, image_operations)                \
+    image_samples, image_iterations)                \
 {                                                   \
     array B = benchmarkFunction ( __VA_ARGS__ );    \
 }
@@ -149,12 +153,12 @@ IMAGE_KERNEL_BENCHMARK(Bilateral_9x9,    af::bilateral,  image, 2.5f, 50.0f)
 IMAGE_KERNEL_BENCHMARK(Bilateral_11x11,  af::bilateral,  image, 2.5f, 50.0f)
 
 // Other remaining benchmarks
-BENCHMARK_F(Image, Image_FAST, FixtureImage,  image_samples, image_operations)
+BENCHMARK_F(Image, Image_FAST, FixtureImage,  image_samples, image_iterations)
 {
     af::features features = af::fast(image, 20, 9, 0, 0.05f);
 }
 
-BENCHMARK_F(Image, Image_ORB, FixtureImage,  image_samples, image_operations)
+BENCHMARK_F(Image, Image_ORB, FixtureImage,  image_samples, image_iterations)
 {
     af::features features;
     af::array descriptions;

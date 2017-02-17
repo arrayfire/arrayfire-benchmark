@@ -120,7 +120,7 @@ if [ ! -d ${AF_DIR} ] ; then
         fi
     else
         if [ -z "${release}" ]; then
-            install_arrayfire "3.3.0"
+            install_arrayfire "3.4.2"
         else
             install_arrayfire ${release}
         fi

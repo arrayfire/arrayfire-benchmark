@@ -11,7 +11,7 @@
 using namespace af;
 
 extern unsigned int samples;
-extern unsigned int operations;
+extern unsigned int iterations;
 
 class AF_JIT_Fixture : public AF_Fixture
 {
@@ -26,6 +26,7 @@ public:
     {
         this->data_type = af_dtype::f32;
         max_pow = 25;
+        setDefaultExperimentValues();
     }
 
     AF_JIT_Fixture(af_dtype data_type)
@@ -34,16 +35,17 @@ public:
         switch(this->data_type)
         {
             case f32: max_pow = 25; break;  // 32M *  4B = 128MB
-            case f64: max_pow = 24; break;  // 16M *  8B = 128MB
-            case c32: max_pow = 24; break;  // 16M *  8B = 128MB
+            case f64: max_pow = 25; break;  // 16M *  8B = 128MB
+            case c32: max_pow = 23; break;  // 16M *  8B = 128MB
             case c64: max_pow = 23; break;  //  8M * 16B = 128MB
             default : max_pow = 25; break;  // 32M *  4B = 128MB
         }
+        setDefaultExperimentValues();
     }
 
-    virtual std::vector<std::pair<int64_t, uint64_t>> getExperimentValues() const
+    void setDefaultExperimentValues()
     {
-        std::vector<std::pair<int64_t, uint64_t>> problemSpace;
+        std::vector<std::pair<int64_t, uint64_t>> &problemSpace = this->problemSpace;
         // 256 - 1048576 elements (2^8 - 2^20)
         // 256 - 33554432 elements (2^8 - 2^25)
         for(int i = 8; i <= max_pow; i++)
@@ -53,13 +55,12 @@ public:
 
         }
 
-        return problemSpace;
-
     }
 
     /// Before each run, build a vector of random integers.
     virtual void setUp(int64_t experimentSize)
     {
+        experimentSize = experimentSize <= 0 ? 1 : experimentSize;
         try
         {
             deviceGC();
@@ -94,25 +95,25 @@ public:
 };
 
 // do-nothing baseline measurement
-BASELINE_F( JIT_f32, Baseline, AF_JIT_Fixture_f32, samples,  operations) {}
-BASELINE_F( JIT_f64, Baseline, AF_JIT_Fixture_f64, samples,  operations) {}
+BASELINE_F( JIT_f32, Baseline, AF_JIT_Fixture_f32, samples,  iterations) {}
+BASELINE_F( JIT_f64, Baseline, AF_JIT_Fixture_f64, samples,  iterations) {}
 
 #define JIT_BENCHMARK(functionName, operation)                      \
 BENCHMARK_F(JIT_f32, JIT_f32_##functionName, AF_JIT_Fixture_f32,    \
-            samples, operations)                                    \
+            samples, iterations)                                    \
 {                                                                   \
     af::array result = operation ;                                  \
     result.eval();                                                  \
 }                                                                   \
 BENCHMARK_F(JIT_f64, JIT_f64_##functionName, AF_JIT_Fixture_f64,    \
-            samples, operations)                                    \
+            samples, iterations)                                    \
 {                                                                   \
     af::array result = operation ;                                  \
     result.eval();                                                  \
 }                                                                   \
 
 //
-// Benchmark ArrayFire JIT operations when combining results:
+// Benchmark ArrayFire JIT iterations when combining results:
 //
 
 // A few functions that combine results
@@ -130,16 +131,16 @@ JIT_BENCHMARK(FUNCTION_CALL, jit_add(A, B) + jit_subtract(A, B))
 
 //
 // NOJIT
-// Benchmark ArrayFire JIT operations when combining results but evaluating at
+// Benchmark ArrayFire JIT iterations when combining results but evaluating at
 // every step
 //
 
 // do-nothing baseline measurement
-BASELINE_F( NOJIT_f32, Baseline, AF_JIT_Fixture_f32, samples,  operations) {}
-BASELINE_F( NOJIT_f64, Baseline, AF_JIT_Fixture_f64, samples,  operations) {}
+BASELINE_F( NOJIT_f32, Baseline, AF_JIT_Fixture_f32, samples,  iterations) {}
+BASELINE_F( NOJIT_f64, Baseline, AF_JIT_Fixture_f64, samples,  iterations) {}
 
 //
-// Benchmark ArrayFire JIT operations when combining results:
+// Benchmark ArrayFire JIT iterations when combining results:
 //
 
 // NOJIT with function calls
@@ -158,14 +159,14 @@ af::array nojit_subtract(af::array A, af::array B)
 
 // A few functions that combine results
 #define NOJIT_BENCHMARK(type)                                                                       \
-BENCHMARK_F( NOJIT_##type , NOJIT_##type##_AXPY , AF_JIT_Fixture_##type , samples, operations)      \
+BENCHMARK_F( NOJIT_##type , NOJIT_##type##_AXPY , AF_JIT_Fixture_##type , samples, iterations)      \
 {                                                                                                   \
     af::array temp1 = A * B;                                                                        \
     temp1.eval();                                                                                   \
     af::array temp2 = temp1 + C;                                                                    \
     temp2.eval();                                                                                   \
 }                                                                                                   \
-BENCHMARK_F( NOJIT_##type , NOJIT_##type##_TRIGADD , AF_JIT_Fixture_##type , samples, operations)   \
+BENCHMARK_F( NOJIT_##type , NOJIT_##type##_TRIGADD , AF_JIT_Fixture_##type , samples, iterations)   \
 {                                                                                                   \
     af::array temp1 = af::sin(A);                                                                   \
     temp1.eval();                                                                                   \
@@ -174,21 +175,21 @@ BENCHMARK_F( NOJIT_##type , NOJIT_##type##_TRIGADD , AF_JIT_Fixture_##type , sam
     af::array temp3 = temp1 + temp2;                                                                \
     temp3.eval();                                                                                   \
 }                                                                                                   \
-BENCHMARK_F( NOJIT_##type , NOJIT_##type##_TRIGMULT , AF_JIT_Fixture_##type , samples, operations)  \
+BENCHMARK_F( NOJIT_##type , NOJIT_##type##_TRIGMULT , AF_JIT_Fixture_##type , samples, iterations)  \
 {                                                                                                   \
     af::array temp1 = af::cos(A);                                                                   \
     temp1.eval();                                                                                   \
     af::array temp2 = B * temp1;                                                                    \
     temp2.eval();                                                                                   \
 }                                                                                                   \
-BENCHMARK_F( NOJIT_##type , NOJIT_##type##_TRIGDIV , AF_JIT_Fixture_##type , samples, operations)   \
+BENCHMARK_F( NOJIT_##type , NOJIT_##type##_TRIGDIV , AF_JIT_Fixture_##type , samples, iterations)   \
 {                                                                                                   \
     af::array temp1 = af::cos(A);                                                                   \
     temp1.eval();                                                                                   \
     af::array temp2 = temp1 / B;                                                                    \
     temp2.eval();                                                                                   \
 }                                                                                                   \
-BENCHMARK_F( NOJIT_##type , NOJIT_##type##_NO_FUNCTION_CALL , AF_JIT_Fixture_##type , samples, operations)  \
+BENCHMARK_F( NOJIT_##type , NOJIT_##type##_NO_FUNCTION_CALL , AF_JIT_Fixture_##type , samples, iterations)  \
 {                                                                                                   \
     af::array temp1 = A + B;                                                                        \
     temp1.eval();                                                                                   \
@@ -197,7 +198,7 @@ BENCHMARK_F( NOJIT_##type , NOJIT_##type##_NO_FUNCTION_CALL , AF_JIT_Fixture_##t
     af::array result = temp1 + temp2;                                                               \
     result.eval();                                                                                  \
 }                                                                                                   \
-BENCHMARK_F( NOJIT_##type , NOJIT_##type##_FUNCTION_CALL , AF_JIT_Fixture_##type , samples, operations)     \
+BENCHMARK_F( NOJIT_##type , NOJIT_##type##_FUNCTION_CALL , AF_JIT_Fixture_##type , samples, iterations)     \
 {                                                                                                   \
     af::array result = nojit_add(A, B) + nojit_subtract(A, B);                                      \
     result.eval();                                                                                  \

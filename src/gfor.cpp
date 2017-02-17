@@ -11,7 +11,7 @@
 using namespace af;
 
 extern unsigned int samples;
-extern unsigned int operations;
+extern unsigned int iterations;
 
 class AF_GFOR_Fixture : public AF_Fixture
 {
@@ -20,25 +20,31 @@ public:
     array input_cube;
     array output;
 
-    AF_GFOR_Fixture() { this->data_type = af_dtype::f32; }
-
-    virtual std::vector<std::pair<int64_t, uint64_t>> getExperimentValues() const
+    AF_GFOR_Fixture()
     {
-        std::vector<std::pair<int64_t, uint64_t>> problemSpace;
+        this->data_type = af_dtype::f32;
+        setDefaultExperimentValues();
+    }
+
+    void setDefaultExperimentValues()
+    {
+        std::vector<std::pair<int64_t, uint64_t>> problemSpace = this->problemSpace;
         // 32 - 256 elements (2^5 - 2^8)
         for(int i = 5; i <= 8; i++)
         {
             auto experiment_size = std::make_pair<int64_t, uint64_t>(pow(2, i), 0);
             problemSpace.push_back(experiment_size);
         }
-
-        return problemSpace;
+        if(this->use_max_problemspace && problemSpace.size() > 1){
+            problemSpace.erase(problemSpace.begin(), problemSpace.end() - 1);
+        }
 
     }
 
     /// Before each run, build a vector of random integers.
     virtual void setUp(int64_t experimentSize)
     {
+        experimentSize = experimentSize <= 0 ? 1 : experimentSize;
         try
         {
             deviceGC();
@@ -60,11 +66,11 @@ public:
 };
 
 // do-nothing baseline measurement
-BASELINE_F( GFOR, Baseline, AF_GFOR_Fixture, samples,  operations) {}
+BASELINE_F( GFOR, Baseline, AF_GFOR_Fixture, samples,  iterations) {}
 
 
 // Benchmark without using gfor:
-BENCHMARK_F( GFOR , GFOR_NO_LOOP_SUM , AF_GFOR_Fixture , 1, 1) //samples, operations)
+BENCHMARK_F( GFOR , GFOR_NO_LOOP_SUM , AF_GFOR_Fixture , 1, 1) //samples, iterations)
 {
     output = sum(sum(input_cube));
 
@@ -72,7 +78,7 @@ BENCHMARK_F( GFOR , GFOR_NO_LOOP_SUM , AF_GFOR_Fixture , 1, 1) //samples, operat
 }
 
 // Benchmark without using gfor:
-BENCHMARK_F( GFOR , GFOR_FOR_LOOP_SUM , AF_GFOR_Fixture , 1, 1) //samples, operations)
+BENCHMARK_F( GFOR , GFOR_FOR_LOOP_SUM , AF_GFOR_Fixture , 1, 1) //samples, iterations)
 {
     for(int i = 0; i < input_cube.dims(2); i++)
     {
@@ -84,7 +90,7 @@ BENCHMARK_F( GFOR , GFOR_FOR_LOOP_SUM , AF_GFOR_Fixture , 1, 1) //samples, opera
 
 
 // Benchmark using gfor:
-BENCHMARK_F( GFOR , GFOR_SUM , AF_GFOR_Fixture , 1, 1) //samples, operations)
+BENCHMARK_F( GFOR , GFOR_SUM , AF_GFOR_Fixture , 1, 1) //samples, iterations)
 {
     gfor(seq ii, input_cube.dims(2))
     {
