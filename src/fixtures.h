@@ -15,10 +15,19 @@ using namespace af;
 class AF_Fixture : public celero::TestFixture
 {
 public:
+    std::vector<std::pair<int64_t, uint64_t>> problemSpace;
+    static std::vector<std::pair<int64_t, uint64_t>> overrideProblemSpace;
 
     void onExperimentEnd()
     {
         af::sync();
+    }
+    virtual std::vector<std::pair<int64_t, uint64_t>> getExperimentValues() const
+    {
+        if(overrideProblemSpace.size()){
+            return overrideProblemSpace;
+        }
+        return problemSpace;
     }
 };
 
@@ -34,6 +43,7 @@ public:
     {
         this->data_type = af_dtype::f32;
         max_pow = 25;
+        setDefaultExperimentValues();
     }
     AF_Fixture_1D(af_dtype data_type)
     {
@@ -46,21 +56,19 @@ public:
             case c64: max_pow = 23; break;  //  8M * 16B = 128MB
             default : max_pow = 25; break;  // 32M *  4B = 128MB
         }
+        setDefaultExperimentValues();
     }
 
-    virtual std::vector<std::pair<int64_t, uint64_t>> getExperimentValues() const
+    void setDefaultExperimentValues()
     {
-        std::vector<std::pair<int64_t, uint64_t>> problemSpace;
         // 256 - 1048576 elements (2^8 - 2^20)
         // 256 - 33554432 elements (2^8 - 2^25)
+        this->problemSpace.clear();
         for(int i = 8; i <= max_pow; i++)
         {
             auto experiment_size = std::make_pair<int64_t, int64_t>((int64_t)pow(2, i), (int64_t)0);
-            problemSpace.push_back(experiment_size);
+            this->problemSpace.push_back(experiment_size);
         }
-
-        return problemSpace;
-
     }
 
     /// Before each run, build a vector of random integers.
@@ -107,6 +115,7 @@ public:
     {
         this->data_type = af_dtype::f32;
         max_pow = 25;
+        setDefaultExperimentValues();
     }
     AF_Fixture_2D(af_dtype data_type)
     {
@@ -119,11 +128,12 @@ public:
             case c64: max_pow = 11; break;  // 2K * 2K * 16B =  64MB
             default : max_pow = 12; break;  // 4K * 4K *  4B = 128MB
         }
+        setDefaultExperimentValues();
     }
 
-    virtual std::vector<std::pair<int64_t, uint64_t>> getExperimentValues() const
+    void setDefaultExperimentValues()
     {
-        std::vector<std::pair<int64_t, uint64_t>> problemSpace;
+        this->problemSpace.clear();
         // 32 x 32 - 32768 x 32768 (2^5 - 2^15)
         // 32 x 32 - 8196 x 8196 (2^5 - 2^13)
         for(int i = 5; i < max_pow; i++)
@@ -135,8 +145,6 @@ public:
             auto experiment_size = std::make_pair<int64_t, int64_t>((int64_t)problem_size, (int64_t)0);
             problemSpace.push_back(experiment_size);
         }
-
-        return problemSpace;
     }
 
     /// Before each run, build a vector of random integers.
