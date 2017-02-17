@@ -15,6 +15,7 @@ using namespace af;
 class AF_Fixture : public celero::TestFixture
 {
 public:
+    static bool use_max_problemspace;
 
     void onExperimentEnd()
     {
@@ -58,7 +59,9 @@ public:
             auto experiment_size = std::make_pair<int64_t, int64_t>((int64_t)pow(2, i), (int64_t)0);
             problemSpace.push_back(experiment_size);
         }
-
+        if(this->use_max_problemspace && problemSpace.size() > 1){
+            problemSpace.erase(problemSpace.begin(), problemSpace.end() - 1);
+        }
         return problemSpace;
 
     }
@@ -134,6 +137,9 @@ public:
             unsigned int problem_size = pow(width, 2);
             auto experiment_size = std::make_pair<int64_t, int64_t>((int64_t)problem_size, (int64_t)0);
             problemSpace.push_back(experiment_size);
+        }
+        if(this->use_max_problemspace && problemSpace.size() > 1){
+            problemSpace.erase(problemSpace.begin(), problemSpace.end() - 1);
         }
 
         return problemSpace;

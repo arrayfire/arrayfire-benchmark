@@ -31,6 +31,9 @@ public:
             auto experiment_size = std::make_pair<int64_t, uint64_t>(pow(2, i), 0);
             problemSpace.push_back(experiment_size);
         }
+        if(this->use_max_problemspace && problemSpace.size() > 1){
+            problemSpace.erase(problemSpace.begin(), problemSpace.end() - 1);
+        }
 
         return problemSpace;
 
